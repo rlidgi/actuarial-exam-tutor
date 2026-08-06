@@ -2,10 +2,11 @@
 Generates practice problems for the generate_practice_problem tool.
 
 Problem authoring is inherently a content-generation task, not a lookup, so
-this makes its own (cheap, structured) OpenAI call rather than trying to
-template problems by hand. Kept separate from tutor_service's main
-conversational model call per Section 48's model-selection cost strategy:
-this is a small/cheap-model task, not the main teaching turn.
+this makes its own structured OpenAI call rather than trying to template
+problems by hand. Kept as a separate call from tutor_service's main
+conversational turn so problem generation and teaching dialogue can use
+different models independently -- currently both are pinned to gpt-5.6-sol
+(quality prioritized over Section 48's cost-tiering suggestion here).
 """
 
 import json
@@ -16,7 +17,7 @@ from openai import OpenAI
 
 from app.tools.schemas import GeneratePracticeProblemOutput
 
-PROBLEM_MODEL = "gpt-5.6-luna"
+PROBLEM_MODEL = "gpt-5.6-sol"
 
 SYSTEM_PROMPT = (
     "You write SOA Exam P style probability practice problems. Given a topic, "

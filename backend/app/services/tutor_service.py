@@ -21,7 +21,7 @@ from app.prompts.tutor_prompt import SYSTEM_PROMPT
 from app.tools.dispatch import TOOL_HANDLERS, ToolContext
 from app.tools.openai_tools import OPENAI_TOOLS
 
-CHAT_MODEL = "gpt-5.6-terra"
+CHAT_MODEL = "gpt-5.6-sol"
 MAX_TOOL_ITERATIONS = 5
 MAX_HISTORY_MESSAGES = 20
 
