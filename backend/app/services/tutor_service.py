@@ -1,5 +1,6 @@
 """
-The tutor orchestrator: a hand-rolled OpenAI tool-calling loop.
+The tutor orchestrator: a hand-rolled OpenAI tool-calling loop against the
+Responses API (client.responses.create), not Chat Completions.
 
 Deliberately not the Assistants/Agents API -- per the architecture decision
 in this project, the backend owns conversation state and tool execution
@@ -7,6 +8,13 @@ directly rather than handing it to a managed thread/agent runtime, so
 context assembly stays under our control (Section 37/48's short-term-memory
 and cost discipline) and tool execution stays transactionally tied to our
 own DB writes.
+
+Responses API specifically (not Chat Completions) because gpt-5.6-sol
+rejects function tools combined with its default reasoning_effort on
+/v1/chat/completions -- the only way to keep sol's actual reasoning engaged
+during tool-calling turns is the Responses API; forcing reasoning_effort to
+"none" on Chat Completions would unblock tools but defeat the reason sol
+was chosen over the cheaper tiers.
 """
 
 import json
@@ -43,26 +51,19 @@ def _build_history(session: Session) -> list[dict]:
         .all()
     )
     recent.reverse()
-    return [{"role": "system", "content": SYSTEM_PROMPT}] + [
-        {"role": m.role, "content": m.content} for m in recent
-    ]
+    return [{"role": m.role, "content": m.content} for m in recent]
 
 
-def _run_tool_calls(tool_calls, ctx: ToolContext) -> list[dict]:
-    results = []
-    for call in tool_calls:
-        handler = TOOL_HANDLERS.get(call.function.name)
-        try:
-            args = json.loads(call.function.arguments or "{}")
-            result = handler(args, ctx) if handler else {"error": f"unknown tool {call.function.name}"}
-        except Exception as exc:  # noqa: BLE001 -- tool failures degrade gracefully, per Section 51
-            current_app.logger.exception("tool call failed: %s", call.function.name)
-            result = {"error": str(exc)}
+def _run_tool_call(call, ctx: ToolContext) -> dict:
+    handler = TOOL_HANDLERS.get(call.name)
+    try:
+        args = json.loads(call.arguments or "{}")
+        result = handler(args, ctx) if handler else {"error": f"unknown tool {call.name}"}
+    except Exception as exc:  # noqa: BLE001 -- tool failures degrade gracefully, per Section 51
+        current_app.logger.exception("tool call failed: %s", call.name)
+        result = {"error": str(exc)}
 
-        results.append(
-            {"role": "tool", "tool_call_id": call.id, "content": json.dumps(result)}
-        )
-    return results
+    return {"type": "function_call_output", "call_id": call.call_id, "output": json.dumps(result)}
 
 
 def handle_message(student_profile: StudentProfile, session: Session, user_text: str) -> str:
@@ -70,40 +71,31 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
     db.session.commit()
 
     ctx = ToolContext(student_profile=student_profile, session=session)
-    messages = _build_history(session)
+    input_items: list = _build_history(session)
     client = _client()
 
     final_text = FALLBACK_REPLY
     for _ in range(MAX_TOOL_ITERATIONS):
         try:
-            response = client.chat.completions.create(
-                model=CHAT_MODEL, messages=messages, tools=OPENAI_TOOLS
+            response = client.responses.create(
+                model=CHAT_MODEL,
+                instructions=SYSTEM_PROMPT,
+                tools=OPENAI_TOOLS,
+                input=input_items,
             )
         except Exception:
-            current_app.logger.exception("OpenAI chat completion failed")
+            current_app.logger.exception("OpenAI responses call failed")
             break
 
-        choice = response.choices[0].message
+        function_calls = [item for item in response.output if item.type == "function_call"]
 
-        if not choice.tool_calls:
-            final_text = choice.content or FALLBACK_REPLY
+        if not function_calls:
+            final_text = response.output_text or FALLBACK_REPLY
             break
 
-        messages.append(
-            {
-                "role": "assistant",
-                "content": choice.content,
-                "tool_calls": [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-                    }
-                    for tc in choice.tool_calls
-                ],
-            }
-        )
-        messages.extend(_run_tool_calls(choice.tool_calls, ctx))
+        for call in function_calls:
+            input_items.append(call)
+            input_items.append(_run_tool_call(call, ctx))
     else:
         current_app.logger.warning("tutor tool-calling loop hit MAX_TOOL_ITERATIONS")
 
