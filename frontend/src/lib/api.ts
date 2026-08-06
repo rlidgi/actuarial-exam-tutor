@@ -1,5 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
+export const EXAM_CODE = "P";
+
 export class ApiError extends Error {
   status: number;
 
@@ -9,11 +11,16 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  token?: string | null
+): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
@@ -27,15 +34,64 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
+export interface AuthResponse {
+  access_token: string;
+  user: { id: number; email: string };
+}
+
+export interface ChatResponse {
+  session_id: number;
+  reply: string;
+}
+
+export interface ProgressSummary {
+  overall_mastery: number;
+  topics_studied: number;
+  topics_total: number;
+  weakest_topic: string | null;
+  weakest_topic_mastery: number | null;
+  open_mistakes: number;
+  last_session_at: string | null;
+  next_recommended_topic: string;
+  next_recommended_reason: string;
+}
+
+export interface SessionSummary {
+  id: number;
+  started_at: string | null;
+  ended_at: string | null;
+  summary: string | null;
+}
+
 export const api = {
   register: (email: string, password: string) =>
-    request<{ access_token: string; user: { id: number; email: string } }>(
-      "/api/auth/register",
-      { method: "POST", body: JSON.stringify({ email, password }) }
-    ),
+    request<AuthResponse>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
   login: (email: string, password: string) =>
-    request<{ access_token: string; user: { id: number; email: string } }>(
-      "/api/auth/login",
-      { method: "POST", body: JSON.stringify({ email, password }) }
+    request<AuthResponse>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+  ensureProfile: (token: string) =>
+    request<{ id: number; exam: string }>(
+      "/api/students/profiles",
+      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE }) },
+      token
+    ),
+  sendMessage: (token: string, message: string) =>
+    request<ChatResponse>(
+      "/api/chat/message",
+      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE, message }) },
+      token
+    ),
+  getProgress: (token: string) =>
+    request<ProgressSummary>(`/api/students/me/progress?exam=${EXAM_CODE}`, {}, token),
+  getSessions: (token: string) =>
+    request<{ sessions: SessionSummary[] }>(
+      `/api/students/me/sessions?exam=${EXAM_CODE}`,
+      {},
+      token
     ),
 };
