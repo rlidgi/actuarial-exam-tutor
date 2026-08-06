@@ -11,6 +11,13 @@ export class ApiError extends Error {
   }
 }
 
+// Flask-JWT-Extended returns 401 for a validly-formed but expired/invalid
+// token, and 422 for one it can't even decode (e.g. corrupted storage).
+// Either way the stored token is unusable and the user needs to re-login.
+export function isAuthError(err: unknown): err is ApiError {
+  return err instanceof ApiError && (err.status === 401 || err.status === 422);
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},

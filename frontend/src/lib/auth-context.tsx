@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { api, type AuthResponse } from "./api";
 
 const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
@@ -33,27 +40,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (loginEmail: string, password: string) => {
+  // Stable identities: consumers (e.g. useRequireAuth) put these in effect
+  // dependency arrays, and a new function reference every render would
+  // re-trigger those effects on every unrelated re-render.
+  const login = useCallback(async (loginEmail: string, password: string) => {
     const response = await api.login(loginEmail, password);
     await afterAuth(response);
     window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
     setToken(response.access_token);
     setEmail(response.user.email);
-  };
+  }, []);
 
-  const register = async (registerEmail: string, password: string) => {
+  const register = useCallback(async (registerEmail: string, password: string) => {
     const response = await api.register(registerEmail, password);
     await afterAuth(response);
     window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
     setToken(response.access_token);
     setEmail(response.user.email);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
     setEmail(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, email, loading, login, register, logout }}>

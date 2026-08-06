@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 
@@ -8,9 +8,10 @@ interface AuthFormProps {
   title: string;
   submitLabel: string;
   onSubmit: (email: string, password: string) => Promise<void>;
+  banner?: ReactNode;
 }
 
-export function AuthForm({ title, submitLabel, onSubmit }: AuthFormProps) {
+export function AuthForm({ title, submitLabel, onSubmit, banner }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function AuthForm({ title, submitLabel, onSubmit }: AuthFormProps) {
         onSubmit={handleSubmit}
         className="w-full max-w-sm flex flex-col gap-4 border border-black/10 dark:border-white/10 rounded-lg p-6"
       >
+        {banner}
         <h1 className="text-lg font-semibold">{title}</h1>
 
         <label className="flex flex-col gap-1 text-sm">

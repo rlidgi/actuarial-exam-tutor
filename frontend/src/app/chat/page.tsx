@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { api, ApiError } from "@/lib/api";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import { api, ApiError, isAuthError } from "@/lib/api";
 import { MessageContent } from "@/components/message-content";
 
 interface ChatMessage {
@@ -12,19 +11,12 @@ interface ChatMessage {
 }
 
 export default function ChatPage() {
-  const { token, loading } = useAuth();
-  const router = useRouter();
+  const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!loading && !token) {
-      router.push("/login");
-    }
-  }, [loading, token, router]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,6 +36,10 @@ export default function ChatPage() {
       const response = await api.sendMessage(token, text);
       setMessages((prev) => [...prev, { role: "assistant", content: response.reply }]);
     } catch (err) {
+      if (isAuthError(err)) {
+        redirectToExpiredLogin();
+        return;
+      }
       setError(err instanceof ApiError ? err.message : "Failed to reach the tutor. Try again.");
     } finally {
       setSending(false);

@@ -1,31 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { api, ApiError, type ProgressSummary } from "@/lib/api";
+import { useRequireAuth } from "@/lib/use-require-auth";
+import { api, ApiError, isAuthError, type ProgressSummary } from "@/lib/api";
 
 export default function ProgressPage() {
-  const { token, loading } = useAuth();
-  const router = useRouter();
+  const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !token) {
-      router.push("/login");
-    }
-  }, [loading, token, router]);
 
   useEffect(() => {
     if (!token) return;
     api
       .getProgress(token)
       .then(setProgress)
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Failed to load progress.")
-      );
-  }, [token]);
+      .catch((err) => {
+        if (isAuthError(err)) {
+          redirectToExpiredLogin();
+          return;
+        }
+        setError(err instanceof ApiError ? err.message : "Failed to load progress.");
+      });
+  }, [token, redirectToExpiredLogin]);
 
   if (loading || !token) {
     return null;
