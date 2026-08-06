@@ -1,7 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 from app.models import Exam, StudentProfile, Topic, User
-from app.services.mastery_service import PerformanceOutcome, apply_mastery_update, decay_for
+from app.services.mastery_service import (
+    PerformanceOutcome,
+    apply_mastery_update,
+    decay_for,
+    outcome_from_recommended_change,
+    record_mastery_assessment,
+)
 
 
 def _make_profile(db):
@@ -67,3 +73,23 @@ def test_decay_is_zero_within_grace_period():
 def test_decay_grows_after_grace_period():
     last_reviewed = datetime.now(timezone.utc) - timedelta(days=30)
     assert decay_for(last_reviewed) > 0
+
+
+def test_outcome_from_recommended_change_buckets_correctly():
+    assert outcome_from_recommended_change(8) == PerformanceOutcome.CORRECT_INDEPENDENT
+    assert outcome_from_recommended_change(3) == PerformanceOutcome.CORRECT_WITH_ONE_HINT
+    assert outcome_from_recommended_change(1) == PerformanceOutcome.CORRECT_WITH_MULTIPLE_HINTS
+    assert outcome_from_recommended_change(0) == PerformanceOutcome.INCORRECT_NO_MISCONCEPTION
+    assert outcome_from_recommended_change(-1) == PerformanceOutcome.INCORRECT_NO_MISCONCEPTION
+    assert (
+        outcome_from_recommended_change(-5) == PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION
+    )
+
+
+def test_record_mastery_assessment_applies_bucketed_outcome(app, db):
+    profile, topic = _make_profile(db)
+
+    record = record_mastery_assessment(profile, topic, confidence=0.8, recommended_change=8)
+
+    assert record.mastery_score > 0
+    assert record.confidence == 0.8

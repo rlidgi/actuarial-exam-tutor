@@ -4,6 +4,7 @@ from app.models.student import StudentProfile
 from app.models.mastery import Mastery
 from app.models.mistake import Mistake
 from app.models.session import Session, Message
+from app.models.textbook_chunk import TextbookChunk
 
 __all__ = [
     "User",
@@ -15,4 +16,5 @@ __all__ = [
     "Mistake",
     "Session",
     "Message",
+    "TextbookChunk",
 ]

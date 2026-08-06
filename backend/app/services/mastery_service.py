@@ -81,3 +81,30 @@ def apply_mastery_update(
 
     db.session.commit()
     return record
+
+
+def outcome_from_recommended_change(recommended_change: int) -> PerformanceOutcome:
+    """Buckets the LLM's advisory recommended_change into a fixed outcome tier.
+
+    The update_mastery tool reports a free-text assessment plus an advisory
+    int delta -- the LLM's opinion, not the applied value (Section 15: "the
+    backend determines the actual update"). This maps that opinion onto our
+    fixed, tunable adjustment tiers rather than trusting an arbitrary LLM
+    magnitude directly.
+    """
+    if recommended_change >= 6:
+        return PerformanceOutcome.CORRECT_INDEPENDENT
+    if recommended_change >= 2:
+        return PerformanceOutcome.CORRECT_WITH_ONE_HINT
+    if recommended_change == 1:
+        return PerformanceOutcome.CORRECT_WITH_MULTIPLE_HINTS
+    if recommended_change >= -1:
+        return PerformanceOutcome.INCORRECT_NO_MISCONCEPTION
+    return PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION
+
+
+def record_mastery_assessment(
+    student_profile: StudentProfile, topic: Topic, confidence: float, recommended_change: int
+) -> Mastery:
+    outcome = outcome_from_recommended_change(recommended_change)
+    return apply_mastery_update(student_profile, topic, outcome, confidence)
