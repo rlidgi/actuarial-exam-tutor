@@ -29,6 +29,7 @@ from app.rag.chunk import chunk_book  # noqa: E402
 from app.rag.extract import extract_book  # noqa: E402
 from app.rag.sources import (  # noqa: E402
     EXAM_P_SOURCES,
+    EXAM_P_TOPIC_WEIGHTS,
     GENERAL_PROBABILITY,
     MULTIVARIATE_RANDOM_VARIABLES,
     UNIVARIATE_RANDOM_VARIABLES,
@@ -51,8 +52,11 @@ def ensure_exam_and_topics() -> tuple[Exam, dict[str, Topic]]:
     for name in EXAM_P_TOPICS:
         topic = Topic.query.filter_by(exam_id=exam.id, name=name).first()
         if topic is None:
-            topic = Topic(exam_id=exam.id, name=name)
+            topic = Topic(exam_id=exam.id, name=name, exam_weight=EXAM_P_TOPIC_WEIGHTS[name])
             db.session.add(topic)
+            db.session.commit()
+        elif topic.exam_weight is None:
+            topic.exam_weight = EXAM_P_TOPIC_WEIGHTS[name]
             db.session.commit()
         topics[name] = topic
 

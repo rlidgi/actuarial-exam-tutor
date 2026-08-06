@@ -27,3 +27,12 @@ class TextbookChunk(db.Model):
 
     exam = db.relationship("Exam")
     topic = db.relationship("Topic")
+
+    __table_args__ = (
+        db.Index(
+            "textbook_chunks_embedding_hnsw_idx",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+    )

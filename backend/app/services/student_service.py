@@ -1,8 +1,9 @@
 from app.extensions import db
-from app.models.exam import Exam
+from app.models.exam import Exam, Topic
 from app.models.mistake import Mistake
 from app.models.session import Session
 from app.models.student import StudentProfile
+from app.services.curriculum_service import select_next_topic
 
 
 class ProfileNotFoundError(Exception):
@@ -93,3 +94,33 @@ def recent_sessions(profile: StudentProfile, limit: int = 10) -> list[Session]:
         .limit(limit)
         .all()
     )
+
+
+def profile_progress_summary(profile: StudentProfile) -> dict:
+    """A simple progress snapshot -- not an analytics dashboard (Section 8
+    explicitly defers those past MVP), just enough for a student to see
+    where they stand and what's next.
+    """
+    topics_total = Topic.query.filter_by(exam_id=profile.exam_id).count()
+    mastery_records = profile.mastery_records
+
+    overall_mastery = (
+        round(sum(r.mastery_score for r in mastery_records) / len(mastery_records))
+        if mastery_records else 0
+    )
+    weakest = min(mastery_records, key=lambda r: r.mastery_score) if mastery_records else None
+    last_session = recent_sessions(profile, limit=1)
+
+    next_topic, next_reason = select_next_topic(profile)
+
+    return {
+        "overall_mastery": overall_mastery,
+        "topics_studied": len(mastery_records),
+        "topics_total": topics_total,
+        "weakest_topic": weakest.topic.name if weakest else None,
+        "weakest_topic_mastery": weakest.mastery_score if weakest else None,
+        "open_mistakes": len(profile_weaknesses(profile)),
+        "last_session_at": last_session[0].started_at.isoformat() if last_session else None,
+        "next_recommended_topic": next_topic.name,
+        "next_recommended_reason": next_reason,
+    }

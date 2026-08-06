@@ -88,3 +88,19 @@ def get_sessions():
         for s in profile.sessions
     ]
     return jsonify(sessions=sessions)
+
+
+@bp.get("/me/progress")
+@jwt_required()
+def get_progress():
+    exam_code = request.args.get("exam", "").strip().upper()
+    if not exam_code:
+        return jsonify(error="exam query param is required"), 400
+
+    user_id = int(get_jwt_identity())
+    try:
+        profile = student_service.get_profile(user_id, exam_code)
+    except student_service.ProfileNotFoundError as exc:
+        return jsonify(error=str(exc)), 404
+
+    return jsonify(student_service.profile_progress_summary(profile))

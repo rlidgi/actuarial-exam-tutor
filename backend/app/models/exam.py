@@ -18,6 +18,10 @@ class Topic(db.Model):
     exam_id = db.Column(db.Integer, db.ForeignKey("exams.id"), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    # Midpoint of the syllabus's published weight range for this topic, e.g.
+    # 26.5 for "23-30%". Used to prioritize study recommendations toward
+    # higher-weighted syllabus topics. Null where a weight hasn't been set.
+    exam_weight = db.Column(db.Float, nullable=True)
 
     exam = db.relationship("Exam", back_populates="topics")
 

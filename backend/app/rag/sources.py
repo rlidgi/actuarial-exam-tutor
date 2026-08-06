@@ -28,6 +28,14 @@ GENERAL_PROBABILITY = "General Probability"
 UNIVARIATE_RANDOM_VARIABLES = "Univariate Random Variables"
 MULTIVARIATE_RANDOM_VARIABLES = "Multivariate Random Variables"
 
+# Midpoints of the July 2026 Exam P syllabus's published weight ranges:
+# General Probability 23-30%, Univariate RVs 44-50%, Multivariate RVs 23-30%.
+EXAM_P_TOPIC_WEIGHTS = {
+    GENERAL_PROBABILITY: 26.5,
+    UNIVARIATE_RANDOM_VARIABLES: 47.0,
+    MULTIVARIATE_RANDOM_VARIABLES: 26.5,
+}
+
 
 @dataclass(frozen=True)
 class Chapter:
