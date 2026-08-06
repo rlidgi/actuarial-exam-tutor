@@ -6,7 +6,25 @@ Completions shape nested under a "function" key).
 These are hand-written subsets of the schemas in app/tools/schemas.py:
 fields that are bound server-side (student_profile_id, exam_code) are never
 exposed to the model as parameters it can fill in.
+
+The `topic` parameter is constrained to the exact syllabus topic names via
+enum wherever dispatch.py does an exact-match Topic lookup on it
+(update_mastery, save_session_summary) -- otherwise the model invents
+natural-sounding subtopic names ("Bayes' theorem", "joint distributions")
+that don't match any row and the call fails or silently no-ops. Free text
+is left alone for retrieve_textbook/generate_practice_problem, which use
+`topic` as search/prompt content rather than a lookup key, and are more
+useful for it. This enum is Exam-P-specific; if a second exam is added
+this needs to become dynamic per exam.
 """
+
+from app.rag.sources import (
+    GENERAL_PROBABILITY,
+    MULTIVARIATE_RANDOM_VARIABLES,
+    UNIVARIATE_RANDOM_VARIABLES,
+)
+
+TOPIC_ENUM = [GENERAL_PROBABILITY, UNIVARIATE_RANDOM_VARIABLES, MULTIVARIATE_RANDOM_VARIABLES]
 
 OPENAI_TOOLS = [
     {
@@ -67,7 +85,7 @@ OPENAI_TOOLS = [
         "parameters": {
             "type": "object",
             "properties": {
-                "topic": {"type": "string"},
+                "topic": {"type": "string", "enum": TOPIC_ENUM},
                 "assessment": {"type": "string"},
                 "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                 "recommended_change": {"type": "integer"},
@@ -88,7 +106,10 @@ OPENAI_TOOLS = [
         "parameters": {
             "type": "object",
             "properties": {
-                "topics_covered": {"type": "array", "items": {"type": "string"}},
+                "topics_covered": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": TOPIC_ENUM},
+                },
                 "summary": {"type": "string"},
                 "misconceptions": {"type": "array", "items": {"type": "string"}},
                 "recommendations": {"type": "string"},

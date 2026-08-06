@@ -15,6 +15,19 @@ rejects function tools combined with its default reasoning_effort on
 during tool-calling turns is the Responses API; forcing reasoning_effort to
 "none" on Chat Completions would unblock tools but defeat the reason sol
 was chosen over the cheaper tiers.
+
+Within a single turn's tool-calling loop (possibly several round trips
+before a final reply), each follow-up call chains via previous_response_id
+rather than manually replaying the prior function_call/reasoning items:
+reasoning models attach a "reasoning" output item alongside each
+function_call, and the API rejects a replayed function_call that doesn't
+carry its reasoning item with it. previous_response_id lets OpenAI hold
+that bookkeeping server-side for the duration of one turn -- only the new
+function_call_output items need to be sent. This does NOT extend to across
+turns/messages: input for the *first* call of each new user message is
+still rebuilt from our own bounded, DB-backed history (_build_history),
+matching Section 37/48's short-term-memory discipline rather than leaning
+on OpenAI-side conversation state indefinitely.
 """
 
 import json
@@ -71,8 +84,13 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
     db.session.commit()
 
     ctx = ToolContext(student_profile=student_profile, session=session)
-    input_items: list = _build_history(session)
     client = _client()
+
+    # First call of the turn: fresh input from our own bounded history.
+    # Later iterations (still resolving the same user message) chain via
+    # previous_response_id instead, sending only new tool outputs.
+    next_input: list = _build_history(session)
+    previous_response_id: str | None = None
 
     final_text = FALLBACK_REPLY
     for _ in range(MAX_TOOL_ITERATIONS):
@@ -81,7 +99,8 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
                 model=CHAT_MODEL,
                 instructions=SYSTEM_PROMPT,
                 tools=OPENAI_TOOLS,
-                input=input_items,
+                input=next_input,
+                previous_response_id=previous_response_id,
             )
         except Exception:
             current_app.logger.exception("OpenAI responses call failed")
@@ -93,9 +112,8 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
             final_text = response.output_text or FALLBACK_REPLY
             break
 
-        for call in function_calls:
-            input_items.append(call)
-            input_items.append(_run_tool_call(call, ctx))
+        previous_response_id = response.id
+        next_input = [_run_tool_call(call, ctx) for call in function_calls]
     else:
         current_app.logger.warning("tutor tool-calling loop hit MAX_TOOL_ITERATIONS")
 
