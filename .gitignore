@@ -1,0 +1,16 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+instance/
+*.db
+
+node_modules/
+.next/
+out/
+frontend/.env*.local
+
+.vscode/
+.idea/
+*.log
