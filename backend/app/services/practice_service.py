@@ -16,7 +16,7 @@ from openai import OpenAI
 
 from app.tools.schemas import GeneratePracticeProblemOutput
 
-PROBLEM_MODEL = "gpt-4o-mini"
+PROBLEM_MODEL = "gpt-5.6-luna"
 
 SYSTEM_PROMPT = (
     "You write SOA Exam P style probability practice problems. Given a topic, "
