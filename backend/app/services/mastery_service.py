@@ -35,6 +35,20 @@ PERFORMANCE_ADJUSTMENT = {
     PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION: -5,
 }
 
+# Section 31: increase difficulty on independent success, decrease on
+# repeated/misconception-driven failure. Deliberately coarser than the
+# mastery-score adjustment -- difficulty is a slower-moving signal.
+DIFFICULTY_ADJUSTMENT = {
+    PerformanceOutcome.CORRECT_INDEPENDENT: 1,
+    PerformanceOutcome.CORRECT_WITH_ONE_HINT: 0,
+    PerformanceOutcome.CORRECT_WITH_MULTIPLE_HINTS: 0,
+    PerformanceOutcome.INCORRECT_NO_MISCONCEPTION: -1,
+    PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION: -2,
+}
+
+MIN_DIFFICULTY = 1
+MAX_DIFFICULTY = 10
+
 
 def _clamp(value: float, low: float = 0, high: float = 100) -> int:
     return int(round(max(low, min(high, value))))
@@ -67,7 +81,8 @@ def apply_mastery_update(
 
     if record is None:
         record = Mastery(
-            student_profile_id=student_profile.id, topic_id=topic.id, mastery_score=0
+            student_profile_id=student_profile.id, topic_id=topic.id, mastery_score=0,
+            current_difficulty=5,
         )
         db.session.add(record)
 
@@ -76,6 +91,10 @@ def apply_mastery_update(
     decay = decay_for(record.last_reviewed_at or datetime.now(timezone.utc))
 
     record.mastery_score = _clamp(record.mastery_score + performance + confidence_delta - decay)
+    record.current_difficulty = _clamp(
+        record.current_difficulty + DIFFICULTY_ADJUSTMENT[outcome],
+        low=MIN_DIFFICULTY, high=MAX_DIFFICULTY,
+    )
     record.confidence = llm_confidence
     record.last_reviewed_at = datetime.now(timezone.utc)
 

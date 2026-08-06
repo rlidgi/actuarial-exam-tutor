@@ -35,6 +35,7 @@ class GetStudentProfileOutput(BaseModel):
     exam: str
     current_topic: str | None
     mastery: dict[str, int]
+    difficulty: dict[str, int]
     weaknesses: list[str]
 
 

@@ -33,6 +33,7 @@ def test_get_student_profile_returns_exam_and_mastery(app, db):
 
     assert result["exam"] == "P"
     assert result["mastery"] == {}
+    assert result["difficulty"] == {}
     assert result["weaknesses"] == []
 
 

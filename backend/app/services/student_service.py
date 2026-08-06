@@ -46,6 +46,10 @@ def profile_mastery_summary(profile: StudentProfile) -> dict[str, int]:
     return {record.topic.name: record.mastery_score for record in profile.mastery_records}
 
 
+def profile_difficulty_summary(profile: StudentProfile) -> dict[str, int]:
+    return {record.topic.name: record.current_difficulty for record in profile.mastery_records}
+
+
 def profile_weaknesses(profile: StudentProfile) -> list[str]:
     open_mistakes = (
         Mistake.query.filter_by(student_profile_id=profile.id, resolution_status="open")
@@ -55,17 +59,27 @@ def profile_weaknesses(profile: StudentProfile) -> list[str]:
     return [m.misconception for m in open_mistakes]
 
 
+def _severity_for_frequency(frequency: int) -> str:
+    if frequency >= 4:
+        return "high"
+    if frequency >= 2:
+        return "medium"
+    return "low"
+
+
 def record_mistake(profile: StudentProfile, topic_id: int, misconception: str) -> Mistake:
     existing = Mistake.query.filter_by(
         student_profile_id=profile.id, topic_id=topic_id, misconception=misconception
     ).first()
     if existing is not None:
         existing.frequency += 1
+        existing.severity = _severity_for_frequency(existing.frequency)
         db.session.commit()
         return existing
 
     mistake = Mistake(
-        student_profile_id=profile.id, topic_id=topic_id, misconception=misconception
+        student_profile_id=profile.id, topic_id=topic_id, misconception=misconception,
+        severity=_severity_for_frequency(1),
     )
     db.session.add(mistake)
     db.session.commit()

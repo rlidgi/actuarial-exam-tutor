@@ -56,6 +56,7 @@ def get_student_profile(args: dict, ctx: ToolContext) -> dict:
         exam=profile.exam.code,
         current_topic=None,
         mastery=student_service.profile_mastery_summary(profile),
+        difficulty=student_service.profile_difficulty_summary(profile),
         weaknesses=student_service.profile_weaknesses(profile),
     )
     return output.model_dump()

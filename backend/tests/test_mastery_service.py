@@ -93,3 +93,54 @@ def test_record_mastery_assessment_applies_bucketed_outcome(app, db):
 
     assert record.mastery_score > 0
     assert record.confidence == 0.8
+
+
+def test_new_mastery_record_starts_at_default_difficulty(app, db):
+    profile, topic = _make_profile(db)
+
+    record = apply_mastery_update(
+        profile, topic, PerformanceOutcome.CORRECT_WITH_ONE_HINT, llm_confidence=0.5
+    )
+
+    assert record.current_difficulty == 5
+
+
+def test_correct_independent_increases_difficulty(app, db):
+    profile, topic = _make_profile(db)
+
+    record = apply_mastery_update(
+        profile, topic, PerformanceOutcome.CORRECT_INDEPENDENT, llm_confidence=0.9
+    )
+
+    assert record.current_difficulty == 6
+
+
+def test_incorrect_with_misconception_decreases_difficulty(app, db):
+    profile, topic = _make_profile(db)
+    apply_mastery_update(profile, topic, PerformanceOutcome.CORRECT_INDEPENDENT, 0.9)
+
+    record = apply_mastery_update(
+        profile, topic, PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION, llm_confidence=0.3
+    )
+
+    assert record.current_difficulty == 4
+
+
+def test_difficulty_stays_within_bounds(app, db):
+    profile, topic = _make_profile(db)
+
+    for _ in range(20):
+        apply_mastery_update(profile, topic, PerformanceOutcome.CORRECT_INDEPENDENT, 1.0)
+    record = apply_mastery_update(
+        profile, topic, PerformanceOutcome.CORRECT_INDEPENDENT, 1.0
+    )
+    assert record.current_difficulty == 10
+
+    for _ in range(20):
+        apply_mastery_update(
+            profile, topic, PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION, 0.1
+        )
+    record = apply_mastery_update(
+        profile, topic, PerformanceOutcome.INCORRECT_WITH_MISCONCEPTION, 0.1
+    )
+    assert record.current_difficulty == 1

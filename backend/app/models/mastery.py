@@ -12,6 +12,7 @@ class Mastery(db.Model):
     )
     topic_id = db.Column(db.Integer, db.ForeignKey("topics.id"), nullable=False)
     mastery_score = db.Column(db.Integer, nullable=False, default=0)  # 0-100
+    current_difficulty = db.Column(db.Integer, nullable=False, default=5)  # 1-10
     confidence = db.Column(db.Float, nullable=True)  # 0-1, from the LLM's last assessment
     last_reviewed_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -23,4 +24,7 @@ class Mastery(db.Model):
             "student_profile_id", "topic_id", name="uq_mastery_student_topic"
         ),
         db.CheckConstraint("mastery_score >= 0 AND mastery_score <= 100", name="ck_mastery_range"),
+        db.CheckConstraint(
+            "current_difficulty >= 1 AND current_difficulty <= 10", name="ck_difficulty_range"
+        ),
     )
