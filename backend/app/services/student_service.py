@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from app.extensions import db
 from app.models.exam import Exam, Topic
 from app.models.mistake import Mistake
@@ -85,6 +87,40 @@ def record_mistake(profile: StudentProfile, topic_id: int, misconception: str) -
     db.session.add(mistake)
     db.session.commit()
     return mistake
+
+
+def apply_session_summary(
+    profile: StudentProfile,
+    session: Session,
+    summary: str,
+    topics_covered: list[str],
+    recommendations: str,
+    misconceptions: list[str],
+) -> Session:
+    """Shared by the save_session_summary tool and tutor_service's
+    deterministic auto-summary safety net, so there's one place that
+    actually writes a summary rather than two copies drifting apart.
+
+    Overwrites session.summary rather than appending -- callers (both the
+    tool and the auto-summarizer) are expected to have already merged the
+    prior summary's content into the new text before calling this, per the
+    "merge, don't replace" prompt guidance. This function just persists
+    whatever it's given.
+    """
+    session.summary = summary
+    session.topics_covered = topics_covered
+    session.recommendations = recommendations
+    session.last_summarized_at = datetime.now(timezone.utc)
+    db.session.commit()
+
+    for misconception in misconceptions:
+        for topic_name in topics_covered:
+            topic = Topic.query.filter_by(exam_id=profile.exam_id, name=topic_name).first()
+            if topic is not None:
+                record_mistake(profile, topic.id, misconception)
+                break
+
+    return session
 
 
 def recent_sessions(profile: StudentProfile, limit: int = 10) -> list[Session]:

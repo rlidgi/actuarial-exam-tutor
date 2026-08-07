@@ -8,7 +8,6 @@ itself (see app/tools/schemas.py).
 
 from dataclasses import dataclass
 
-from app.extensions import db
 from app.models.exam import Topic
 from app.models.session import Session
 from app.models.student import StudentProfile
@@ -110,19 +109,11 @@ def select_next_topic(args: dict, ctx: ToolContext) -> dict:
 def save_session_summary(args: dict, ctx: ToolContext) -> dict:
     parsed = schemas.SaveSessionSummaryInput(**args)
 
-    ctx.session.summary = parsed.summary
-    ctx.session.topics_covered = parsed.topics_covered
-    ctx.session.recommendations = parsed.recommendations
-    db.session.commit()
-
-    for misconception in parsed.misconceptions:
-        for topic_name in parsed.topics_covered:
-            topic = Topic.query.filter_by(
-                exam_id=ctx.student_profile.exam_id, name=topic_name
-            ).first()
-            if topic is not None:
-                student_service.record_mistake(ctx.student_profile, topic.id, misconception)
-                break
+    student_service.apply_session_summary(
+        ctx.student_profile, ctx.session,
+        summary=parsed.summary, topics_covered=parsed.topics_covered,
+        recommendations=parsed.recommendations, misconceptions=parsed.misconceptions,
+    )
 
     output = schemas.SaveSessionSummaryOutput(session_id=ctx.session.id)
     return output.model_dump()

@@ -15,6 +15,12 @@ class Session(db.Model):
     summary = db.Column(db.Text, nullable=True)
     topics_covered = db.Column(db.JSON, nullable=True)  # list[int] of topic ids
     recommendations = db.Column(db.Text, nullable=True)
+    # When `summary` was last written (by the model calling save_session_summary,
+    # or by tutor_service's deterministic auto-summary safety net). Used to
+    # measure how many messages have accumulated since, so a long session can't
+    # silently drift past the short-term context window with nothing covering
+    # the gap.
+    last_summarized_at = db.Column(db.DateTime, nullable=True)
 
     student_profile = db.relationship("StudentProfile", back_populates="sessions")
     messages = db.relationship(

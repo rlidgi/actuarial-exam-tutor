@@ -1,7 +1,10 @@
+import json
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from app.models import Exam, Session, StudentProfile, Topic, User
-from app.services import tutor_service
+from app.models import Exam, Message, Session, StudentProfile, Topic, User
+from app.prompts.tutor_prompt import SYSTEM_PROMPT
+from app.services import student_service, tutor_service
 
 
 def _make_profile_and_session(db):
@@ -106,3 +109,142 @@ def test_handle_message_openai_failure_falls_back_gracefully(app, db):
         reply = tutor_service.handle_message(profile, session, "hello")
 
     assert reply == tutor_service.FALLBACK_REPLY
+
+
+def test_build_instructions_plain_when_no_summary(app, db):
+    _, session = _make_profile_and_session(db)
+
+    assert tutor_service._build_instructions(session) == SYSTEM_PROMPT
+
+
+def test_build_instructions_includes_summary_when_present(app, db):
+    _, session = _make_profile_and_session(db)
+    session.summary = "Covered Bayes' theorem basics."
+    db.session.commit()
+
+    result = tutor_service._build_instructions(session)
+
+    assert "Covered Bayes' theorem basics." in result
+    assert "Session context so far" in result
+    assert SYSTEM_PROMPT in result
+
+
+def test_messages_since_last_summary_counts_all_when_never_summarized(app, db):
+    _, session = _make_profile_and_session(db)
+    for i in range(5):
+        db.session.add(Message(session_id=session.id, role="user", content=f"msg {i}"))
+    db.session.commit()
+
+    assert tutor_service._messages_since_last_summary(session) == 5
+
+
+def test_messages_since_last_summary_only_counts_after_last_summary(app, db):
+    _, session = _make_profile_and_session(db)
+    base = datetime.now(timezone.utc)
+
+    for i in range(3):
+        db.session.add(
+            Message(session_id=session.id, role="user", content=f"old {i}",
+                    created_at=base - timedelta(minutes=10))
+        )
+    db.session.commit()
+
+    session.last_summarized_at = base - timedelta(minutes=5)
+    db.session.commit()
+
+    for i in range(2):
+        db.session.add(
+            Message(session_id=session.id, role="user", content=f"new {i}", created_at=base)
+        )
+    db.session.commit()
+
+    assert tutor_service._messages_since_last_summary(session) == 2
+
+
+def test_maybe_auto_summarize_skips_under_threshold(app, db):
+    profile, session = _make_profile_and_session(db)
+    db.session.add(Message(session_id=session.id, role="user", content="hi"))
+    db.session.commit()
+
+    mock_client = MagicMock()
+    tutor_service._maybe_auto_summarize(mock_client, profile, session)
+
+    mock_client.chat.completions.create.assert_not_called()
+    assert session.summary is None
+
+
+def test_maybe_auto_summarize_triggers_over_threshold(app, db):
+    profile, session = _make_profile_and_session(db)
+    for i in range(tutor_service.AUTO_SUMMARY_THRESHOLD):
+        db.session.add(Message(session_id=session.id, role="user", content=f"msg {i}"))
+    db.session.commit()
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = MagicMock(
+        choices=[MagicMock(message=MagicMock(content=json.dumps({
+            "summary": "Covered general probability basics.",
+            "topics_covered": ["General Probability"],
+            "misconceptions": ["confuses independence with mutual exclusivity"],
+            "recommendations": "Review Venn diagrams.",
+        })))]
+    )
+
+    tutor_service._maybe_auto_summarize(mock_client, profile, session)
+
+    assert session.summary == "Covered general probability basics."
+    assert session.last_summarized_at is not None
+    assert student_service.profile_weaknesses(profile) == [
+        "confuses independence with mutual exclusivity"
+    ]
+
+
+def test_maybe_auto_summarize_failure_is_swallowed(app, db):
+    profile, session = _make_profile_and_session(db)
+    for i in range(tutor_service.AUTO_SUMMARY_THRESHOLD):
+        db.session.add(Message(session_id=session.id, role="user", content=f"msg {i}"))
+    db.session.commit()
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.side_effect = RuntimeError("boom")
+
+    tutor_service._maybe_auto_summarize(mock_client, profile, session)  # must not raise
+
+    assert session.summary is None
+
+
+def test_handle_message_triggers_auto_summary_when_threshold_crossed(app, db):
+    profile, session = _make_profile_and_session(db)
+    for i in range(tutor_service.AUTO_SUMMARY_THRESHOLD - 1):
+        db.session.add(Message(session_id=session.id, role="user", content=f"msg {i}"))
+    db.session.commit()
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _response_with_text("Sure, let's continue.")
+        client.chat.completions.create.return_value = MagicMock(
+            choices=[MagicMock(message=MagicMock(content=json.dumps({
+                "summary": "Long conversation about probability.",
+                "topics_covered": ["General Probability"],
+                "misconceptions": [],
+                "recommendations": "Keep practicing.",
+            })))]
+        )
+
+        reply = tutor_service.handle_message(profile, session, "one more message")
+
+    assert reply == "Sure, let's continue."
+    client.chat.completions.create.assert_called_once()
+    assert session.summary == "Long conversation about probability."
+
+
+def test_handle_message_does_not_auto_summarize_under_threshold(app, db):
+    profile, session = _make_profile_and_session(db)
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _response_with_text("Hi there!")
+
+        tutor_service.handle_message(profile, session, "hello")
+
+    client.chat.completions.create.assert_not_called()
+    assert session.summary is None

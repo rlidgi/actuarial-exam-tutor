@@ -1,4 +1,4 @@
-from app.models import Exam, StudentProfile, Topic, User
+from app.models import Exam, Session, StudentProfile, Topic, User
 from app.services import mastery_service, student_service
 
 
@@ -50,3 +50,59 @@ def test_profile_difficulty_summary_reflects_mastery_records(app, db):
     result = student_service.profile_difficulty_summary(profile)
 
     assert result == {"Bayes Theorem": 6}
+
+
+def test_apply_session_summary_persists_fields_and_sets_timestamp(app, db):
+    profile, topic = _make_profile(db)
+    session = Session(student_profile_id=profile.id)
+    db.session.add(session)
+    db.session.commit()
+
+    assert session.last_summarized_at is None
+
+    student_service.apply_session_summary(
+        profile, session,
+        summary="Covered Bayes' theorem basics.",
+        topics_covered=["Bayes Theorem"],
+        recommendations="Practice more base-rate problems.",
+        misconceptions=[],
+    )
+
+    assert session.summary == "Covered Bayes' theorem basics."
+    assert session.recommendations == "Practice more base-rate problems."
+    assert session.last_summarized_at is not None
+
+
+def test_apply_session_summary_records_misconceptions(app, db):
+    profile, topic = _make_profile(db)
+    session = Session(student_profile_id=profile.id)
+    db.session.add(session)
+    db.session.commit()
+
+    student_service.apply_session_summary(
+        profile, session,
+        summary="...",
+        topics_covered=["Bayes Theorem"],
+        recommendations="...",
+        misconceptions=["confuses P(A|B) with P(B|A)"],
+    )
+
+    assert student_service.profile_weaknesses(profile) == ["confuses P(A|B) with P(B|A)"]
+
+
+def test_apply_session_summary_ignores_unmatched_topic_names(app, db):
+    profile, topic = _make_profile(db)
+    session = Session(student_profile_id=profile.id)
+    db.session.add(session)
+    db.session.commit()
+
+    # Should not raise even though "Not A Real Topic" doesn't match any row.
+    student_service.apply_session_summary(
+        profile, session,
+        summary="...",
+        topics_covered=["Not A Real Topic"],
+        recommendations="...",
+        misconceptions=["some misconception"],
+    )
+
+    assert student_service.profile_weaknesses(profile) == []
