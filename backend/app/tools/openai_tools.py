@@ -7,24 +7,20 @@ These are hand-written subsets of the schemas in app/tools/schemas.py:
 fields that are bound server-side (student_profile_id, exam_code) are never
 exposed to the model as parameters it can fill in.
 
-The `topic` parameter is constrained to the exact syllabus topic names via
-enum wherever dispatch.py does an exact-match Topic lookup on it
-(update_mastery, save_session_summary) -- otherwise the model invents
-natural-sounding subtopic names ("Bayes' theorem", "joint distributions")
-that don't match any row and the call fails or silently no-ops. Free text
-is left alone for retrieve_textbook/generate_practice_problem, which use
-`topic` as search/prompt content rather than a lookup key, and are more
-useful for it. This enum is Exam-P-specific; if a second exam is added
-this needs to become dynamic per exam.
+The `topic` parameter is constrained to the exact leaf (learning-outcome)
+topic names via enum wherever dispatch.py does an exact-match Topic lookup
+on it (update_mastery, save_session_summary) -- otherwise the model invents
+natural-sounding subtopic names that don't match any row and the call fails
+or silently no-ops. Free text is left alone for
+retrieve_textbook/generate_practice_problem, which use `topic` as
+search/prompt content rather than a lookup key, and are more useful for it.
+This enum is Exam-P-specific; if a second exam is added this needs to
+become dynamic per exam.
 """
 
-from app.rag.sources import (
-    GENERAL_PROBABILITY,
-    MULTIVARIATE_RANDOM_VARIABLES,
-    UNIVARIATE_RANDOM_VARIABLES,
-)
+from app.exam_p_syllabus import LEARNING_OUTCOME_NAMES
 
-TOPIC_ENUM = [GENERAL_PROBABILITY, UNIVARIATE_RANDOM_VARIABLES, MULTIVARIATE_RANDOM_VARIABLES]
+TOPIC_ENUM = LEARNING_OUTCOME_NAMES
 
 OPENAI_TOOLS = [
     {

@@ -18,7 +18,12 @@ def select_next_topic(student_profile: StudentProfile) -> tuple[Topic, str]:
     high recorded score. Full prerequisite-graph awareness stays deferred
     per the spec's MVP scope.
     """
-    topics = Topic.query.filter_by(exam_id=student_profile.exam_id).all()
+    # Mastery is only ever recorded against leaf (learning-outcome) topics --
+    # parents (parent_topic_id IS NULL) are organizational category headers,
+    # not directly assessable.
+    topics = Topic.query.filter(
+        Topic.exam_id == student_profile.exam_id, Topic.parent_topic_id.isnot(None)
+    ).all()
     if not topics:
         raise ValueError(f"exam {student_profile.exam_id} has no topics configured")
 

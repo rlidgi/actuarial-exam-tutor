@@ -12,17 +12,23 @@ def _make_profile(db):
     db.session.add_all([user, exam])
     db.session.commit()
 
+    # A parent (category) topic so leaf topics have somewhere to attach --
+    # select_next_topic only considers leaf topics (parent_topic_id set).
+    parent = Topic(exam_id=exam.id, name="Category")
+    db.session.add(parent)
+    db.session.commit()
+
     profile = StudentProfile(user_id=user.id, exam_id=exam.id)
     db.session.add(profile)
     db.session.commit()
 
-    return profile, exam
+    return profile, exam, parent
 
 
 def test_unstudied_topics_prioritized_by_exam_weight(app, db):
-    profile, exam = _make_profile(db)
-    low = Topic(exam_id=exam.id, name="Low Weight", exam_weight=20.0)
-    high = Topic(exam_id=exam.id, name="High Weight", exam_weight=50.0)
+    profile, exam, parent = _make_profile(db)
+    low = Topic(exam_id=exam.id, name="Low Weight", exam_weight=20.0, parent_topic_id=parent.id)
+    high = Topic(exam_id=exam.id, name="High Weight", exam_weight=50.0, parent_topic_id=parent.id)
     db.session.add_all([low, high])
     db.session.commit()
 
@@ -33,9 +39,13 @@ def test_unstudied_topics_prioritized_by_exam_weight(app, db):
 
 
 def test_studied_topics_weigh_weakness_against_exam_weight(app, db):
-    profile, exam = _make_profile(db)
-    low_weight_weak = Topic(exam_id=exam.id, name="Low Weight Weak", exam_weight=10.0)
-    high_weight_ok = Topic(exam_id=exam.id, name="High Weight OK", exam_weight=90.0)
+    profile, exam, parent = _make_profile(db)
+    low_weight_weak = Topic(
+        exam_id=exam.id, name="Low Weight Weak", exam_weight=10.0, parent_topic_id=parent.id
+    )
+    high_weight_ok = Topic(
+        exam_id=exam.id, name="High Weight OK", exam_weight=90.0, parent_topic_id=parent.id
+    )
     db.session.add_all([low_weight_weak, high_weight_ok])
     db.session.commit()
 
@@ -63,9 +73,9 @@ def test_studied_topics_weigh_weakness_against_exam_weight(app, db):
 
 
 def test_decayed_topic_can_outrank_higher_scoring_recent_topic(app, db):
-    profile, exam = _make_profile(db)
-    stale = Topic(exam_id=exam.id, name="Stale Topic", exam_weight=30.0)
-    recent = Topic(exam_id=exam.id, name="Recent Topic", exam_weight=30.0)
+    profile, exam, parent = _make_profile(db)
+    stale = Topic(exam_id=exam.id, name="Stale Topic", exam_weight=30.0, parent_topic_id=parent.id)
+    recent = Topic(exam_id=exam.id, name="Recent Topic", exam_weight=30.0, parent_topic_id=parent.id)
     db.session.add_all([stale, recent])
     db.session.commit()
 
@@ -92,3 +102,15 @@ def test_decayed_topic_can_outrank_higher_scoring_recent_topic(app, db):
 
     assert topic.name == "Stale Topic"
     assert "decay" in reason.lower()
+
+
+def test_select_next_topic_ignores_parent_category_topics(app, db):
+    profile, exam, parent = _make_profile(db)
+    child = Topic(exam_id=exam.id, name="Child", exam_weight=10.0, parent_topic_id=parent.id)
+    db.session.add(child)
+    db.session.commit()
+
+    topic, _ = curriculum_service.select_next_topic(profile)
+
+    assert topic.name == "Child"
+    assert topic.id != parent.id

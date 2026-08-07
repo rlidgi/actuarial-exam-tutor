@@ -133,12 +133,20 @@ def recent_sessions(profile: StudentProfile, limit: int = 10) -> list[Session]:
 
 
 def profile_progress_summary(profile: StudentProfile) -> dict:
-    """A simple progress snapshot -- not an analytics dashboard (Section 8
-    explicitly defers those past MVP), just enough for a student to see
-    where they stand and what's next.
+    """A progress snapshot for the dashboard -- not a full analytics
+    product (Section 8 explicitly defers those past MVP), but detailed
+    enough to show where a student stands across all 22 syllabus learning
+    outcomes, grouped under their 3 parent categories.
     """
-    topics_total = Topic.query.filter_by(exam_id=profile.exam_id).count()
+    leaf_topics = (
+        Topic.query.filter(Topic.exam_id == profile.exam_id, Topic.parent_topic_id.isnot(None))
+        .order_by(Topic.id)
+        .all()
+    )
+    topics_total = len(leaf_topics)
+
     mastery_records = profile.mastery_records
+    mastery_by_topic_id = {r.topic_id: r for r in mastery_records}
 
     overall_mastery = (
         round(sum(r.mastery_score for r in mastery_records) / len(mastery_records))
@@ -148,6 +156,37 @@ def profile_progress_summary(profile: StudentProfile) -> dict:
     last_session = recent_sessions(profile, limit=1)
 
     next_topic, next_reason = select_next_topic(profile)
+
+    parents = (
+        Topic.query.filter_by(exam_id=profile.exam_id, parent_topic_id=None)
+        .order_by(Topic.id)
+        .all()
+    )
+    children_by_parent: dict[int, list[Topic]] = {}
+    for topic in leaf_topics:
+        children_by_parent.setdefault(topic.parent_topic_id, []).append(topic)
+
+    categories = [
+        {
+            "name": parent.name,
+            "exam_weight": parent.exam_weight,
+            "topics": [
+                {
+                    "name": child.name,
+                    "mastery": (
+                        mastery_by_topic_id[child.id].mastery_score
+                        if child.id in mastery_by_topic_id else None
+                    ),
+                    "difficulty": (
+                        mastery_by_topic_id[child.id].current_difficulty
+                        if child.id in mastery_by_topic_id else None
+                    ),
+                }
+                for child in children_by_parent.get(parent.id, [])
+            ],
+        }
+        for parent in parents
+    ]
 
     return {
         "overall_mastery": overall_mastery,
@@ -159,4 +198,5 @@ def profile_progress_summary(profile: StudentProfile) -> dict:
         "last_session_at": last_session[0].started_at.isoformat() if last_session else None,
         "next_recommended_topic": next_topic.name,
         "next_recommended_reason": next_reason,
+        "categories": categories,
     }

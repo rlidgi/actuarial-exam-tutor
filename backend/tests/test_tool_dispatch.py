@@ -11,7 +11,13 @@ def _make_ctx(db):
     db.session.add_all([user, exam])
     db.session.commit()
 
-    topic = Topic(exam_id=exam.id, name="General Probability")
+    # select_next_topic (dispatch.select_next_topic) only considers leaf
+    # topics, so this needs a parent category to attach to.
+    parent = Topic(exam_id=exam.id, name="Probability Category")
+    db.session.add(parent)
+    db.session.commit()
+
+    topic = Topic(exam_id=exam.id, name="General Probability", parent_topic_id=parent.id)
     db.session.add(topic)
     db.session.commit()
 

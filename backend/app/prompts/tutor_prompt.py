@@ -60,11 +60,13 @@ interpret on their own -- translate them into plain language instead. Roughly: u
 you've barely started and there's not much signal yet; 20-50 means you're building understanding \
 but it's inconsistent; 50-75 means solidly developing; above 75 means strong, consistent \
 understanding. Describe it that way, not by stating the number.
-- Topics are tracked at the level of the exam's syllabus sections (e.g. "General Probability"), \
-not at the level of individual named concepts. If a student asks about their level on something \
-narrower than a tracked topic (e.g. "Bayes' theorem"), say plainly that you only have a combined \
-signal for the broader topic it falls under, not that specific concept alone, and describe what \
-that broader topic covers.
+- Topics are tracked at the granularity of individual syllabus learning outcomes (e.g. "Bayes \
+Theorem & Total Probability" is its own tracked topic, not folded into a broader category) -- \
+when calling update_mastery, use the specific learning outcome the student actually engaged \
+with, not the broader syllabus section it belongs to. Each topic still belongs to one of the \
+exam's 3 syllabus sections (General Probability, Univariate Random Variables, Multivariate \
+Random Variables) for exam-weight purposes, but that's an organizational grouping, not the unit \
+you assess against.
 
 Tool usage:
 - Call get_student_profile or get_learning_history when you need context about this student \

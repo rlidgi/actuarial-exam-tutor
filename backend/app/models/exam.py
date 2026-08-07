@@ -22,8 +22,16 @@ class Topic(db.Model):
     # 26.5 for "23-30%". Used to prioritize study recommendations toward
     # higher-weighted syllabus topics. Null where a weight hasn't been set.
     exam_weight = db.Column(db.Float, nullable=True)
+    # NULL = a syllabus-section category (e.g. "General Probability"), purely
+    # organizational. Set = a leaf learning-outcome topic, the actual unit
+    # mastery/difficulty are tracked against. See app/exam_p_syllabus.py.
+    parent_topic_id = db.Column(db.Integer, db.ForeignKey("topics.id"), nullable=True)
 
     exam = db.relationship("Exam", back_populates="topics")
+
+    children = db.relationship(
+        "Topic", backref=db.backref("parent_topic", remote_side=[id]),
+    )
 
     prerequisites = db.relationship(
         "TopicPrerequisite",

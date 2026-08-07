@@ -14,7 +14,12 @@ def _make_profile_and_session(db):
     db.session.add_all([user, exam])
     db.session.commit()
 
-    topic = Topic(exam_id=exam.id, name="General Probability")
+    # select_next_topic only considers leaf topics (parent_topic_id set).
+    parent = Topic(exam_id=exam.id, name="Probability Category")
+    db.session.add(parent)
+    db.session.commit()
+
+    topic = Topic(exam_id=exam.id, name="General Probability", parent_topic_id=parent.id)
     db.session.add(topic)
     db.session.commit()
 

@@ -51,6 +51,18 @@ export interface ChatResponse {
   reply: string;
 }
 
+export interface TopicProgress {
+  name: string;
+  mastery: number | null;
+  difficulty: number | null;
+}
+
+export interface CategoryProgress {
+  name: string;
+  exam_weight: number | null;
+  topics: TopicProgress[];
+}
+
 export interface ProgressSummary {
   overall_mastery: number;
   topics_studied: number;
@@ -61,6 +73,7 @@ export interface ProgressSummary {
   last_session_at: string | null;
   next_recommended_topic: string;
   next_recommended_reason: string;
+  categories: CategoryProgress[];
 }
 
 export interface SessionSummary {
