@@ -13,6 +13,12 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+    # Tracing (see app/services/tutor_service.py). Optional -- if either key
+    # is unset, tracing is constructed disabled and every call is a no-op,
+    # so the app runs fine without a Langfuse account.
+    LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+    LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY", "")
+    LANGFUSE_HOST = os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
 
 
 class TestingConfig(Config):

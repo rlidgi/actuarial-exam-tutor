@@ -172,7 +172,7 @@ def test_maybe_auto_summarize_skips_under_threshold(app, db):
     db.session.commit()
 
     mock_client = MagicMock()
-    tutor_service._maybe_auto_summarize(mock_client, profile, session)
+    tutor_service._maybe_auto_summarize(mock_client, MagicMock(), profile, session)
 
     mock_client.chat.completions.create.assert_not_called()
     assert session.summary is None
@@ -194,7 +194,7 @@ def test_maybe_auto_summarize_triggers_over_threshold(app, db):
         })))]
     )
 
-    tutor_service._maybe_auto_summarize(mock_client, profile, session)
+    tutor_service._maybe_auto_summarize(mock_client, MagicMock(), profile, session)
 
     assert session.summary == "Covered general probability basics."
     assert session.last_summarized_at is not None
@@ -212,7 +212,7 @@ def test_maybe_auto_summarize_failure_is_swallowed(app, db):
     mock_client = MagicMock()
     mock_client.chat.completions.create.side_effect = RuntimeError("boom")
 
-    tutor_service._maybe_auto_summarize(mock_client, profile, session)  # must not raise
+    tutor_service._maybe_auto_summarize(mock_client, MagicMock(), profile, session)  # must not raise
 
     assert session.summary is None
 

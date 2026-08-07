@@ -40,11 +40,22 @@ tutor conversation) regardless of what the main model does that turn. Set
 the threshold equal to MAX_HISTORY_MESSAGES so a message can never fall
 into the gap between "no longer in the raw window" and "not yet captured
 in any summary."
+
+Tracing: every turn, model call, tool call, and auto-summarize is
+instrumented via Langfuse (manual spans, not the automatic OpenAI-SDK
+wrapper -- that wrapper's documented coverage is chat.completions, and
+doesn't confirm support for the Responses API or previous_response_id
+chaining this module actually uses, so wrapping our own call sites
+precisely is more reliable than trusting auto-instrumentation to catch
+everything). Tracing is optional: if LANGFUSE_PUBLIC_KEY/SECRET_KEY aren't
+set, the client is constructed with tracing disabled and every call below
+is a no-op -- the app runs the same either way.
 """
 
 import json
 
 from flask import current_app
+from langfuse import Langfuse
 from openai import OpenAI
 
 from app.extensions import db
@@ -71,6 +82,44 @@ FALLBACK_REPLY = (
 
 def _client() -> OpenAI:
     return OpenAI(api_key=current_app.config["OPENAI_API_KEY"])
+
+
+_tracer_instance: Langfuse | None = None
+
+
+def _tracer() -> Langfuse:
+    # A cached singleton, not a fresh client per call: Langfuse spins up
+    # background export threads at construction time, and a client
+    # constructed fresh on every request gets abandoned (along with its
+    # in-flight batch) as soon as the request returns, before those threads
+    # get a real chance to send anything -- traces silently never arrive,
+    # no error raised. One long-lived client per process, matching the
+    # SDK's own documented get_client() singleton pattern.
+    global _tracer_instance
+    if _tracer_instance is None:
+        public_key = current_app.config["LANGFUSE_PUBLIC_KEY"]
+        secret_key = current_app.config["LANGFUSE_SECRET_KEY"]
+        _tracer_instance = Langfuse(
+            public_key=public_key or None,
+            secret_key=secret_key or None,
+            # base_url, not host -- the OTLP span exporter reads base_url
+            # specifically; host alone gets credentials that authenticate
+            # fine against the REST API but silently fail (401) on export.
+            base_url=current_app.config["LANGFUSE_HOST"],
+            tracing_enabled=bool(public_key and secret_key),
+        )
+    return _tracer_instance
+
+
+def _usage_details(response) -> dict[str, int] | None:
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return None
+    details = {
+        "input": getattr(usage, "input_tokens", None),
+        "output": getattr(usage, "output_tokens", None),
+    }
+    return {k: v for k, v in details.items() if v is not None} or None
 
 
 def _build_history(session: Session) -> list[dict]:
@@ -102,7 +151,7 @@ def _messages_since_last_summary(session: Session) -> int:
     ).count()
 
 
-def _auto_summarize(client: OpenAI, profile: StudentProfile, session: Session) -> dict:
+def _auto_summarize(client: OpenAI, tracer: Langfuse, profile: StudentProfile, session: Session) -> dict:
     transcript = "\n".join(f"{m['role']}: {m['content']}" for m in _build_history(session))
     prior = f"Existing session summary so far:\n{session.summary}\n\n" if session.summary else ""
     valid_topics = ", ".join(t.name for t in Topic.query.filter_by(exam_id=profile.exam_id).all())
@@ -117,20 +166,28 @@ def _auto_summarize(client: OpenAI, profile: StudentProfile, session: Session) -
         '"recommendations": a short recommendation for what to focus on next'
     )
 
-    response = client.chat.completions.create(
-        model=AUTO_SUMMARY_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"},
-    )
-    return json.loads(response.choices[0].message.content)
+    with tracer.start_as_current_observation(
+        name="auto_summarize", as_type="generation", model=AUTO_SUMMARY_MODEL, input=prompt,
+    ) as gen:
+        response = client.chat.completions.create(
+            model=AUTO_SUMMARY_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+        )
+        content = response.choices[0].message.content
+        gen.update(output=content, usage_details=_usage_details(response))
+
+    return json.loads(content)
 
 
-def _maybe_auto_summarize(client: OpenAI, profile: StudentProfile, session: Session) -> None:
+def _maybe_auto_summarize(
+    client: OpenAI, tracer: Langfuse, profile: StudentProfile, session: Session
+) -> None:
     if _messages_since_last_summary(session) < AUTO_SUMMARY_THRESHOLD:
         return
 
     try:
-        result = _auto_summarize(client, profile, session)
+        result = _auto_summarize(client, tracer, profile, session)
         student_service.apply_session_summary(
             profile, session,
             summary=result.get("summary") or session.summary or "",
@@ -144,14 +201,21 @@ def _maybe_auto_summarize(client: OpenAI, profile: StudentProfile, session: Sess
         current_app.logger.exception("auto-summarize failed")
 
 
-def _run_tool_call(call, ctx: ToolContext) -> dict:
-    handler = TOOL_HANDLERS.get(call.name)
-    try:
-        args = json.loads(call.arguments or "{}")
-        result = handler(args, ctx) if handler else {"error": f"unknown tool {call.name}"}
-    except Exception as exc:  # noqa: BLE001 -- tool failures degrade gracefully, per Section 51
-        current_app.logger.exception("tool call failed: %s", call.name)
-        result = {"error": str(exc)}
+def _run_tool_call(call, ctx: ToolContext, tracer: Langfuse) -> dict:
+    args = json.loads(call.arguments or "{}")
+
+    with tracer.start_as_current_observation(
+        name=call.name, as_type="tool", input=args,
+    ) as tool_span:
+        handler = TOOL_HANDLERS.get(call.name)
+        try:
+            result = handler(args, ctx) if handler else {"error": f"unknown tool {call.name}"}
+        except Exception as exc:  # noqa: BLE001 -- tool failures degrade gracefully, per Section 51
+            current_app.logger.exception("tool call failed: %s", call.name)
+            result = {"error": str(exc)}
+            tool_span.update(output=result, level="ERROR", status_message=str(exc))
+        else:
+            tool_span.update(output=result)
 
     return {"type": "function_call_output", "call_id": call.call_id, "output": json.dumps(result)}
 
@@ -162,39 +226,66 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
 
     ctx = ToolContext(student_profile=student_profile, session=session)
     client = _client()
+    tracer = _tracer()
 
-    _maybe_auto_summarize(client, student_profile, session)
+    with tracer.start_as_current_observation(
+        name="tutor_turn",
+        as_type="span",
+        input=user_text,
+        metadata={
+            "student_profile_id": student_profile.id,
+            "session_id": session.id,
+            "exam_code": student_profile.exam.code,
+        },
+    ) as turn_span:
+        _maybe_auto_summarize(client, tracer, student_profile, session)
 
-    # First call of the turn: fresh input from our own bounded history.
-    # Later iterations (still resolving the same user message) chain via
-    # previous_response_id instead, sending only new tool outputs.
-    next_input: list = _build_history(session)
-    previous_response_id: str | None = None
+        # First call of the turn: fresh input from our own bounded history.
+        # Later iterations (still resolving the same user message) chain via
+        # previous_response_id instead, sending only new tool outputs.
+        next_input: list = _build_history(session)
+        previous_response_id: str | None = None
 
-    final_text = FALLBACK_REPLY
-    for _ in range(MAX_TOOL_ITERATIONS):
-        try:
-            response = client.responses.create(
-                model=CHAT_MODEL,
-                instructions=_build_instructions(session),
-                tools=OPENAI_TOOLS,
-                input=next_input,
-                previous_response_id=previous_response_id,
-            )
-        except Exception:
-            current_app.logger.exception("OpenAI responses call failed")
-            break
+        final_text = FALLBACK_REPLY
+        for _ in range(MAX_TOOL_ITERATIONS):
+            with tracer.start_as_current_observation(
+                name="tutor_model_call", as_type="generation", model=CHAT_MODEL,
+                input={"input": next_input, "previous_response_id": previous_response_id},
+            ) as gen:
+                try:
+                    response = client.responses.create(
+                        model=CHAT_MODEL,
+                        instructions=_build_instructions(session),
+                        tools=OPENAI_TOOLS,
+                        input=next_input,
+                        previous_response_id=previous_response_id,
+                    )
+                except Exception as exc:
+                    current_app.logger.exception("OpenAI responses call failed")
+                    gen.update(level="ERROR", status_message=str(exc))
+                    break
 
-        function_calls = [item for item in response.output if item.type == "function_call"]
+                function_calls = [item for item in response.output if item.type == "function_call"]
+                gen.update(
+                    output=(
+                        response.output_text if not function_calls
+                        else [{"tool": c.name, "arguments": c.arguments} for c in function_calls]
+                    ),
+                    usage_details=_usage_details(response),
+                )
 
-        if not function_calls:
-            final_text = response.output_text or FALLBACK_REPLY
-            break
+            if not function_calls:
+                final_text = response.output_text or FALLBACK_REPLY
+                break
 
-        previous_response_id = response.id
-        next_input = [_run_tool_call(call, ctx) for call in function_calls]
-    else:
-        current_app.logger.warning("tutor tool-calling loop hit MAX_TOOL_ITERATIONS")
+            previous_response_id = response.id
+            next_input = [_run_tool_call(call, ctx, tracer) for call in function_calls]
+        else:
+            current_app.logger.warning("tutor tool-calling loop hit MAX_TOOL_ITERATIONS")
+
+        turn_span.update(output=final_text)
+
+    tracer.flush()
 
     db.session.add(Message(session_id=session.id, role="assistant", content=final_text))
     db.session.commit()
