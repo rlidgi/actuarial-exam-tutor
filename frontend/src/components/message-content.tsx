@@ -1,3 +1,4 @@
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -13,7 +14,14 @@ function normalizeMathDelimiters(text: string): string {
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, inner) => `$${inner}$`);
 }
 
-export function MessageContent({ text }: { text: string }) {
+// Markdown parsing + KaTeX typesetting is real work, redone from scratch on
+// every render. Without memoizing, every keystroke in the chat input
+// re-renders ChatPage, which re-renders every past message bubble, which
+// reruns that work for the *entire* conversation history on every
+// character typed -- input lag that gets worse the longer the chat gets.
+// Memoizing on `text` means a keystroke only touches components whose
+// content actually changed.
+export const MessageContent = memo(function MessageContent({ text }: { text: string }) {
   return (
     <div className="prose-chat">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
@@ -21,4 +29,4 @@ export function MessageContent({ text }: { text: string }) {
       </ReactMarkdown>
     </div>
   );
-}
+});
