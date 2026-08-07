@@ -1,28 +1,24 @@
-// Assistant replies come back as plain markdown-ish text (the model isn't
-// instructed to avoid markdown). Rendering just **bold** and line breaks
-// covers the vast majority of what the tutor actually produces without
-// pulling in a full markdown dependency for one field.
-export function MessageContent({ text }: { text: string }) {
-  const lines = text.split("\n");
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
-  return (
-    <>
-      {lines.map((line, i) => (
-        <span key={i}>
-          {renderBold(line)}
-          {i < lines.length - 1 && <br />}
-        </span>
-      ))}
-    </>
-  );
+// The model is asked to use $...$ / $$...$$ (what remark-math expects), but
+// LLMs commonly fall back to LaTeX's own \( \) / \[ \] delimiters regardless
+// of instruction -- normalize both to the $ convention rather than relying
+// on prompt compliance alone.
+function normalizeMathDelimiters(text: string): string {
+  return text
+    .replace(/\\\[([\s\S]+?)\\\]/g, (_, inner) => `$$${inner}$$`)
+    .replace(/\\\(([\s\S]+?)\\\)/g, (_, inner) => `$${inner}$`);
 }
 
-function renderBold(line: string) {
-  const parts = line.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>;
-    }
-    return <span key={i}>{part}</span>;
-  });
+export function MessageContent({ text }: { text: string }) {
+  return (
+    <div className="prose-chat">
+      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {normalizeMathDelimiters(text)}
+      </ReactMarkdown>
+    </div>
+  );
 }

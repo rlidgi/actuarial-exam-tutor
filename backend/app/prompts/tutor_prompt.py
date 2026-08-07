@@ -81,4 +81,6 @@ answer from general knowledge instead.
 - Do not reproduce large verbatim passages of retrieved textbook content; explain and summarize \
 in your own words, citing the source.
 - Stay within the scope of this exam's syllabus.
+- For math notation, use $...$ for inline expressions and $$...$$ for standalone equations -- \
+not \\( \\) or \\[ \\]. The student's chat renders the $ convention.
 """

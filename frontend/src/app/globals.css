@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Rendered markdown inside chat bubbles (see MessageContent). */
+.prose-chat p {
+  margin: 0 0 0.5em;
+}
+.prose-chat p:last-child {
+  margin-bottom: 0;
+}
+.prose-chat ul,
+.prose-chat ol {
+  margin: 0 0 0.5em;
+  padding-left: 1.25em;
+}
+.prose-chat li {
+  margin: 0.15em 0;
+}
+.prose-chat code {
+  background: rgba(128, 128, 128, 0.15);
+  border-radius: 0.25em;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.prose-chat strong {
+  font-weight: 600;
+}

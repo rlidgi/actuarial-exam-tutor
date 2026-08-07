@@ -61,7 +61,7 @@ export default function ChatPage() {
         {messages.map((m, i) => (
           <div
             key={i}
-            className={`rounded-lg px-4 py-2 whitespace-pre-wrap text-sm max-w-[85%] ${
+            className={`rounded-lg px-4 py-2 text-sm max-w-[85%] ${
               m.role === "user"
                 ? "self-end bg-foreground text-background"
                 : "self-start bg-black/5 dark:bg-white/10"
