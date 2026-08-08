@@ -18,7 +18,7 @@ export default function AboutPage() {
       </MarketingHeader>
 
       <article className="legal-body">
-        <h1>About Actuarial Exam Tutor</h1>
+        <h1>About Actuarial Exams Tutor</h1>
 
         <h2>Our Mission</h2>
         <p>
@@ -27,11 +27,13 @@ export default function AboutPage() {
           of probability, statistics, financial mathematics, risk modeling, and the ability to
           apply those concepts to unfamiliar problems under exam conditions.
         </p>
+        <div style={{ height: '8px' }} /> {/* Adjust '8px' to make it smaller or larger */}
         <p>
           Actuarial Exam Tutor was created with a simple mission: to make high-quality actuarial
           education more personalized, accessible, and effective through the responsible use of
           artificial intelligence.
         </p>
+        <div style={{ height: '8px' }} /> {/* Adjust '8px' to make it smaller or larger */}
         <p>
           Rather than replacing traditional study materials, the platform is designed to complement
           them by providing instant explanations, step-by-step guidance, personalized feedback, and
@@ -42,26 +44,23 @@ export default function AboutPage() {
         <p>
           <strong>Yaron Lidgi</strong>
           <br />
-          Founder, Actuarial Exam Tutor
+          Founder, Actuarial Exams Tutor
         </p>
+        <div style={{ height: '8px' }} /> {/* Adjust '8px' to make it smaller or larger */}
         <p>
           After years of taking exams, I expect to attain an ASA designation at the Society of
           Actuaries in Fall 2026. Beyond my actuarial expertise, I also have extensive training and
           experience in the natural language space, specifically with large language models.
-        </p>
-        <p>
           I currently work as an independent consultant on projects related to both actuarial
           science and artificial intelligence.
         </p>
+        <div style={{ height: '8px' }} /> {/* Adjust '8px' to make it smaller or larger */}
         <p>
           Preparing for actuarial exams is largely a self-directed journey. While high-quality
           study manuals do an excellent job of presenting the material, they cannot answer your
           questions, adapt their explanations, or guide you through difficult concepts. A personal
           tutor can provide that level of support, but for many students, it simply isn&rsquo;t
-          affordable.
-        </p>
-        <p>
-          I built Actuarial Exam Tutor to bridge that gap. By combining advances in artificial
+          affordable. I built Actuarial Exam Tutor to bridge that gap. By combining advances in artificial
           intelligence with trusted actuarial study resources, my goal was to provide every student
           with the experience of having a knowledgeable tutor available whenever they need one.
         </p>
