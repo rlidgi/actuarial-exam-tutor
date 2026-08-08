@@ -188,4 +188,15 @@ export const api = {
       { method: "POST", body: JSON.stringify({ session_id: sessionId }) },
       token
     ),
+  // Bypasses request() -- the manual is served as raw text/html, not JSON,
+  // so there's no body to parse as an ApiError-shaped object on failure.
+  getCourseHtml: async (token: string, examCode: string = EXAM_CODE): Promise<string> => {
+    const res = await fetch(`${API_URL}/api/courses/${examCode}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      throw new ApiError(res.statusText, res.status);
+    }
+    return res.text();
+  },
 };
