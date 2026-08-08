@@ -1,17 +1,299 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useReveal } from "@/lib/use-reveal";
+import { MarketingHeader } from "@/components/marketing-header";
+import { SiteFooter } from "@/components/site-footer";
+import { MessageContent } from "@/components/message-content";
 
-export default function Home() {
-  const { token, loading } = useAuth();
-  const router = useRouter();
+// Fullwidth dollar sign (U+FF04), not a regular "$" -- avoids the markdown
+// math parser reading "accumulated value is $595.51" as an unterminated
+// math delimiter alongside the real $...$ math earlier in the same string.
+const PREVIEW_ANSWER = `The accumulated value formula is $AV = PV(1+i)^n$. Substituting $PV = 500$, $i = 0.06$, and $n = 3$:
 
-  useEffect(() => {
-    if (loading) return;
-    router.push(token ? "/chat" : "/login");
-  }, [loading, token, router]);
+$$AV = 500(1.06)^3 = 595.51$$
 
-  return null;
+So the accumulated value after 3 years is **＄595.51**.`;
+
+const HERO_SYMBOLS: { text: string; left: string; top: string; fontSize: string; delay: string }[] = [
+  { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
+  { text: "∫", left: "90%", top: "18%", fontSize: "2.3rem", delay: "1.5s" },
+  { text: "(1+i)ⁿ", left: "13%", top: "58%", fontSize: "1.25rem", delay: "3s" },
+  { text: "δ", left: "85%", top: "60%", fontSize: "2rem", delay: "0.8s" },
+  { text: "vⁿ", left: "4%", top: "78%", fontSize: "1.3rem", delay: "2.2s" },
+  { text: "μ", left: "92%", top: "80%", fontSize: "1.7rem", delay: "4s" },
+  { text: "σ²", left: "8%", top: "36%", fontSize: "1.4rem", delay: "5s" },
+  { text: "∞", left: "93%", top: "42%", fontSize: "1.9rem", delay: "2.8s" },
+  { text: "E[X]", left: "3%", top: "92%", fontSize: "1.15rem", delay: "1.2s" },
+  { text: "λ", left: "88%", top: "6%", fontSize: "1.5rem", delay: "3.6s" },
+  { text: "P(A∩B)", left: "16%", top: "4%", fontSize: "1.1rem", delay: "4.5s" },
+  { text: "1−p", left: "80%", top: "92%", fontSize: "1.25rem", delay: "0.4s" },
+  { text: "ₓpₓ", left: "20%", top: "8%", fontSize: "1.3rem", delay: "2s" },
+  { text: "qₓ", left: "7%", top: "50%", fontSize: "1.2rem", delay: "3.3s" },
+  { text: "Aₓ", left: "95%", top: "30%", fontSize: "1.6rem", delay: "1s" },
+  { text: "äₓ", left: "22%", top: "88%", fontSize: "1.4rem", delay: "4.2s" },
+  { text: "lₓ", left: "2%", top: "22%", fontSize: "1.15rem", delay: "0.6s" },
+  { text: "eₓ", left: "78%", top: "14%", fontSize: "1.3rem", delay: "5.5s" },
+  { text: "ₛEₓ", left: "83%", top: "70%", fontSize: "1.15rem", delay: "1.8s" },
+  { text: "ω", left: "97%", top: "52%", fontSize: "1.8rem", delay: "3.8s" },
+  { text: "ₛVₓ", left: "12%", top: "70%", fontSize: "1.1rem", delay: "2.6s" },
+];
+
+const EXAMS = [
+  { code: "P", name: "Probability", color: "var(--sky)" },
+  { code: "FM", name: "Financial Mathematics", color: "var(--gold)" },
+  { code: "FAM", name: "Fundamentals of Actuarial Mathematics", color: undefined },
+];
+
+export default function LandingPage() {
+  const { token } = useAuth();
+  useReveal();
+
+  return (
+    <div className="landing">
+      <MarketingHeader>
+        <Link className="btn" href="/about">
+          About
+        </Link>
+        <Link className="btn" href="/pricing">
+          Pricing
+        </Link>
+        {token ? (
+          <Link className="btn btn-primary" href="/chat">
+            Go to Tutor
+          </Link>
+        ) : (
+          <Link className="btn btn-primary" href="/login">
+            Sign in
+          </Link>
+        )}
+      </MarketingHeader>
+
+      <div className="landing-hero">
+        <div className="hero-bg" aria-hidden="true">
+          <svg className="hero-curve" viewBox="0 0 800 300" preserveAspectRatio="none">
+            <path d="M0,280 C150,270 300,220 450,140 C550,90 650,40 800,10" />
+          </svg>
+          {HERO_SYMBOLS.map((s, i) => (
+            <span
+              key={i}
+              className="hero-symbol"
+              style={{ left: s.left, top: s.top, fontSize: s.fontSize, animationDelay: s.delay }}
+            >
+              {s.text}
+            </span>
+          ))}
+        </div>
+        <h1>Your own personal tutor for actuarial exams</h1>
+        <p className="landing-sub">
+          Every answer is grounded in the exact textbooks the SOA specifies for your exam --
+          with a citation attached, for your reference.
+        </p>
+        <div className="exam-picker">
+          {EXAMS.map((e) => (
+            <Link key={e.code} className="exam-card" href={`/pricing?exam=${e.code}`}>
+              <span className="exam-card-code" style={e.color ? { color: e.color } : undefined}>
+                {e.code}
+              </span>
+              <span className="exam-card-name">{e.name}</span>
+            </Link>
+          ))}
+        </div>
+        <div className="landing-free-banner">
+          <p className="landing-free-banner-text">
+            Register or log in for free access to the full study manual for each exam and 6 free
+            messages to try out the AI tutor.
+          </p>
+          <Link className="btn btn-primary landing-free-banner-btn" href="/register">
+            Get free access
+          </Link>
+        </div>
+      </div>
+
+      <div className="preview-window reveal">
+        <div className="preview-bar">
+          <span className="preview-dot" />
+          <span className="preview-dot" />
+          <span className="preview-dot" />
+          <span className="preview-exam">Exam FM -- Financial Mathematics</span>
+        </div>
+        <div className="preview-chat">
+          <div className="bubble user">
+            An investment of 500 earns interest at an annual effective rate of 6%. Find its
+            accumulated value after 3 years.
+          </div>
+          <div className="bubble assistant">
+            <MessageContent text={PREVIEW_ANSWER} />
+            <div className="sources">
+              <div className="sources-label">Sources (1)</div>
+              <div className="source-item">
+                <div className="source-row">
+                  <span className="source-num">1</span>
+                  <span className="source-meta">
+                    <span className="source-book">Vaaler &amp; Daniel -- Mathematical Interest Theory</span>
+                    <span className="source-page">p. 12</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="how-it-works">
+        <h2>How it works</h2>
+        <div className="how-steps">
+          <div className="how-step reveal">
+            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
+              <rect
+                x="20"
+                y="20"
+                width="160"
+                height="90"
+                rx="16"
+                fill="var(--paper-raised)"
+                stroke="var(--ledger)"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M60 110 L45 138 L82 110 Z"
+                fill="var(--paper-raised)"
+                stroke="var(--ledger)"
+                strokeWidth="2.5"
+              />
+              <text
+                x="100"
+                y="80"
+                fontSize="46"
+                textAnchor="middle"
+                fill="var(--ledger)"
+                fontFamily="Georgia, serif"
+                fontWeight="700"
+              >
+                ?
+              </text>
+            </svg>
+            <div className="how-title">Ask</div>
+            <p>Type a question, paste a problem, or attach a screenshot.</p>
+          </div>
+          <div className="how-step reveal">
+            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
+              <rect x="35" y="92" width="95" height="15" rx="2" fill="var(--gold)" />
+              <rect x="42" y="77" width="85" height="15" rx="2" fill="var(--ledger)" />
+              <rect x="49" y="62" width="75" height="15" rx="2" fill="var(--sky)" />
+              <g className="mag-glass-group">
+                <circle
+                  cx="140"
+                  cy="58"
+                  r="21"
+                  fill="rgba(246,247,241,0.9)"
+                  stroke="var(--ink)"
+                  strokeWidth="5"
+                />
+                <line
+                  x1="155"
+                  y1="73"
+                  x2="173"
+                  y2="91"
+                  stroke="var(--ink)"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+              </g>
+            </svg>
+            <div className="how-title">Retrieve</div>
+            <p>The exact SOA-specified textbooks for your exam are searched for relevant passages.</p>
+          </div>
+          <div className="how-step reveal">
+            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
+              <rect
+                x="20"
+                y="20"
+                width="160"
+                height="90"
+                rx="16"
+                fill="var(--paper-raised)"
+                stroke="var(--ledger)"
+                strokeWidth="2.5"
+              />
+              <path
+                d="M60 110 L45 138 L82 110 Z"
+                fill="var(--paper-raised)"
+                stroke="var(--ledger)"
+                strokeWidth="2.5"
+              />
+              <path
+                className="how-checkmark"
+                d="M72 66 L90 84 L128 44"
+                fill="none"
+                stroke="var(--ledger)"
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <rect x="142" y="14" width="42" height="24" rx="3" fill="var(--gold)" />
+              <text
+                x="163"
+                y="31"
+                fontSize="11"
+                textAnchor="middle"
+                fill="var(--paper)"
+                fontFamily="ui-monospace, monospace"
+                fontWeight="700"
+              >
+                p.12
+              </text>
+            </svg>
+            <div className="how-title">Get a cited answer</div>
+            <p>A full explanation comes back with the exact textbook and page it&apos;s grounded in.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="landing-features">
+        <div className="feature-card reveal">
+          <div className="feature-title">Grounded in your textbooks</div>
+          <p>Every response comes with specific references to SOA exam textbooks for further study.</p>
+        </div>
+        <div className="feature-card reveal">
+          <div className="feature-title">Ask, or paste a problem</div>
+          <p>Type a question, paste a problem, or work through practice problems the tutor generates for you.</p>
+        </div>
+        <div className="feature-card reveal">
+          <div className="feature-title">Paste a screenshot</div>
+          <p>Attach or paste an image of a problem straight into the chat. It&apos;s transcribed and answered like any typed question.</p>
+        </div>
+      </div>
+
+      <div className="landing-faq">
+        <h2>Questions</h2>
+        <div className="faq-item reveal">
+          <div className="faq-q">Which textbooks does it actually use?</div>
+          <p>We use the textbooks the Society of Actuaries lists in the exam syllabus.</p>
+        </div>
+        <div className="faq-item reveal">
+          <div className="faq-q">Is there anything free before I subscribe?</div>
+          <p>
+            Yes -- once you register, the full study manual for each exam and 6 messages with the
+            AI tutor are free, no subscription required.
+          </p>
+        </div>
+        <div className="faq-item reveal">
+          <div className="faq-q">Do I need to subscribe to all three exams?</div>
+          <p>No, each exam is billed and accessed separately, so you only pay for the one you&apos;re currently studying for.</p>
+        </div>
+        <div className="faq-item reveal">
+          <div className="faq-q">Can I cancel anytime?</div>
+          <p>Yes, with one click from your account, no minimum commitment.</p>
+        </div>
+        <div className="faq-item reveal">
+          <div className="faq-q">What if I already have a screenshot of a problem?</div>
+          <p>Paste or attach it directly into the chat. It&apos;s transcribed automatically and answered like any typed question.</p>
+        </div>
+      </div>
+
+      <SiteFooter />
+    </div>
+  );
 }
