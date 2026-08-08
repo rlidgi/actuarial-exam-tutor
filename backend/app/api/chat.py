@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required
 from app.api.helpers import resolve_profile
 from app.extensions import db
 from app.models.session import Message, Session
-from app.services import tutor_service
+from app.services import tutor_service, vision_service
 
 bp = Blueprint("chat", __name__)
 
@@ -45,16 +45,40 @@ def _delete_last_exchange(session: Session) -> str | None:
     return original_text
 
 
+def _parse_message_request():
+    """The composer posts multipart/form-data whenever a screenshot is
+    attached (so the image can ride alongside the text) and plain JSON
+    otherwise -- accept both rather than forcing every caller through
+    multipart. Returns (exam_code, typed_text, image_file | None)."""
+    if request.content_type and request.content_type.startswith("multipart/form-data"):
+        return (
+            request.form.get("exam_code", "").strip().upper(),
+            request.form.get("message", "").strip(),
+            request.files.get("image"),
+        )
+    data = request.get_json(silent=True) or {}
+    return data.get("exam_code", "").strip().upper(), data.get("message", "").strip(), None
+
+
 @bp.post("/message")
 @jwt_required()
 def send_message():
-    data = request.get_json(silent=True) or {}
-    exam_code = data.get("exam_code", "").strip().upper()
-    text = data.get("message", "").strip()
+    exam_code, typed_text, image_file = _parse_message_request()
 
     profile, error = resolve_profile(exam_code)
     if error:
         return error
+
+    transcribed = ""
+    if image_file and image_file.filename:
+        if not (image_file.mimetype or "").startswith("image/"):
+            return jsonify(error="attached file must be an image"), 400
+        image_bytes, mime_type = vision_service.downscale_image(image_file.read())
+        transcribed = vision_service.transcribe_image(image_bytes, mime_type)
+
+    # A typed question and an attached screenshot's transcription are both
+    # optional inputs -- combine whichever are present into one question.
+    text = "\n\n".join(part for part in (typed_text, transcribed) if part)
     if not text:
         return jsonify(error="message is required"), 400
 

@@ -19,6 +19,11 @@ class Config:
     LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
     LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY", "")
     LANGFUSE_HOST = os.environ.get("LANGFUSE_HOST", "https://cloud.langfuse.com")
+    # Live transcription of a student's uploaded problem screenshot (see
+    # app/services/vision_service.py). Defaults to the same cheap tier
+    # already used for auto-summarize -- transcription doesn't need sol's
+    # heavier reasoning, just accurate reading of the image.
+    VISION_MODEL = os.environ.get("VISION_MODEL", "gpt-5.6-luna")
 
 
 class TestingConfig(Config):
