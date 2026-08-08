@@ -5,8 +5,7 @@ from app.tools import dispatch
 
 
 def _make_ctx(db):
-    user = User(email="student@example.com")
-    user.set_password("secret123")
+    user = User(email="student@example.com", external_auth_id="ext-student")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()

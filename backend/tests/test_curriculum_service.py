@@ -6,8 +6,7 @@ from app.services.mastery_service import PerformanceOutcome, apply_mastery_updat
 
 
 def _make_profile(db):
-    user = User(email="curric@example.com")
-    user.set_password("secret123")
+    user = User(email="curric@example.com", external_auth_id="ext-curric")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()

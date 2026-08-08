@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { api, type AuthResponse } from "./api";
+import { supabaseClient } from "./supabase-client";
 
 const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
 
@@ -16,8 +17,9 @@ interface AuthState {
   token: string | null;
   email: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  sendMagicLink: (email: string) => Promise<void>;
+  completeSupabaseSignIn: () => Promise<void>;
   logout: () => void;
 }
 
@@ -46,19 +48,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  // Stable identities: consumers (e.g. useRequireAuth) put these in effect
-  // dependency arrays, and a new function reference every render would
-  // re-trigger those effects on every unrelated re-render.
-  const login = useCallback(async (loginEmail: string, password: string) => {
-    const response = await api.login(loginEmail, password);
-    await afterAuth(response);
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
-    setToken(response.access_token);
-    setEmail(response.user.email);
+  // Both just kick off Supabase's side of the flow -- the app doesn't get
+  // a token back here. Google full-page-redirects away immediately; magic
+  // link emails a link. Either way, the user lands on /auth/callback,
+  // which calls completeSupabaseSignIn() below.
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
   }, []);
 
-  const register = useCallback(async (registerEmail: string, password: string) => {
-    const response = await api.register(registerEmail, password);
+  const sendMagicLink = useCallback(async (magicLinkEmail: string) => {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email: magicLinkEmail,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
+  }, []);
+
+  // Called from /auth/callback once supabase-js has parsed the OAuth/magic
+  // -link redirect and established a Supabase session. Trades that session
+  // for this app's own JWT and completes the same tail as the old login/
+  // register flow (ensureProfile, localStorage, state).
+  const completeSupabaseSignIn = useCallback(async () => {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error || !data.session) {
+      throw error ?? new Error("no Supabase session to complete sign-in with");
+    }
+    const response = await api.exchangeSupabaseToken(data.session.access_token);
     await afterAuth(response);
     window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
     setToken(response.access_token);
@@ -69,10 +88,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
     setEmail(null);
+    // Otherwise a lingering Supabase-side session could silently
+    // re-authenticate the next time this user lands on /auth/callback.
+    void supabaseClient.auth.signOut();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, email, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ token, email, loading, signInWithGoogle, sendMagicLink, completeSupabaseSignIn, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

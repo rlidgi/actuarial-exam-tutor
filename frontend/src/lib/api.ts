@@ -108,15 +108,10 @@ export interface SessionSummary {
 }
 
 export const api = {
-  register: (email: string, password: string) =>
-    request<AuthResponse>("/api/auth/register", {
+  exchangeSupabaseToken: (supabaseAccessToken: string) =>
+    request<AuthResponse>("/api/auth/exchange", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
-    }),
-  login: (email: string, password: string) =>
-    request<AuthResponse>("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ supabase_access_token: supabaseAccessToken }),
     }),
   ensureProfile: (token: string) =>
     request<{ id: number; exam: string }>(

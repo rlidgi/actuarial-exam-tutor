@@ -9,8 +9,7 @@ export default function PublicGroupLayout({ children }: { children: ReactNode })
           Actuarial Tutor
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Link href="/login">Log in</Link>
-          <Link href="/register">Register</Link>
+          <Link href="/login">Sign in</Link>
         </nav>
       </header>
       <main className="flex flex-1 flex-col">{children}</main>

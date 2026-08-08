@@ -1,10 +1,12 @@
 "use client";
 
-import { AuthForm } from "@/components/auth-form";
-import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
+import { SignInModal } from "@/components/sign-in-modal";
 
+// Compatibility route for bookmarks/inbound links to the old /register page
+// -- registration and sign-in are the same modal now (Supabase creates the
+// account on first sign-in), see app/page.tsx.
 export default function RegisterPage() {
-  const { register } = useAuth();
-
-  return <AuthForm title="Create your account" submitLabel="Register" onSubmit={register} />;
+  const router = useRouter();
+  return <SignInModal onClose={() => router.push("/")} />;
 }

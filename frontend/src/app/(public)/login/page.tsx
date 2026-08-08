@@ -1,29 +1,28 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { AuthForm } from "@/components/auth-form";
-import { useAuth } from "@/lib/auth-context";
+import { useRouter, useSearchParams } from "next/navigation";
+import { SignInModal } from "@/components/sign-in-modal";
 
 function ExpiredBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get("expired") !== "1") return null;
 
   return (
-    <p className="text-sm text-black/60 dark:text-white/60">
-      Your session expired -- log in again to continue.
+    <p className="mb-4 text-sm text-pencil-soft">
+      Your session expired -- sign in again to continue.
     </p>
   );
 }
 
+// Compatibility route for bookmarks/inbound links to the old /login page --
+// sign-in now lives in a modal (see app/page.tsx), so this just opens it
+// over the landing page destination rather than rendering its own form.
 export default function LoginPage() {
-  const { login } = useAuth();
-
+  const router = useRouter();
   return (
-    <AuthForm
-      title="Log in"
-      submitLabel="Log in"
-      onSubmit={login}
+    <SignInModal
+      onClose={() => router.push("/")}
       banner={
         <Suspense fallback={null}>
           <ExpiredBanner />

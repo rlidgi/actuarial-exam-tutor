@@ -3,8 +3,7 @@ from app.services import mastery_service, student_service
 
 
 def _make_profile_with_topics(db):
-    user = User(email="progress@example.com")
-    user.set_password("secret123")
+    user = User(email="progress@example.com", external_auth_id="ext-progress")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()
@@ -85,12 +84,9 @@ def test_progress_endpoint_requires_auth(client):
     assert resp.status_code == 401
 
 
-def test_progress_endpoint_returns_summary(client, db):
-    resp = client.post(
-        "/api/auth/register", json={"email": "progressapi@example.com", "password": "secret123"}
-    )
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def test_progress_endpoint_returns_summary(client, db, register_user):
+    resp_json = register_user("progressapi@example.com")
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     exam = Exam(code="P", name="Exam P")
     db.session.add(exam)

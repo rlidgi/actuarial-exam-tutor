@@ -3,8 +3,7 @@ from app.services import entitlement_service
 
 
 def _make_profile(db, email="entitle@example.com"):
-    user = User(email=email)
-    user.set_password("secret123")
+    user = User(email=email, external_auth_id=f"ext-{email}")
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
         exam = Exam(code="P", name="Exam P")

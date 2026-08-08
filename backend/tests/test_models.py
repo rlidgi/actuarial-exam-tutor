@@ -2,8 +2,7 @@ from app.models import Exam, StudentProfile, Topic, User
 
 
 def test_student_profile_unique_per_exam(app, db):
-    user = User(email="a@example.com")
-    user.set_password("secret123")
+    user = User(email="a@example.com", external_auth_id="ext-a")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()

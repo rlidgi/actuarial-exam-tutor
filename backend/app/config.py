@@ -12,6 +12,13 @@ class Config:
         "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/actuarial_tutor"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Identity verification only (see app/services/supabase_auth_service.py)
+    # -- the backend fetches Supabase's public JWKS to verify tokens minted
+    # by the frontend's supabase-js client. No Supabase API key is held
+    # here; this is the only Supabase Auth config the backend needs.
+    SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+    SUPABASE_JWT_AUD = os.environ.get("SUPABASE_JWT_AUD", "authenticated")
+    SUPABASE_JWT_ISSUER = os.environ.get("SUPABASE_JWT_ISSUER", f"{SUPABASE_URL}/auth/v1")
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
     # Tracing (see app/services/tutor_service.py). Optional -- if either key
     # is unset, tracing is constructed disabled and every call is a no-op,
@@ -44,3 +51,5 @@ class Config:
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL", "sqlite:///:memory:")
+    SUPABASE_URL = "https://test.supabase.co"
+    SUPABASE_JWT_ISSUER = "https://test.supabase.co/auth/v1"

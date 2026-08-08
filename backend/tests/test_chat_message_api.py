@@ -9,10 +9,9 @@ def _response_with_text(text):
     return MagicMock(output=[message_item], output_text=text)
 
 
-def _register_with_profile(client, db, email):
-    resp = client.post("/api/auth/register", json={"email": email, "password": "secret123"})
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def _register_with_profile(client, db, register_user, email):
+    resp_json = register_user(email)
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
@@ -24,8 +23,8 @@ def _register_with_profile(client, db, email):
     return headers
 
 
-def test_send_message_json_body_still_works(client, db):
-    headers = _register_with_profile(client, db, "jsonmsg@example.com")
+def test_send_message_json_body_still_works(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "jsonmsg@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         mock_openai.return_value.responses.create.return_value = _response_with_text("Sure thing.")
@@ -39,8 +38,8 @@ def test_send_message_json_body_still_works(client, db):
     assert resp.get_json()["reply"] == "Sure thing."
 
 
-def test_send_message_with_image_transcribes_and_combines_text(client, db):
-    headers = _register_with_profile(client, db, "imgmsg@example.com")
+def test_send_message_with_image_transcribes_and_combines_text(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "imgmsg@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai, \
          patch("app.api.chat.vision_service.downscale_image") as mock_downscale, \
@@ -75,8 +74,8 @@ def test_send_message_with_image_transcribes_and_combines_text(client, db):
     assert last_user_message.content == "please solve this\n\nA bag has 3 red and 2 blue balls..."
 
 
-def test_send_message_rejects_non_image_attachment(client, db):
-    headers = _register_with_profile(client, db, "badfile@example.com")
+def test_send_message_rejects_non_image_attachment(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "badfile@example.com")
 
     resp = client.post(
         "/api/chat/message",

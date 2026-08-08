@@ -1,11 +1,14 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useReveal } from "@/lib/use-reveal";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MessageContent } from "@/components/message-content";
+import { SignInModal } from "@/components/sign-in-modal";
 
 // Fullwidth dollar sign (U+FF04), not a regular "$" -- avoids the markdown
 // math parser reading "accumulated value is $595.51" as an unterminated
@@ -46,12 +49,30 @@ const EXAMS = [
   { code: "FAM", name: "Fundamentals of Actuarial Mathematics", color: undefined },
 ];
 
+function SignInErrorBanner() {
+  const searchParams = useSearchParams();
+  if (searchParams.get("signin_error") !== "1") return null;
+
+  return (
+    <div className="banner warn pricing-notice">
+      Sign-in didn&apos;t go through -- try again.
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { token } = useAuth();
+  const [showSignIn, setShowSignIn] = useState(false);
   useReveal();
 
   return (
     <div className="landing">
+      <Suspense fallback={null}>
+        <SignInErrorBanner />
+      </Suspense>
+
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
+
       <MarketingHeader>
         <Link className="btn" href="/about">
           About
@@ -64,9 +85,9 @@ export default function LandingPage() {
             Go to Tutor
           </Link>
         ) : (
-          <Link className="btn btn-primary" href="/login">
+          <button type="button" className="btn btn-primary" onClick={() => setShowSignIn(true)}>
             Sign in
-          </Link>
+          </button>
         )}
       </MarketingHeader>
 
@@ -105,9 +126,13 @@ export default function LandingPage() {
             Register or log in for free access to the full study manual for each exam and 6 free
             messages to try out the AI tutor.
           </p>
-          <Link className="btn btn-primary landing-free-banner-btn" href="/register">
+          <button
+            type="button"
+            className="btn btn-primary landing-free-banner-btn"
+            onClick={() => setShowSignIn(true)}
+          >
             Get free access
-          </Link>
+          </button>
         </div>
       </div>
 

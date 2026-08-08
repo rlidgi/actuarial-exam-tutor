@@ -3,10 +3,9 @@ from unittest.mock import MagicMock, patch
 from app.models import Exam, StudentProfile, Subscription, User
 
 
-def _register_with_profile(client, db, email):
-    resp = client.post("/api/auth/register", json={"email": email, "password": "secret123"})
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def _register_with_profile(client, db, register_user, email):
+    resp_json = register_user(email)
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
@@ -23,8 +22,8 @@ def test_checkout_requires_auth(client):
     assert resp.status_code == 401
 
 
-def test_checkout_without_configured_price_returns_400(client, db, app):
-    headers = _register_with_profile(client, db, "checkoutnoprice@example.com")
+def test_checkout_without_configured_price_returns_400(client, db, app, register_user):
+    headers = _register_with_profile(client, db, register_user, "checkoutnoprice@example.com")
     app.config["STRIPE_PRICE_IDS"]["P"] = ""
 
     resp = client.post("/api/billing/checkout", json={"exam_code": "P"}, headers=headers)
@@ -32,8 +31,8 @@ def test_checkout_without_configured_price_returns_400(client, db, app):
     assert resp.status_code == 400
 
 
-def test_checkout_returns_stripe_url(client, db, app):
-    headers = _register_with_profile(client, db, "checkoutok@example.com")
+def test_checkout_returns_stripe_url(client, db, app, register_user):
+    headers = _register_with_profile(client, db, register_user, "checkoutok@example.com")
     app.config["STRIPE_PRICE_IDS"]["P"] = "price_test123"
 
     with patch("app.services.billing_service.stripe") as mock_stripe:
@@ -49,16 +48,16 @@ def test_checkout_returns_stripe_url(client, db, app):
     assert create_kwargs["mode"] == "subscription"
 
 
-def test_portal_without_existing_customer_returns_400(client, db):
-    headers = _register_with_profile(client, db, "portalnocustomer@example.com")
+def test_portal_without_existing_customer_returns_400(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "portalnocustomer@example.com")
 
     resp = client.post("/api/billing/portal", json={"exam_code": "P"}, headers=headers)
 
     assert resp.status_code == 400
 
 
-def test_portal_returns_stripe_url(client, db):
-    headers = _register_with_profile(client, db, "portalok@example.com")
+def test_portal_returns_stripe_url(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "portalok@example.com")
     user = User.query.filter_by(email="portalok@example.com").first()
     profile = StudentProfile.query.filter_by(user_id=user.id).first()
     db.session.add(
@@ -81,8 +80,8 @@ def test_portal_returns_stripe_url(client, db):
     )
 
 
-def test_status_reflects_free_trial_by_default(client, db):
-    headers = _register_with_profile(client, db, "statusdefault@example.com")
+def test_status_reflects_free_trial_by_default(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "statusdefault@example.com")
 
     resp = client.get("/api/billing/status?exam=P", headers=headers)
 
@@ -93,8 +92,8 @@ def test_status_reflects_free_trial_by_default(client, db):
     assert body["free_trial_total"] == 6
 
 
-def test_sync_upserts_subscription_from_checkout_session(client, db):
-    headers = _register_with_profile(client, db, "syncme@example.com")
+def test_sync_upserts_subscription_from_checkout_session(client, db, register_user):
+    headers = _register_with_profile(client, db, register_user, "syncme@example.com")
     user = User.query.filter_by(email="syncme@example.com").first()
     profile = StudentProfile.query.filter_by(user_id=user.id).first()
 
@@ -132,8 +131,8 @@ def test_webhook_invalid_signature_returns_400(client):
     assert resp.status_code == 400
 
 
-def test_webhook_subscription_deleted_marks_canceled(client, db):
-    _register_with_profile(client, db, "webhookuser@example.com")
+def test_webhook_subscription_deleted_marks_canceled(client, db, register_user):
+    _register_with_profile(client, db, register_user, "webhookuser@example.com")
     user = User.query.filter_by(email="webhookuser@example.com").first()
     profile = StudentProfile.query.filter_by(user_id=user.id).first()
     db.session.add(

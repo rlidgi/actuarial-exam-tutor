@@ -3,14 +3,9 @@ from datetime import datetime, timedelta, timezone
 from app.models import Exam, Message, Session, StudentProfile, User
 
 
-def _login(client, email):
-    resp = client.post(
-        "/api/auth/register", json={"email": email, "password": "secret123"}
-    )
-    if resp.status_code != 201:
-        resp = client.post("/api/auth/login", json={"email": email, "password": "secret123"})
-    token = resp.get_json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+def _login(register_user, email):
+    resp_json = register_user(email)
+    return {"Authorization": f"Bearer {resp_json['access_token']}"}
 
 
 def test_history_days_requires_auth(client):
@@ -18,8 +13,8 @@ def test_history_days_requires_auth(client):
     assert resp.status_code == 401
 
 
-def test_history_days_groups_by_calendar_date(client, db):
-    headers = _login(client, "historydays@example.com")
+def test_history_days_groups_by_calendar_date(client, db, register_user):
+    headers = _login(register_user, "historydays@example.com")
     exam = Exam(code="P", name="Exam P")
     db.session.add(exam)
     db.session.commit()
@@ -50,8 +45,8 @@ def test_history_days_groups_by_calendar_date(client, db):
     assert days == [today.date().isoformat(), week_ago.date().isoformat()]
 
 
-def test_history_day_returns_only_that_days_messages(client, db):
-    headers = _login(client, "historyday@example.com")
+def test_history_day_returns_only_that_days_messages(client, db, register_user):
+    headers = _login(register_user, "historyday@example.com")
     exam = Exam(code="P", name="Exam P")
     db.session.add(exam)
     db.session.commit()
@@ -89,7 +84,7 @@ def test_history_day_returns_only_that_days_messages(client, db):
     ]
 
 
-def test_history_day_rejects_bad_date_format(client, db):
-    headers = _login(client, "historybadformat@example.com")
+def test_history_day_rejects_bad_date_format(client, db, register_user):
+    headers = _login(register_user, "historybadformat@example.com")
     resp = client.get("/api/chat/history/day/not-a-date?exam=P", headers=headers)
     assert resp.status_code == 400

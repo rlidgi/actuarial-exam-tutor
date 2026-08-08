@@ -11,8 +11,7 @@ from app.services.mastery_service import (
 
 
 def _make_profile(db):
-    user = User(email="learner@example.com")
-    user.set_password("secret123")
+    user = User(email="learner@example.com", external_auth_id="ext-learner")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()

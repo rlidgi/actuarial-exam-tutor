@@ -3,12 +3,9 @@ def test_get_course_requires_auth(client):
     assert resp.status_code == 401
 
 
-def test_get_course_returns_html_for_known_exam(client, db):
-    resp = client.post(
-        "/api/auth/register", json={"email": "manual@example.com", "password": "secret123"}
-    )
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def test_get_course_returns_html_for_known_exam(client, db, register_user):
+    resp_json = register_user("manual@example.com")
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     resp = client.get("/api/courses/P", headers=headers)
 
@@ -17,12 +14,9 @@ def test_get_course_returns_html_for_known_exam(client, db):
     assert len(resp.data) > 1000
 
 
-def test_get_course_unknown_exam_returns_404(client, db):
-    resp = client.post(
-        "/api/auth/register", json={"email": "manualbad@example.com", "password": "secret123"}
-    )
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def test_get_course_unknown_exam_returns_404(client, db, register_user):
+    resp_json = register_user("manualbad@example.com")
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     resp = client.get("/api/courses/FM", headers=headers)
 

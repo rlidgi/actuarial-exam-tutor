@@ -8,10 +8,9 @@ def _response_with_text(text):
     return MagicMock(output=[message_item], output_text=text)
 
 
-def _register(client, email):
-    resp = client.post("/api/auth/register", json={"email": email, "password": "secret123"})
-    token = resp.get_json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+def _register(register_user, email):
+    resp_json = register_user(email)
+    return {"Authorization": f"Bearer {resp_json['access_token']}"}
 
 
 def _make_profile_with_exchange(db, email):
@@ -42,8 +41,8 @@ def test_regenerate_requires_auth(client):
     assert resp.status_code == 401
 
 
-def test_regenerate_replaces_last_exchange_with_same_question(client, db):
-    headers = _register(client, "regen@example.com")
+def test_regenerate_replaces_last_exchange_with_same_question(client, db, register_user):
+    headers = _register(register_user, "regen@example.com")
     profile, session = _make_profile_with_exchange(db, "regen@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
@@ -70,8 +69,8 @@ def test_regenerate_replaces_last_exchange_with_same_question(client, db):
     assert sent_input[0]["content"] == "what is a random variable?"
 
 
-def test_regenerate_with_edited_message_replaces_question(client, db):
-    headers = _register(client, "regenedit@example.com")
+def test_regenerate_with_edited_message_replaces_question(client, db, register_user):
+    headers = _register(register_user, "regenedit@example.com")
     _, session = _make_profile_with_exchange(db, "regenedit@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
@@ -95,8 +94,8 @@ def test_regenerate_with_edited_message_replaces_question(client, db):
     ]
 
 
-def test_regenerate_with_nothing_to_regenerate_returns_400(client, db):
-    headers = _register(client, "regenempty@example.com")
+def test_regenerate_with_nothing_to_regenerate_returns_400(client, db, register_user):
+    headers = _register(register_user, "regenempty@example.com")
     user = User.query.filter_by(email="regenempty@example.com").first()
     exam = Exam(code="P", name="Exam P")
     db.session.add(exam)

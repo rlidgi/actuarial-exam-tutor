@@ -3,8 +3,7 @@ from app.services import mastery_service, student_service
 
 
 def _make_profile(db):
-    user = User(email="learner2@example.com")
-    user.set_password("secret123")
+    user = User(email="learner2@example.com", external_auth_id="ext-learner2")
     exam = Exam(code="P", name="Exam P")
     db.session.add_all([user, exam])
     db.session.commit()

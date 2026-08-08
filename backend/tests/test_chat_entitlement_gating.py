@@ -8,10 +8,9 @@ def _response_with_text(text):
     return MagicMock(output=[message_item], output_text=text)
 
 
-def _register_with_exhausted_trial(client, db, email):
-    resp = client.post("/api/auth/register", json={"email": email, "password": "secret123"})
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def _register_with_exhausted_trial(client, db, register_user, email):
+    resp_json = register_user(email)
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
 
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
@@ -28,8 +27,8 @@ def _register_with_exhausted_trial(client, db, email):
     return headers, user
 
 
-def test_send_message_blocked_when_trial_exhausted(client, db):
-    headers, _ = _register_with_exhausted_trial(client, db, "exhausted@example.com")
+def test_send_message_blocked_when_trial_exhausted(client, db, register_user):
+    headers, _ = _register_with_exhausted_trial(client, db, register_user, "exhausted@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         resp = client.post(
@@ -43,11 +42,11 @@ def test_send_message_blocked_when_trial_exhausted(client, db):
         mock_openai.return_value.responses.create.assert_not_called()
 
 
-def test_regenerate_blocked_does_not_destroy_existing_exchange(client, db):
+def test_regenerate_blocked_does_not_destroy_existing_exchange(client, db, register_user):
     """A blocked regenerate must not delete the exchange it would have
     replaced -- otherwise the student loses that history permanently with
     nothing to show for it once they regain access."""
-    headers, user = _register_with_exhausted_trial(client, db, "exhaustedregen@example.com")
+    headers, user = _register_with_exhausted_trial(client, db, register_user, "exhaustedregen@example.com")
     profile = StudentProfile.query.filter_by(user_id=user.id).first()
     session = Session(student_profile_id=profile.id)
     db.session.add(session)
@@ -70,12 +69,9 @@ def test_regenerate_blocked_does_not_destroy_existing_exchange(client, db):
     ]
 
 
-def test_send_message_does_not_block_a_subscribed_user(client, db):
-    resp = client.post(
-        "/api/auth/register", json={"email": "subbed@example.com", "password": "secret123"}
-    )
-    token = resp.get_json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+def test_send_message_does_not_block_a_subscribed_user(client, db, register_user):
+    resp_json = register_user("subbed@example.com")
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
         exam = Exam(code="P", name="Exam P")
