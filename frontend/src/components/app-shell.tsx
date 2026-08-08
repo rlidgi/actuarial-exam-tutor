@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useChatView } from "@/lib/chat-view-context";
+import { useBillingStatus } from "@/lib/use-billing-status";
 import { api, EXAM_CODE, type ExamInfo } from "@/lib/api";
 
 function formatDayLabel(iso: string): string {
@@ -27,6 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { selectedDate, setSelectedDate, startNewConversation, historyDaysVersion } =
     useChatView();
+  const { status: billingStatus } = useBillingStatus(token);
 
   const [exams, setExams] = useState<ExamInfo[]>([]);
   const [days, setDays] = useState<string[]>([]);
@@ -59,6 +61,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const handleLogout = () => {
     logout();
     router.push("/login");
+  };
+
+  const handleManageSubscription = async () => {
+    if (!token) return;
+    try {
+      const { url } = await api.createPortalSession(token);
+      window.location.href = url;
+    } catch {
+      // No billing account yet (shouldn't normally happen since this
+      // button only shows once billingStatus.subscribed is true) --
+      // fall back to the subscribe page rather than a dead click.
+      router.push(`/subscribe?exam=${EXAM_CODE}`);
+    }
   };
 
   return (
@@ -148,6 +163,24 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             Proficiency Dashboard
           </Link>
+          {billingStatus &&
+            (billingStatus.subscribed ? (
+              <button
+                type="button"
+                onClick={handleManageSubscription}
+                className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
+              >
+                Manage subscription
+              </button>
+            ) : (
+              <Link
+                href={`/subscribe?exam=${EXAM_CODE}`}
+                onClick={() => setSidebarOpen(false)}
+                className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
+              >
+                Subscribe
+              </Link>
+            ))}
 
           {!loading && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pt-1 text-xs text-paper/50">

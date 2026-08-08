@@ -89,4 +89,8 @@ def status():
         return error
 
     subscribed, free_turns_remaining, _ = entitlement_service.chat_access_status(profile)
-    return jsonify(subscribed=subscribed, free_turns_remaining=free_turns_remaining)
+    return jsonify(
+        subscribed=subscribed,
+        free_turns_remaining=free_turns_remaining,
+        free_trial_total=current_app.config["FREE_TRIAL_TURNS"],
+    )

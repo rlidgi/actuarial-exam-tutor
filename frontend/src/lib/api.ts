@@ -52,8 +52,17 @@ export interface AuthResponse {
 }
 
 export interface ChatResponse {
-  session_id: number;
-  reply: string;
+  session_id?: number;
+  reply?: string;
+  // Set instead of session_id/reply when the caller is out of free-trial
+  // turns and isn't subscribed -- see entitlement_service.chat_access_status.
+  blocked?: "trial_exhausted";
+}
+
+export interface BillingStatus {
+  subscribed: boolean;
+  free_turns_remaining: number;
+  free_trial_total: number;
 }
 
 export interface ChatMessageDTO {
@@ -157,6 +166,26 @@ export const api = {
     request<{ messages: ChatMessageDTO[] }>(
       `/api/chat/history/day/${date}?exam=${EXAM_CODE}`,
       {},
+      token
+    ),
+  getBillingStatus: (token: string) =>
+    request<BillingStatus>(`/api/billing/status?exam=${EXAM_CODE}`, {}, token),
+  createCheckoutSession: (token: string, examCode: string = EXAM_CODE) =>
+    request<{ url: string }>(
+      "/api/billing/checkout",
+      { method: "POST", body: JSON.stringify({ exam_code: examCode }) },
+      token
+    ),
+  createPortalSession: (token: string) =>
+    request<{ url: string }>(
+      "/api/billing/portal",
+      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE }) },
+      token
+    ),
+  syncCheckoutSession: (token: string, sessionId: string) =>
+    request<{ ok: boolean }>(
+      "/api/billing/sync",
+      { method: "POST", body: JSON.stringify({ session_id: sessionId }) },
       token
     ),
 };

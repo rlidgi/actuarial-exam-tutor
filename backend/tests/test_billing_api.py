@@ -90,6 +90,7 @@ def test_status_reflects_free_trial_by_default(client, db):
     body = resp.get_json()
     assert body["subscribed"] is False
     assert body["free_turns_remaining"] == 6
+    assert body["free_trial_total"] == 6
 
 
 def test_sync_upserts_subscription_from_checkout_session(client, db):

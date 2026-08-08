@@ -45,16 +45,22 @@ def _delete_last_exchange(session: Session) -> str | None:
     return original_text
 
 
-def _handle_tutor_turn(profile, session: Session, text: str):
-    """Shared by send_message and regenerate: entitlement-gates the turn
-    (subscribed, or free-trial turns remaining), runs it, and draws down
-    the free-trial pool on a successful unsubscribed turn -- matching the
-    old app's {"blocked": "trial_exhausted"} wire shape so a blocked turn
-    is distinguishable from a real error."""
+def _access_gate(profile):
+    """Checked before doing ANY work for a turn -- including, for
+    regenerate, before deleting the exchange being replaced. Getting this
+    check in after the delete would let a blocked regenerate destroy the
+    existing last exchange with nothing to replace it. Returns (subscribed,
+    blocked_response); blocked_response is a Flask response to return
+    immediately if there's no access right now, else None."""
     subscribed, _, has_access = entitlement_service.chat_access_status(profile)
     if not has_access:
-        return jsonify(blocked="trial_exhausted")
+        return subscribed, jsonify(blocked="trial_exhausted")
+    return subscribed, None
 
+
+def _run_tutor_turn(profile, session: Session, text: str, subscribed: bool):
+    """Runs an already access-gated turn, drawing down the free-trial pool
+    on a successful unsubscribed one."""
     reply = tutor_service.handle_message(profile, session, text)
     if not subscribed:
         entitlement_service.increment_free_turns_used(profile)
@@ -85,6 +91,10 @@ def send_message():
     if error:
         return error
 
+    subscribed, blocked = _access_gate(profile)
+    if blocked:
+        return blocked
+
     transcribed = ""
     if image_file and image_file.filename:
         if not (image_file.mimetype or "").startswith("image/"):
@@ -99,7 +109,7 @@ def send_message():
         return jsonify(error="message is required"), 400
 
     session = _get_or_create_open_session(profile)
-    return _handle_tutor_turn(profile, session, text)
+    return _run_tutor_turn(profile, session, text, subscribed)
 
 
 @bp.post("/regenerate")
@@ -113,6 +123,10 @@ def regenerate():
     if error:
         return error
 
+    subscribed, blocked = _access_gate(profile)
+    if blocked:
+        return blocked
+
     session = _get_or_create_open_session(profile)
     original_text = _delete_last_exchange(session)
 
@@ -120,7 +134,7 @@ def regenerate():
     if not text:
         return jsonify(error="nothing to regenerate"), 400
 
-    return _handle_tutor_turn(profile, session, text)
+    return _run_tutor_turn(profile, session, text, subscribed)
 
 
 @bp.get("/history/days")

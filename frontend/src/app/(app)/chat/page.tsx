@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useEffect,
   useRef,
   useState,
@@ -8,21 +9,59 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api, ApiError, isAuthError, type ChatMessageDTO } from "@/lib/api";
+import { api, ApiError, EXAM_CODE, isAuthError, type ChatMessageDTO } from "@/lib/api";
 import { useChatView } from "@/lib/chat-view-context";
+import { useBillingStatus } from "@/lib/use-billing-status";
 import { MessageContent } from "@/components/message-content";
 import { NotationPicker } from "@/components/notation-picker";
 import { CameraCaptureModal } from "@/components/camera-capture-modal";
+import { TrialBanner } from "@/components/trial-banner";
 
 interface DisplayMessage extends ChatMessageDTO {
   imagePreviewUrl?: string;
+}
+
+// Reads the ?checkout=success&session_id=... query set by Stripe Checkout's
+// success_url, syncs the subscription once, then strips the params. Split
+// out from ChatPage since useSearchParams requires a Suspense boundary.
+function CheckoutSyncHandler({
+  token,
+  onSynced,
+}: {
+  token: string | null;
+  onSynced: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!token) return;
+    const sessionId = searchParams.get("session_id");
+    if (searchParams.get("checkout") !== "success" || !sessionId) return;
+
+    api
+      .syncCheckoutSession(token, sessionId)
+      .catch(() => {})
+      .finally(() => {
+        onSynced();
+        // Clears the query params, which also removes them from
+        // searchParams -- the guard above then short-circuits on the
+        // resulting re-render instead of re-syncing.
+        router.replace("/chat");
+      });
+  }, [token, searchParams, router, onSynced]);
+
+  return null;
 }
 
 export default function ChatPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   const { selectedDate, setSelectedDate, newConversationSignal, refreshHistoryDays } =
     useChatView();
+  const { status: billingStatus, refresh: refreshBilling } = useBillingStatus(token);
 
   const [liveMessages, setLiveMessages] = useState<DisplayMessage[]>([]);
   const [dayMessages, setDayMessages] = useState<DisplayMessage[]>([]);
@@ -35,6 +74,7 @@ export default function ChatPage() {
 
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -133,11 +173,23 @@ export default function ChatPage() {
     }
   };
 
+  // Mirrors the server's authoritative gate purely for a snappy UI/one
+  // fewer round-trip -- the server enforces the real limit independently
+  // (see the {blocked: "trial_exhausted"} handling below) regardless of
+  // what this says, so a stale client-side status here is never unsafe,
+  // just occasionally lets one extra request through to the real check.
+  const hasChatAccess =
+    !billingStatus || billingStatus.subscribed || billingStatus.free_turns_remaining > 0;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!token || sending) return;
     const text = input.trim();
     if (!text && !attachedImage) return;
+    if (!hasChatAccess) {
+      setBlocked(true);
+      return;
+    }
 
     const imageToSend = attachedImage ?? undefined;
     const previewUrl = attachedPreviewUrl ?? undefined;
@@ -154,10 +206,19 @@ export default function ChatPage() {
     clearAttachedImage({ revoke: false });
     setSending(true);
     setError(null);
+    setBlocked(false);
 
     try {
       const response = await api.sendMessage(token, text, imageToSend);
-      setLiveMessages((prev) => [...prev, { role: "assistant", content: response.reply }]);
+      if (response.blocked) {
+        // No reply to show -- roll back the optimistic user bubble so the
+        // transcript doesn't end on an unanswered question.
+        setLiveMessages((prev) => prev.slice(0, -1));
+        setBlocked(true);
+        refreshBilling();
+        return;
+      }
+      setLiveMessages((prev) => [...prev, { role: "assistant", content: response.reply ?? "" }]);
       refreshHistoryDays();
     } catch (err) {
       if (isAuthError(err)) {
@@ -174,13 +235,21 @@ export default function ChatPage() {
     if (!token || sending || liveMessages.length === 0) return;
     setSending(true);
     setError(null);
+    setBlocked(false);
     try {
       const response = await api.regenerate(token, editedMessage);
+      if (response.blocked) {
+        // The backend checks access before deleting anything, so the
+        // existing exchange is untouched -- nothing to roll back here.
+        setBlocked(true);
+        refreshBilling();
+        return;
+      }
       const questionText = editedMessage ?? liveMessages[liveMessages.length - 2]?.content ?? "";
       setLiveMessages((prev) => [
         ...prev.slice(0, -2),
         { role: "user", content: questionText },
-        { role: "assistant", content: response.reply },
+        { role: "assistant", content: response.reply ?? "" },
       ]);
       refreshHistoryDays();
     } catch (err) {
@@ -207,7 +276,11 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      <Suspense fallback={null}>
+        <CheckoutSyncHandler token={token} onSynced={refreshBilling} />
+      </Suspense>
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
+        <TrialBanner status={billingStatus} />
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
           {messages.length === 0 && !dayLoading && (
             <p className="text-sm text-pencil">
@@ -278,6 +351,18 @@ export default function ChatPage() {
           {sending && (
             <div className="self-start rounded bg-paper-raised px-3 py-2 text-sm text-pencil">
               Thinking...
+            </div>
+          )}
+          {blocked && (
+            <div className="self-start rounded border border-redink/30 bg-redink/5 px-3 py-2 text-sm text-redink">
+              You&apos;ve used up your free trial messages.{" "}
+              <Link
+                href={`/subscribe?exam=${EXAM_CODE}`}
+                className="font-medium underline"
+              >
+                Subscribe
+              </Link>{" "}
+              for unlimited access.
             </div>
           )}
           {error && <p className="text-sm text-redink">{error}</p>}
