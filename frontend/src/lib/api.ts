@@ -23,10 +23,15 @@ async function request<T>(
   options: RequestInit = {},
   token?: string | null
 ): Promise<T> {
+  // FormData bodies (image uploads) need the browser to set their own
+  // multipart boundary header -- forcing application/json here would break
+  // that, so only default to JSON when the body isn't already FormData.
+  const isFormData = options.body instanceof FormData;
+
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
@@ -49,6 +54,16 @@ export interface AuthResponse {
 export interface ChatResponse {
   session_id: number;
   reply: string;
+}
+
+export interface ChatMessageDTO {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ExamInfo {
+  code: string;
+  name: string;
 }
 
 export interface TopicProgress {
@@ -100,10 +115,31 @@ export const api = {
       { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE }) },
       token
     ),
-  sendMessage: (token: string, message: string) =>
-    request<ChatResponse>(
+  sendMessage: (token: string, message: string, image?: File) => {
+    if (image) {
+      const formData = new FormData();
+      formData.set("exam_code", EXAM_CODE);
+      formData.set("message", message);
+      formData.set("image", image);
+      return request<ChatResponse>(
+        "/api/chat/message",
+        { method: "POST", body: formData },
+        token
+      );
+    }
+    return request<ChatResponse>(
       "/api/chat/message",
       { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE, message }) },
+      token
+    );
+  },
+  regenerate: (token: string, editedMessage?: string) =>
+    request<ChatResponse>(
+      "/api/chat/regenerate",
+      {
+        method: "POST",
+        body: JSON.stringify({ exam_code: EXAM_CODE, edited_message: editedMessage }),
+      },
       token
     ),
   getProgress: (token: string) =>
@@ -111,6 +147,15 @@ export const api = {
   getSessions: (token: string) =>
     request<{ sessions: SessionSummary[] }>(
       `/api/students/me/sessions?exam=${EXAM_CODE}`,
+      {},
+      token
+    ),
+  getExams: () => request<{ exams: ExamInfo[] }>("/api/exams"),
+  getHistoryDays: (token: string) =>
+    request<{ days: string[] }>(`/api/chat/history/days?exam=${EXAM_CODE}`, {}, token),
+  getHistoryDay: (token: string, date: string) =>
+    request<{ messages: ChatMessageDTO[] }>(
+      `/api/chat/history/day/${date}?exam=${EXAM_CODE}`,
       {},
       token
     ),

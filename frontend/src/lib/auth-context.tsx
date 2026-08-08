@@ -33,8 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // A one-time synchronous read from localStorage, deliberately done in
+    // an effect (not a lazy useState initializer) so it never runs during
+    // SSR, where window doesn't exist. There's no async boundary here for
+    // these setState calls to move into -- that's the whole point, this
+    // must resolve before the first client render can trust `token`.
     const stored = window.localStorage.getItem(TOKEN_STORAGE_KEY);
     if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(stored);
     }
     setLoading(false);
