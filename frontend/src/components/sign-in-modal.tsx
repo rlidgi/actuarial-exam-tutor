@@ -22,8 +22,12 @@ export function SignInModal({
       // Full-page redirect to Google -- this call doesn't resolve into a
       // signed-in state here, the round trip lands on /auth/callback.
       await signInWithGoogle();
-    } catch {
-      setError("Couldn't start Google sign-in. Try again.");
+    } catch (err) {
+      // Supabase's AuthError extends Error, so .message is Supabase's own
+      // explanation (e.g. provider not enabled) -- more useful than a
+      // generic message, and not misleading the way a fixed string would
+      // be for causes unrelated to what it claims (see magic link below).
+      setError(err instanceof Error ? err.message : "Couldn't start Google sign-in. Try again.");
     }
   };
 
@@ -34,8 +38,10 @@ export function SignInModal({
     try {
       await sendMagicLink(email);
       setSent(true);
-    } catch {
-      setError("Couldn't send the link. Check the email and try again.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Couldn't send the link. Try again."
+      );
     } finally {
       setSubmitting(false);
     }
