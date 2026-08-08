@@ -83,7 +83,19 @@ OPENAI_TOOLS = [
             "properties": {
                 "topic": {"type": "string", "enum": TOPIC_ENUM},
                 "assessment": {"type": "string"},
-                "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": (
+                        "How confident you are that the student's demonstrated understanding is "
+                        "genuine -- reasoned through, not guessed, memorized, or lifted from a hint "
+                        "you just gave. Not your confidence in your own diagnosis, and not how "
+                        "confident the student sounded. 0 = they got there by guessing or reciting a "
+                        "memorized step with no real grasp; 1 = they clearly reasoned it through "
+                        "themselves and could explain why."
+                    ),
+                },
                 "recommended_change": {"type": "integer"},
             },
             "required": ["topic", "assessment", "confidence", "recommended_change"],
