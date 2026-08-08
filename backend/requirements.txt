@@ -13,6 +13,7 @@ pypdf==5.0.1
 pgvector==0.3.5
 Pillow==11.0.0  # downscaling student-uploaded problem screenshots before vision transcription
 langfuse==4.14.3  # tracing for tutor_service's model/tool calls, see docs there
+stripe>=15.3  # subscription checkout/portal/webhooks, see billing_service.py
 pip-system-certs==5.3  # uses the OS certificate store instead of certifi's bundled
                         # list; without it, outbound HTTPS (e.g. to OpenAI) can fail
                         # with CERTIFICATE_VERIFY_FAILED on networks with TLS-inspecting

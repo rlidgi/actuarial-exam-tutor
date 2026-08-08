@@ -5,6 +5,7 @@ from app.models.mastery import Mastery
 from app.models.mistake import Mistake
 from app.models.session import Session, Message
 from app.models.textbook_chunk import TextbookChunk
+from app.models.subscription import Subscription
 
 __all__ = [
     "User",
@@ -17,4 +18,5 @@ __all__ = [
     "Session",
     "Message",
     "TextbookChunk",
+    "Subscription",
 ]

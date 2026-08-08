@@ -24,6 +24,21 @@ class Config:
     # already used for auto-summarize -- transcription doesn't need sol's
     # heavier reasoning, just accurate reading of the image.
     VISION_MODEL = os.environ.get("VISION_MODEL", "gpt-5.6-luna")
+    # Billing (see app/services/billing_service.py, app/services/
+    # entitlement_service.py). Access is sold per exam, so each exam has
+    # its own Stripe price id; FM/FAM are unused until those exams exist,
+    # but wired up now since there's no reason to defer it.
+    STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+    STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    STRIPE_PRICE_IDS = {
+        "P": os.environ.get("STRIPE_PRICE_ID_P", ""),
+        "FM": os.environ.get("STRIPE_PRICE_ID_FM", ""),
+        "FAM": os.environ.get("STRIPE_PRICE_ID_FAM", ""),
+    }
+    FREE_TRIAL_TURNS = int(os.environ.get("FREE_TRIAL_TURNS", "6"))
+    # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
+    # this API.
+    FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
 
 class TestingConfig(Config):

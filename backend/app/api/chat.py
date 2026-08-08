@@ -6,7 +6,7 @@ from flask_jwt_extended import jwt_required
 from app.api.helpers import resolve_profile
 from app.extensions import db
 from app.models.session import Message, Session
-from app.services import tutor_service, vision_service
+from app.services import entitlement_service, tutor_service, vision_service
 
 bp = Blueprint("chat", __name__)
 
@@ -43,6 +43,22 @@ def _delete_last_exchange(session: Session) -> str | None:
     ).delete()
     db.session.commit()
     return original_text
+
+
+def _handle_tutor_turn(profile, session: Session, text: str):
+    """Shared by send_message and regenerate: entitlement-gates the turn
+    (subscribed, or free-trial turns remaining), runs it, and draws down
+    the free-trial pool on a successful unsubscribed turn -- matching the
+    old app's {"blocked": "trial_exhausted"} wire shape so a blocked turn
+    is distinguishable from a real error."""
+    subscribed, _, has_access = entitlement_service.chat_access_status(profile)
+    if not has_access:
+        return jsonify(blocked="trial_exhausted")
+
+    reply = tutor_service.handle_message(profile, session, text)
+    if not subscribed:
+        entitlement_service.increment_free_turns_used(profile)
+    return jsonify(session_id=session.id, reply=reply)
 
 
 def _parse_message_request():
@@ -83,9 +99,7 @@ def send_message():
         return jsonify(error="message is required"), 400
 
     session = _get_or_create_open_session(profile)
-    reply = tutor_service.handle_message(profile, session, text)
-
-    return jsonify(session_id=session.id, reply=reply)
+    return _handle_tutor_turn(profile, session, text)
 
 
 @bp.post("/regenerate")
@@ -106,8 +120,7 @@ def regenerate():
     if not text:
         return jsonify(error="nothing to regenerate"), 400
 
-    reply = tutor_service.handle_message(profile, session, text)
-    return jsonify(session_id=session.id, reply=reply)
+    return _handle_tutor_turn(profile, session, text)
 
 
 @bp.get("/history/days")

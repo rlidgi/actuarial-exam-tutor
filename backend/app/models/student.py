@@ -24,6 +24,10 @@ class StudentProfile(db.Model):
     sessions = db.relationship(
         "Session", back_populates="student_profile", cascade="all, delete-orphan"
     )
+    subscription = db.relationship(
+        "Subscription", back_populates="student_profile", uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "exam_id", name="uq_student_profile_user_exam"),
