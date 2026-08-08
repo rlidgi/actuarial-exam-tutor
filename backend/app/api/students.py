@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from app.api.helpers import resolve_profile
 from app.services import student_service
 
 bp = Blueprint("students", __name__)
@@ -32,14 +33,9 @@ def create_profile():
 @jwt_required()
 def get_me():
     exam_code = request.args.get("exam", "").strip().upper()
-    if not exam_code:
-        return jsonify(error="exam query param is required"), 400
-
-    user_id = int(get_jwt_identity())
-    try:
-        profile = student_service.get_profile(user_id, exam_code)
-    except student_service.ProfileNotFoundError as exc:
-        return jsonify(error=str(exc)), 404
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
 
     return jsonify(
         id=profile.id,
@@ -53,14 +49,9 @@ def get_me():
 @jwt_required()
 def get_mastery():
     exam_code = request.args.get("exam", "").strip().upper()
-    if not exam_code:
-        return jsonify(error="exam query param is required"), 400
-
-    user_id = int(get_jwt_identity())
-    try:
-        profile = student_service.get_profile(user_id, exam_code)
-    except student_service.ProfileNotFoundError as exc:
-        return jsonify(error=str(exc)), 404
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
 
     return jsonify(mastery=student_service.profile_mastery_summary(profile))
 
@@ -69,14 +60,9 @@ def get_mastery():
 @jwt_required()
 def get_sessions():
     exam_code = request.args.get("exam", "").strip().upper()
-    if not exam_code:
-        return jsonify(error="exam query param is required"), 400
-
-    user_id = int(get_jwt_identity())
-    try:
-        profile = student_service.get_profile(user_id, exam_code)
-    except student_service.ProfileNotFoundError as exc:
-        return jsonify(error=str(exc)), 404
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
 
     sessions = [
         {
@@ -94,13 +80,8 @@ def get_sessions():
 @jwt_required()
 def get_progress():
     exam_code = request.args.get("exam", "").strip().upper()
-    if not exam_code:
-        return jsonify(error="exam query param is required"), 400
-
-    user_id = int(get_jwt_identity())
-    try:
-        profile = student_service.get_profile(user_id, exam_code)
-    except student_service.ProfileNotFoundError as exc:
-        return jsonify(error=str(exc)), 404
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
 
     return jsonify(student_service.profile_progress_summary(profile))
