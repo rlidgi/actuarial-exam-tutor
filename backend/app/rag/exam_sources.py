@@ -6,11 +6,12 @@ instead of hardcoding an import -- add a new exam by writing sources_<code>.py
 registering it here.
 """
 
-from app.rag import sources_fm, sources_p
+from app.rag import sources_fam, sources_fm, sources_p
 
 SOURCE_MODULES = {
     "P": sources_p,
     "FM": sources_fm,
+    "FAM": sources_fam,
 }
 
 

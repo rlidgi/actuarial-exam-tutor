@@ -7,11 +7,12 @@ scripts/seed_learning_outcomes.py (topic seeding) and
 tools/openai_tools.py (constraining the model's per-exam topic enum).
 """
 
-from app import exam_syllabus_fm, exam_syllabus_p
+from app import exam_syllabus_fam, exam_syllabus_fm, exam_syllabus_p
 
 SYLLABUS_MODULES = {
     "P": exam_syllabus_p,
     "FM": exam_syllabus_fm,
+    "FAM": exam_syllabus_fam,
 }
 
 
