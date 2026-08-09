@@ -2,7 +2,7 @@
 event handling that keeps the Subscription model in sync with Stripe's
 view of the world.
 
-Access is sold per exam ($25/mo each), not as one all-access plan, so
+Access is sold per exam ($35/mo each), not as one all-access plan, so
 every Checkout session and the resulting Stripe objects carry
 student_profile_id in metadata -- there's no other way to know which
 profile (and therefore which exam) a given subscription is for once it

@@ -10,9 +10,9 @@ import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 
 const EXAMS = [
-  { code: "P", name: "Exam P -- Probability", price: 25 },
-  { code: "FM", name: "Exam FM -- Financial Mathematics", price: 25 },
-  { code: "FAM", name: "Exam FAM -- Fundamentals of Actuarial Mathematics", price: 25 },
+  { code: "P", name: "Exam P -- Probability", price: 35 },
+  { code: "FM", name: "Exam FM -- Financial Mathematics", price: 35 },
+  { code: "FAM", name: "Exam FAM -- Fundamentals of Actuarial Mathematics", price: 35 },
 ];
 
 const FEATURES = [
@@ -83,7 +83,7 @@ function PricingContent() {
       <div className="pricing-header">
         <h1>Pricing</h1>
         <p className="landing-sub" style={{ color: "var(--pencil)" }}>
-          $25/month per exam, unlimited use. Subscribe only to the exams you&apos;re studying for.
+          $35/month per exam, unlimited use. Subscribe only to the exams you&apos;re studying for.
         </p>
       </div>
 
