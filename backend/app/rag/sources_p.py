@@ -1,5 +1,4 @@
-"""
-Exam P corpus configuration.
+"""Exam P corpus configuration.
 
 Chapter page ranges are PDF page indices (1-based), derived from each book's
 printed-page numbering plus a fixed front-matter offset verified against the
@@ -22,7 +21,7 @@ limiting distributions) are outside Exam P's syllabus, which does not test
 estimation or asymptotic theory.
 """
 
-from dataclasses import dataclass
+from app.rag.book_source import BookSource, Chapter
 
 GENERAL_PROBABILITY = "General Probability"
 UNIVARIATE_RANDOM_VARIABLES = "Univariate Random Variables"
@@ -30,28 +29,13 @@ MULTIVARIATE_RANDOM_VARIABLES = "Multivariate Random Variables"
 
 # Midpoints of the July 2026 Exam P syllabus's published weight ranges:
 # General Probability 23-30%, Univariate RVs 44-50%, Multivariate RVs 23-30%.
-EXAM_P_TOPIC_WEIGHTS = {
+TOPIC_WEIGHTS = {
     GENERAL_PROBABILITY: 26.5,
     UNIVARIATE_RANDOM_VARIABLES: 47.0,
     MULTIVARIATE_RANDOM_VARIABLES: 26.5,
 }
 
-
-@dataclass(frozen=True)
-class Chapter:
-    number: int
-    title: str
-    pdf_start: int
-    pdf_end: int  # inclusive
-    topic: str
-
-
-@dataclass(frozen=True)
-class BookSource:
-    key: str
-    title: str
-    file_name: str
-    chapters: tuple[Chapter, ...]
+TOPIC_NAMES = [GENERAL_PROBABILITY, UNIVARIATE_RANDOM_VARIABLES, MULTIVARIATE_RANDOM_VARIABLES]
 
 
 ROSS = BookSource(
@@ -96,4 +80,4 @@ HOGG = BookSource(
     ),
 )
 
-EXAM_P_SOURCES: tuple[BookSource, ...] = (ROSS, WACKERLY, HOGG)
+SOURCES: tuple[BookSource, ...] = (ROSS, WACKERLY, HOGG)

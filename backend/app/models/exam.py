@@ -24,7 +24,7 @@ class Topic(db.Model):
     exam_weight = db.Column(db.Float, nullable=True)
     # NULL = a syllabus-section category (e.g. "General Probability"), purely
     # organizational. Set = a leaf learning-outcome topic, the actual unit
-    # mastery/difficulty are tracked against. See app/exam_p_syllabus.py.
+    # mastery/difficulty are tracked against. See app/exam_syllabus_p.py.
     parent_topic_id = db.Column(db.Integer, db.ForeignKey("topics.id"), nullable=True)
 
     exam = db.relationship("Exam", back_populates="topics")

@@ -1,5 +1,6 @@
+from app.rag.book_source import BookSource, Chapter
 from app.rag.chunk import chunk_book, chunk_chapter_text
-from app.rag.sources import GENERAL_PROBABILITY, BookSource, Chapter
+from app.rag.sources_p import GENERAL_PROBABILITY
 
 
 def _book(chapters):

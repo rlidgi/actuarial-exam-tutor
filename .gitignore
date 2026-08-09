@@ -17,5 +17,7 @@ frontend/.env*.local
 
 # Copyrighted textbook source material and anything derived from it -
 # never commit these to git.
-/folder/
+/p/
+/fm/
+/fam/
 backend/data/

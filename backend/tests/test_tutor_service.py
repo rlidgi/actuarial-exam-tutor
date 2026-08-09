@@ -116,17 +116,24 @@ def test_handle_message_openai_failure_falls_back_gracefully(app, db):
 
 
 def test_build_instructions_plain_when_no_summary(app, db):
-    _, session = _make_profile_and_session(db)
+    profile, session = _make_profile_and_session(db)
 
-    assert tutor_service._build_instructions(session) == SYSTEM_PROMPT
+    result = tutor_service._build_instructions(profile, session)
+
+    assert SYSTEM_PROMPT in result
+    assert "Probability Category" in result  # this exam's parent-topic name, injected dynamically
+    # The phrase itself appears in SYSTEM_PROMPT's own instructions about
+    # recognizing an injected summary block -- check for the actual
+    # injected block, not just the phrase.
+    assert "Session context so far (already summarized" not in result
 
 
 def test_build_instructions_includes_summary_when_present(app, db):
-    _, session = _make_profile_and_session(db)
+    profile, session = _make_profile_and_session(db)
     session.summary = "Covered Bayes' theorem basics."
     db.session.commit()
 
-    result = tutor_service._build_instructions(session)
+    result = tutor_service._build_instructions(profile, session)
 
     assert "Covered Bayes' theorem basics." in result
     assert "Session context so far" in result

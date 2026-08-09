@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from app.rag.sources import BookSource, Chapter
+from app.rag.book_source import BookSource, Chapter
 
 
 def extract_chapter_text(pdf_path: Path, chapter: Chapter) -> str:

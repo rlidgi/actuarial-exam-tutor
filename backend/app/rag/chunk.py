@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.rag.sources import BookSource, Chapter
+from app.rag.book_source import BookSource, Chapter
 
 CHUNK_SIZE_WORDS = 350
 CHUNK_OVERLAP_WORDS = 50

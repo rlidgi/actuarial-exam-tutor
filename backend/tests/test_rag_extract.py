@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 
 from app.rag.extract import extract_book, extract_chapter_text
-from app.rag.sources import EXAM_P_SOURCES, ROSS
+from app.rag.sources_p import ROSS, SOURCES
 
-CORPUS_DIR = Path(__file__).resolve().parents[2] / "folder"
+CORPUS_DIR = Path(__file__).resolve().parents[2] / "p"
 
 pytestmark = pytest.mark.skipif(
     not CORPUS_DIR.exists(), reason="textbook corpus not present on this machine"
@@ -24,7 +24,7 @@ def test_extract_book_returns_all_chapters():
         assert len(text) > 500
 
 
-@pytest.mark.parametrize("book", EXAM_P_SOURCES, ids=lambda b: b.key)
+@pytest.mark.parametrize("book", SOURCES, ids=lambda b: b.key)
 def test_extract_each_source_book(book):
     chapters = extract_book(CORPUS_DIR, book)
     for chapter in book.chapters:

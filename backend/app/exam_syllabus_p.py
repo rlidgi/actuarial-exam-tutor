@@ -3,7 +3,7 @@ The 22 learning-outcome-level topics under Exam P's 3 syllabus sections,
 transcribed from the official July 2026 syllabus (2026-07-p-syllabus.pdf).
 
 This is the single source of truth for granular topic seeding
-(scripts/seed_p_learning_outcomes.py) and for the tool-schema enum
+(scripts/seed_learning_outcomes.py) and for the tool-schema enum
 (tools/openai_tools.py) that constrains what the model can report mastery
 against. `description` is the syllabus's own wording, verbatim; `name` is
 a short label derived from it for use in enums, prompts, and the dashboard
@@ -18,10 +18,10 @@ doesn't support).
 
 from dataclasses import dataclass
 
-from app.rag.sources import (
-    EXAM_P_TOPIC_WEIGHTS,
+from app.rag.sources_p import (
     GENERAL_PROBABILITY,
     MULTIVARIATE_RANDOM_VARIABLES,
+    TOPIC_WEIGHTS,
     UNIVARIATE_RANDOM_VARIABLES,
 )
 
@@ -178,7 +178,7 @@ _OUTCOMES_BY_CATEGORY = {
 
 def weight_for(outcome: LearningOutcome) -> float:
     siblings = _OUTCOMES_BY_CATEGORY[outcome.category]
-    return EXAM_P_TOPIC_WEIGHTS[outcome.category] / len(siblings)
+    return TOPIC_WEIGHTS[outcome.category] / len(siblings)
 
 
 LEARNING_OUTCOME_NAMES: list[str] = [o.name for o in ALL_LEARNING_OUTCOMES]

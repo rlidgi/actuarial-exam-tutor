@@ -1,11 +1,11 @@
 """
-Seeds the 22 granular learning-outcome topics under Exam P's 3 syllabus
-sections, and resets any Mastery/Mistake data recorded against the 3
-broad sections directly (those become organizational parents only --
-mastery is tracked at the leaf/learning-outcome level from here on).
+Seeds an exam's granular learning-outcome topics under its syllabus
+sections, and resets any Mastery/Mistake data recorded against those
+sections directly (those become organizational parents only -- mastery is
+tracked at the leaf/learning-outcome level from here on).
 
 Usage (from backend/, with the venv active and .env populated):
-    python scripts/seed_p_learning_outcomes.py
+    python scripts/seed_learning_outcomes.py [--exam CODE]
 
 Idempotent: safe to re-run. Existing leaf topics are left as-is (their
 Mastery data is NOT touched by re-running this); only the initial reset of
@@ -13,6 +13,7 @@ parent-level Mastery/Mistake rows happens, and only for rows that still
 point at a parent (category) topic.
 """
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -24,17 +25,17 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(BACKEND_DIR / ".env")
 
 from app import create_app  # noqa: E402
-from app.exam_p_syllabus import ALL_LEARNING_OUTCOMES, weight_for  # noqa: E402
+from app.exam_syllabus import all_learning_outcomes_for, weight_for  # noqa: E402
 from app.extensions import db  # noqa: E402
 from app.models.exam import Exam, Topic  # noqa: E402
 from app.models.mastery import Mastery  # noqa: E402
 from app.models.mistake import Mistake  # noqa: E402
 
 
-def seed() -> None:
-    exam = Exam.query.filter_by(code="P").first()
+def seed(exam_code: str) -> None:
+    exam = Exam.query.filter_by(code=exam_code).first()
     if exam is None:
-        raise RuntimeError("Exam P not found -- run scripts/ingest_textbook.py first")
+        raise RuntimeError(f"Exam {exam_code} not found -- run scripts/ingest_textbook.py first")
 
     parents = {t.name: t for t in Topic.query.filter_by(exam_id=exam.id, parent_topic_id=None).all()}
     print(f"found {len(parents)} parent (category) topics: {list(parents)}")
@@ -50,8 +51,9 @@ def seed() -> None:
     if deleted_mastery or deleted_mistakes:
         print(f"reset {deleted_mastery} Mastery and {deleted_mistakes} Mistake rows tied to parent topics")
 
+    outcomes = all_learning_outcomes_for(exam_code)
     created = 0
-    for outcome in ALL_LEARNING_OUTCOMES:
+    for outcome in outcomes:
         parent = parents.get(outcome.category)
         if parent is None:
             raise RuntimeError(f"parent category '{outcome.category}' not found -- seed it first")
@@ -65,19 +67,23 @@ def seed() -> None:
                 exam_id=exam.id,
                 name=outcome.name,
                 description=outcome.description,
-                exam_weight=weight_for(outcome),
+                exam_weight=weight_for(exam_code, outcome),
                 parent_topic_id=parent.id,
             )
         )
         created += 1
     db.session.commit()
-    print(f"created {created} new leaf topics ({len(ALL_LEARNING_OUTCOMES) - created} already existed)")
+    print(f"created {created} new leaf topics ({len(outcomes) - created} already existed)")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exam", default="P", help="exam code, e.g. P, FM, FAM")
+    args = parser.parse_args()
+
     app = create_app()
     with app.app_context():
-        seed()
+        seed(args.exam.upper())
 
 
 if __name__ == "__main__":

@@ -65,7 +65,7 @@ from app.models.student import StudentProfile
 from app.prompts.tutor_prompt import SYSTEM_PROMPT
 from app.services import student_service
 from app.tools.dispatch import TOOL_HANDLERS, ToolContext
-from app.tools.openai_tools import OPENAI_TOOLS
+from app.tools.openai_tools import build_tools
 
 CHAT_MODEL = "gpt-5.6-sol"
 MAX_TOOL_ITERATIONS = 5
@@ -133,11 +133,23 @@ def _build_history(session: Session) -> list[dict]:
     return [{"role": m.role, "content": m.content} for m in recent]
 
 
-def _build_instructions(session: Session) -> str:
-    if not session.summary:
-        return SYSTEM_PROMPT
-    return (
+def _build_instructions(profile: StudentProfile, session: Session) -> str:
+    # This exam's actual syllabus section names, injected dynamically rather
+    # than hardcoded into SYSTEM_PROMPT -- keeps the static prompt exam-
+    # agnostic (per its own docstring) while still telling the model the
+    # real organizational grouping for this specific exam.
+    section_names = ", ".join(
+        t.name for t in Topic.query.filter_by(exam_id=profile.exam_id, parent_topic_id=None).all()
+    )
+    instructions = (
         f"{SYSTEM_PROMPT}\n\n"
+        f"This exam's syllabus sections (the organizational grouping topics belong to, not "
+        f"the unit you assess against): {section_names}."
+    )
+    if not session.summary:
+        return instructions
+    return (
+        f"{instructions}\n\n"
         "Session context so far (already summarized from earlier in this conversation -- "
         "build on it, don't ignore it):\n"
         f"{session.summary}"
@@ -255,8 +267,8 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
                 try:
                     response = client.responses.create(
                         model=CHAT_MODEL,
-                        instructions=_build_instructions(session),
-                        tools=OPENAI_TOOLS,
+                        instructions=_build_instructions(student_profile, session),
+                        tools=build_tools(student_profile.exam.code),
                         input=next_input,
                         previous_response_id=previous_response_id,
                     )

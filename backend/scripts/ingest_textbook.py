@@ -1,13 +1,14 @@
 """
-Offline ingestion of the Exam P corpus into textbook_chunks.
+Offline ingestion of an exam's corpus into textbook_chunks.
 
 Usage (from backend/, with the venv active and .env populated):
-    python scripts/ingest_textbook.py [--corpus-dir PATH]
+    python scripts/ingest_textbook.py [--exam CODE] [--corpus-dir PATH]
 
-Extracts the configured chapters from app/rag/sources.py, chunks them,
-embeds each chunk via OpenAI, and upserts them into Postgres/pgvector.
-Existing chunks for Exam P are cleared and replaced on each run, so it's
-safe to re-run after editing sources.py.
+Extracts the configured chapters from app/rag/sources_<exam>.py, chunks
+them, embeds each chunk via OpenAI, and upserts them into Postgres/pgvector.
+Existing chunks for the exam are cleared and replaced on each run, so it's
+safe to re-run after editing that exam's sources module. --corpus-dir
+defaults to <repo_root>/<exam code lowercased> (e.g. p/, fm/, fam/).
 """
 
 import argparse
@@ -26,52 +27,51 @@ from app.extensions import db  # noqa: E402
 from app.models.exam import Exam, Topic  # noqa: E402
 from app.models.textbook_chunk import TextbookChunk  # noqa: E402
 from app.rag.chunk import chunk_book  # noqa: E402
+from app.rag.exam_sources import sources_for, topic_names_for, topic_weights_for  # noqa: E402
 from app.rag.extract import extract_book  # noqa: E402
-from app.rag.sources import (  # noqa: E402
-    EXAM_P_SOURCES,
-    EXAM_P_TOPIC_WEIGHTS,
-    GENERAL_PROBABILITY,
-    MULTIVARIATE_RANDOM_VARIABLES,
-    UNIVARIATE_RANDOM_VARIABLES,
-)
 from app.services.rag_service import embed_texts  # noqa: E402
-
-EXAM_P_TOPICS = [GENERAL_PROBABILITY, UNIVARIATE_RANDOM_VARIABLES, MULTIVARIATE_RANDOM_VARIABLES]
 
 EMBED_BATCH_SIZE = 100
 
+EXAM_NAMES = {
+    "P": "Exam P - Probability",
+    "FM": "Exam FM - Financial Mathematics",
+    "FAM": "Exam FAM - Fundamentals of Actuarial Mathematics",
+}
 
-def ensure_exam_and_topics() -> tuple[Exam, dict[str, Topic]]:
-    exam = Exam.query.filter_by(code="P").first()
+
+def ensure_exam_and_topics(exam_code: str) -> tuple[Exam, dict[str, Topic]]:
+    exam = Exam.query.filter_by(code=exam_code).first()
     if exam is None:
-        exam = Exam(code="P", name="Exam P - Probability")
+        exam = Exam(code=exam_code, name=EXAM_NAMES.get(exam_code, f"Exam {exam_code}"))
         db.session.add(exam)
         db.session.commit()
 
+    topic_weights = topic_weights_for(exam_code)
     topics: dict[str, Topic] = {}
-    for name in EXAM_P_TOPICS:
+    for name in topic_names_for(exam_code):
         topic = Topic.query.filter_by(exam_id=exam.id, name=name).first()
         if topic is None:
-            topic = Topic(exam_id=exam.id, name=name, exam_weight=EXAM_P_TOPIC_WEIGHTS[name])
+            topic = Topic(exam_id=exam.id, name=name, exam_weight=topic_weights[name])
             db.session.add(topic)
             db.session.commit()
         elif topic.exam_weight is None:
-            topic.exam_weight = EXAM_P_TOPIC_WEIGHTS[name]
+            topic.exam_weight = topic_weights[name]
             db.session.commit()
         topics[name] = topic
 
     return exam, topics
 
 
-def ingest(corpus_dir: Path) -> None:
-    exam, topics = ensure_exam_and_topics()
+def ingest(exam_code: str, corpus_dir: Path) -> None:
+    exam, topics = ensure_exam_and_topics(exam_code)
 
     deleted = TextbookChunk.query.filter_by(exam_id=exam.id).delete()
     db.session.commit()
     if deleted:
         print(f"cleared {deleted} existing chunks for exam {exam.code}")
 
-    for book in EXAM_P_SOURCES:
+    for book in sources_for(exam_code):
         print(f"extracting {book.key} ...")
         chapter_texts = extract_book(corpus_dir, book)
         text_chunks = chunk_book(book, chapter_texts)
@@ -101,15 +101,18 @@ def ingest(corpus_dir: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--exam", default="P", help="exam code, e.g. P, FM, FAM")
     parser.add_argument(
-        "--corpus-dir", type=Path, default=BACKEND_DIR.parent / "folder",
-        help="directory containing the source textbook PDFs",
+        "--corpus-dir", type=Path, default=None,
+        help="directory containing the source textbook PDFs (default: <repo_root>/<exam code lowercased>)",
     )
     args = parser.parse_args()
+    exam_code = args.exam.upper()
+    corpus_dir = args.corpus_dir or (BACKEND_DIR.parent / exam_code.lower())
 
     app = create_app()
     with app.app_context():
-        ingest(args.corpus_dir)
+        ingest(exam_code, corpus_dir)
 
 
 if __name__ == "__main__":
