@@ -3,17 +3,32 @@
 import { useEffect, useState } from "react";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, ApiError, isAuthError, type ProgressSummary, type TopicProgress } from "@/lib/api";
+import { useExam } from "@/lib/exam-context";
 
 export default function ProgressPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  const { examCode } = useExam();
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Tracks which exam `progress` was actually fetched for, so stale data
+  // from the previously-selected exam is never shown after a switch --
+  // adjusted during render (React's recommended alternative to resetting
+  // state inside the effect itself), same idiom as chat/page.tsx's
+  // newConversationSignal handling.
+  const [loadedExamCode, setLoadedExamCode] = useState<string | null>(null);
+  if (examCode !== loadedExamCode && progress !== null) {
+    setLoadedExamCode(examCode);
+    setProgress(null);
+  }
 
   useEffect(() => {
     if (!token) return;
     api
-      .getProgress(token)
-      .then(setProgress)
+      .getProgress(token, examCode)
+      .then((summary) => {
+        setProgress(summary);
+        setLoadedExamCode(examCode);
+      })
       .catch((err) => {
         if (isAuthError(err)) {
           redirectToExpiredLogin();
@@ -21,7 +36,7 @@ export default function ProgressPage() {
         }
         setError(err instanceof ApiError ? err.message : "Failed to load progress.");
       });
-  }, [token, redirectToExpiredLogin]);
+  }, [token, examCode, redirectToExpiredLogin]);
 
   if (loading || !token) {
     return null;
@@ -30,7 +45,7 @@ export default function ProgressPage() {
   return (
     <div className="flex-1 w-full overflow-y-auto">
       <div className="max-w-3xl w-full mx-auto p-6">
-        <h1 className="text-lg font-semibold mb-4 text-ink">Your Progress -- Exam P</h1>
+        <h1 className="text-lg font-semibold mb-4 text-ink">Your Progress -- Exam {examCode}</h1>
 
         {error && <p className="text-sm text-redink">{error}</p>}
 

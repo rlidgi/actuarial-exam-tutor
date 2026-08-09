@@ -2,18 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api, ApiError, EXAM_CODE, isAuthError } from "@/lib/api";
+import { api, ApiError, isAuthError } from "@/lib/api";
+import { useExam } from "@/lib/exam-context";
 
 export default function ManualPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  const { examCode } = useExam();
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Tracks which exam `html` was actually fetched for, so a stale manual
+  // from the previously-selected exam is never shown after a switch --
+  // adjusted during render (React's recommended alternative to resetting
+  // state inside the effect itself), same idiom as chat/page.tsx's
+  // newConversationSignal handling.
+  const [loadedExamCode, setLoadedExamCode] = useState<string | null>(null);
+  if (examCode !== loadedExamCode && html !== null) {
+    setLoadedExamCode(examCode);
+    setHtml(null);
+  }
 
   useEffect(() => {
     if (!token) return;
     api
-      .getCourseHtml(token, EXAM_CODE)
-      .then(setHtml)
+      .getCourseHtml(token, examCode)
+      .then((text) => {
+        setHtml(text);
+        setLoadedExamCode(examCode);
+      })
       .catch((err) => {
         if (isAuthError(err)) {
           redirectToExpiredLogin();
@@ -21,7 +36,7 @@ export default function ManualPage() {
         }
         setError(err instanceof ApiError ? err.message : "Failed to load the study manual.");
       });
-  }, [token, redirectToExpiredLogin]);
+  }, [token, examCode, redirectToExpiredLogin]);
 
   if (loading || !token) {
     return null;
@@ -40,7 +55,7 @@ export default function ManualPage() {
   // the app instead of colliding with it.
   return (
     <iframe
-      title="Exam P Study Manual"
+      title={`Exam ${examCode} Study Manual`}
       srcDoc={html}
       className="h-full w-full flex-1 border-0"
     />

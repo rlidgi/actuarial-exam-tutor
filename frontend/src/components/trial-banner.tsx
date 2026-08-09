@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { EXAM_CODE, type BillingStatus } from "@/lib/api";
+import { type BillingStatus } from "@/lib/api";
 
-export function TrialBanner({ status }: { status: BillingStatus | null }) {
+export function TrialBanner({
+  status,
+  examCode,
+}: {
+  status: BillingStatus | null;
+  examCode: string;
+}) {
   if (!status || status.subscribed) return null;
 
   const exhausted = status.free_turns_remaining <= 0;
@@ -20,8 +26,8 @@ export function TrialBanner({ status }: { status: BillingStatus | null }) {
           left.{" "}
         </span>
       )}
-      <Link href={`/subscribe?exam=${EXAM_CODE}`} className="font-medium text-ledger underline">
-        Subscribe to Exam P
+      <Link href={`/subscribe?exam=${examCode}`} className="font-medium text-ledger underline">
+        Subscribe to Exam {examCode}
       </Link>{" "}
       for unlimited access.
     </div>

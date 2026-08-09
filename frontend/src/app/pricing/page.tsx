@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useBillingStatus } from "@/lib/use-billing-status";
-import { api, ApiError, EXAM_CODE, isAuthError } from "@/lib/api";
+import { api, ApiError, DEFAULT_EXAM_CODE, isAuthError } from "@/lib/api";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -31,7 +31,7 @@ function PricingContent() {
   // Real subscription status is only knowable for Exam P today -- FM/FAM
   // have no StudentProfile (and can't get one; there's no Exam row for
   // them yet), so there's nothing to check a subscription against.
-  const { status: billingStatus } = useBillingStatus(token);
+  const { status: billingStatus } = useBillingStatus(token, DEFAULT_EXAM_CODE);
 
   const [subscribingCode, setSubscribingCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +98,7 @@ function PricingContent() {
 
       <div className="pricing-cards">
         {EXAMS.map((e) => {
-          const isP = e.code === EXAM_CODE;
+          const isP = e.code === DEFAULT_EXAM_CODE;
           const subscribed = isP && billingStatus?.subscribed;
           return (
             <div

@@ -12,8 +12,9 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api, ApiError, EXAM_CODE, isAuthError, type ChatMessageDTO } from "@/lib/api";
+import { api, ApiError, isAuthError, type ChatMessageDTO } from "@/lib/api";
 import { useChatView } from "@/lib/chat-view-context";
+import { useExam } from "@/lib/exam-context";
 import { useBillingStatus } from "@/lib/use-billing-status";
 import { MessageContent } from "@/components/message-content";
 import { NotationPicker } from "@/components/notation-picker";
@@ -61,7 +62,8 @@ export default function ChatPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   const { selectedDate, setSelectedDate, newConversationSignal, refreshHistoryDays } =
     useChatView();
-  const { status: billingStatus, refresh: refreshBilling } = useBillingStatus(token);
+  const { examCode } = useExam();
+  const { status: billingStatus, refresh: refreshBilling } = useBillingStatus(token, examCode);
 
   const [liveMessages, setLiveMessages] = useState<DisplayMessage[]>([]);
   const [dayMessages, setDayMessages] = useState<DisplayMessage[]>([]);
@@ -98,13 +100,13 @@ export default function ChatPage() {
   useEffect(() => {
     if (!token || !selectedDate) return;
     api
-      .getHistoryDay(token, selectedDate)
+      .getHistoryDay(token, examCode, selectedDate)
       .then((r) => {
         setDayMessages(r.messages);
         setLoadedDate(selectedDate);
       })
       .catch(() => setError("Couldn't load that day's conversation."));
-  }, [token, selectedDate]);
+  }, [token, examCode, selectedDate]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -209,7 +211,7 @@ export default function ChatPage() {
     setBlocked(false);
 
     try {
-      const response = await api.sendMessage(token, text, imageToSend);
+      const response = await api.sendMessage(token, examCode, text, imageToSend);
       if (response.blocked) {
         // No reply to show -- roll back the optimistic user bubble so the
         // transcript doesn't end on an unanswered question.
@@ -237,7 +239,7 @@ export default function ChatPage() {
     setError(null);
     setBlocked(false);
     try {
-      const response = await api.regenerate(token, editedMessage);
+      const response = await api.regenerate(token, examCode, editedMessage);
       if (response.blocked) {
         // The backend checks access before deleting anything, so the
         // existing exchange is untouched -- nothing to roll back here.
@@ -280,13 +282,13 @@ export default function ChatPage() {
         <CheckoutSyncHandler token={token} onSynced={refreshBilling} />
       </Suspense>
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
-        <TrialBanner status={billingStatus} />
+        <TrialBanner status={billingStatus} examCode={examCode} />
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
           {messages.length === 0 && !dayLoading && (
             <p className="text-sm text-pencil">
               {viewingPastDay
                 ? "No messages on this day."
-                : "Ask a question about Exam P, paste or upload a screenshot of a problem, or say what you'd like to work on."}
+                : `Ask a question about Exam ${examCode}, paste or upload a screenshot of a problem, or say what you'd like to work on.`}
             </p>
           )}
           {dayLoading && <p className="text-sm text-pencil">Loading...</p>}
@@ -357,7 +359,7 @@ export default function ChatPage() {
             <div className="self-start rounded border border-redink/30 bg-redink/5 px-3 py-2 text-sm text-redink">
               You&apos;ve used up your free trial messages.{" "}
               <Link
-                href={`/subscribe?exam=${EXAM_CODE}`}
+                href={`/subscribe?exam=${examCode}`}
                 className="font-medium underline"
               >
                 Subscribe

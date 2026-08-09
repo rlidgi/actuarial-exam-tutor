@@ -1,6 +1,11 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
-export const EXAM_CODE = "P";
+// Only a fallback for contexts with no signed-in "current exam" concept yet
+// (exam-context.tsx's initial value before it resolves; pricing/page.tsx's
+// own independent, unrelated display logic). Every authenticated call below
+// takes examCode as a required parameter instead of defaulting to this --
+// see frontend exam switcher plan for why silent defaulting was the bug.
+export const DEFAULT_EXAM_CODE = "P";
 
 export class ApiError extends Error {
   status: number;
@@ -113,16 +118,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ supabase_access_token: supabaseAccessToken }),
     }),
-  ensureProfile: (token: string) =>
+  ensureProfile: (token: string, examCode: string) =>
     request<{ id: number; exam: string }>(
       "/api/students/profiles",
-      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE }) },
+      { method: "POST", body: JSON.stringify({ exam_code: examCode }) },
       token
     ),
-  sendMessage: (token: string, message: string, image?: File) => {
+  sendMessage: (token: string, examCode: string, message: string, image?: File) => {
     if (image) {
       const formData = new FormData();
-      formData.set("exam_code", EXAM_CODE);
+      formData.set("exam_code", examCode);
       formData.set("message", message);
       formData.set("image", image);
       return request<ChatResponse>(
@@ -133,48 +138,48 @@ export const api = {
     }
     return request<ChatResponse>(
       "/api/chat/message",
-      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE, message }) },
+      { method: "POST", body: JSON.stringify({ exam_code: examCode, message }) },
       token
     );
   },
-  regenerate: (token: string, editedMessage?: string) =>
+  regenerate: (token: string, examCode: string, editedMessage?: string) =>
     request<ChatResponse>(
       "/api/chat/regenerate",
       {
         method: "POST",
-        body: JSON.stringify({ exam_code: EXAM_CODE, edited_message: editedMessage }),
+        body: JSON.stringify({ exam_code: examCode, edited_message: editedMessage }),
       },
       token
     ),
-  getProgress: (token: string) =>
-    request<ProgressSummary>(`/api/students/me/progress?exam=${EXAM_CODE}`, {}, token),
-  getSessions: (token: string) =>
+  getProgress: (token: string, examCode: string) =>
+    request<ProgressSummary>(`/api/students/me/progress?exam=${examCode}`, {}, token),
+  getSessions: (token: string, examCode: string) =>
     request<{ sessions: SessionSummary[] }>(
-      `/api/students/me/sessions?exam=${EXAM_CODE}`,
+      `/api/students/me/sessions?exam=${examCode}`,
       {},
       token
     ),
   getExams: () => request<{ exams: ExamInfo[] }>("/api/exams"),
-  getHistoryDays: (token: string) =>
-    request<{ days: string[] }>(`/api/chat/history/days?exam=${EXAM_CODE}`, {}, token),
-  getHistoryDay: (token: string, date: string) =>
+  getHistoryDays: (token: string, examCode: string) =>
+    request<{ days: string[] }>(`/api/chat/history/days?exam=${examCode}`, {}, token),
+  getHistoryDay: (token: string, examCode: string, date: string) =>
     request<{ messages: ChatMessageDTO[] }>(
-      `/api/chat/history/day/${date}?exam=${EXAM_CODE}`,
+      `/api/chat/history/day/${date}?exam=${examCode}`,
       {},
       token
     ),
-  getBillingStatus: (token: string) =>
-    request<BillingStatus>(`/api/billing/status?exam=${EXAM_CODE}`, {}, token),
-  createCheckoutSession: (token: string, examCode: string = EXAM_CODE) =>
+  getBillingStatus: (token: string, examCode: string) =>
+    request<BillingStatus>(`/api/billing/status?exam=${examCode}`, {}, token),
+  createCheckoutSession: (token: string, examCode: string) =>
     request<{ url: string }>(
       "/api/billing/checkout",
       { method: "POST", body: JSON.stringify({ exam_code: examCode }) },
       token
     ),
-  createPortalSession: (token: string) =>
+  createPortalSession: (token: string, examCode: string) =>
     request<{ url: string }>(
       "/api/billing/portal",
-      { method: "POST", body: JSON.stringify({ exam_code: EXAM_CODE }) },
+      { method: "POST", body: JSON.stringify({ exam_code: examCode }) },
       token
     ),
   syncCheckoutSession: (token: string, sessionId: string) =>
@@ -185,7 +190,7 @@ export const api = {
     ),
   // Bypasses request() -- the manual is served as raw text/html, not JSON,
   // so there's no body to parse as an ApiError-shaped object on failure.
-  getCourseHtml: async (token: string, examCode: string = EXAM_CODE): Promise<string> => {
+  getCourseHtml: async (token: string, examCode: string): Promise<string> => {
     const res = await fetch(`${API_URL}/api/courses/${examCode}`, {
       headers: { Authorization: `Bearer ${token}` },
     });

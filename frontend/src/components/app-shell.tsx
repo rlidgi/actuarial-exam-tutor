@@ -6,8 +6,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useChatView } from "@/lib/chat-view-context";
+import { useExam } from "@/lib/exam-context";
 import { useBillingStatus } from "@/lib/use-billing-status";
-import { api, EXAM_CODE, type ExamInfo } from "@/lib/api";
+import { api } from "@/lib/api";
 
 function formatDayLabel(iso: string): string {
   // iso is a plain YYYY-MM-DD from the backend (UTC calendar date) --
@@ -28,20 +29,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { selectedDate, setSelectedDate, startNewConversation, historyDaysVersion } =
     useChatView();
-  const { status: billingStatus } = useBillingStatus(token);
+  const { examCode, exams, loading: examsLoading, setExamCode } = useExam();
+  const { status: billingStatus } = useBillingStatus(token, examCode);
 
-  const [exams, setExams] = useState<ExamInfo[]>([]);
   const [days, setDays] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    api.getExams().then((r) => setExams(r.exams)).catch(() => {});
-  }, []);
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     if (!token) return;
-    api.getHistoryDays(token).then((r) => setDays(r.days)).catch(() => {});
-  }, [token, historyDaysVersion]);
+    api.getHistoryDays(token, examCode).then((r) => setDays(r.days)).catch(() => {});
+  }, [token, examCode, historyDaysVersion]);
 
   const goToChat = () => {
     setSidebarOpen(false);
@@ -63,16 +61,33 @@ export function AppShell({ children }: { children: ReactNode }) {
     router.push("/login");
   };
 
+  const handleSelectExam = async (code: string) => {
+    if (code === examCode || switching) return;
+    setSwitching(true);
+    try {
+      await setExamCode(code);
+      // The previous exam's live conversation doesn't belong to the newly
+      // selected one -- start fresh, same as the sidebar's own button.
+      startNewConversation();
+      goToChat();
+    } catch {
+      // Leave the dropdown showing the still-current exam rather than a
+      // switch that silently didn't take effect.
+    } finally {
+      setSwitching(false);
+    }
+  };
+
   const handleManageSubscription = async () => {
     if (!token) return;
     try {
-      const { url } = await api.createPortalSession(token);
+      const { url } = await api.createPortalSession(token, examCode);
       window.location.href = url;
     } catch {
       // No billing account yet (shouldn't normally happen since this
       // button only shows once billingStatus.subscribed is true) --
       // fall back to the subscribe page rather than a dead click.
-      router.push(`/subscribe?exam=${EXAM_CODE}`);
+      router.push(`/subscribe?exam=${examCode}`);
     }
   };
 
@@ -116,9 +131,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             />
           </Link>
           <select
-            value={EXAM_CODE}
-            onChange={() => {}}
-            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-paper"
+            value={examCode}
+            onChange={(e) => handleSelectExam(e.target.value)}
+            disabled={examsLoading || switching}
+            className="w-full rounded border border-white/20 bg-white/5 px-2 py-1.5 text-sm text-paper disabled:opacity-50"
           >
             {exams.map((e) => (
               <option key={e.code} value={e.code} className="text-ink">
@@ -182,7 +198,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             ) : (
               <Link
-                href={`/subscribe?exam=${EXAM_CODE}`}
+                href={`/subscribe?exam=${examCode}`}
                 onClick={() => setSidebarOpen(false)}
                 className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
               >

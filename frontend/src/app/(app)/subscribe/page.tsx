@@ -3,12 +3,14 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api, ApiError, isAuthError, EXAM_CODE } from "@/lib/api";
+import { api, ApiError, isAuthError } from "@/lib/api";
+import { useExam } from "@/lib/exam-context";
 
 function SubscribeContent() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  const { examCode: currentExamCode } = useExam();
   const searchParams = useSearchParams();
-  const examCode = searchParams.get("exam") || EXAM_CODE;
+  const examCode = searchParams.get("exam") || currentExamCode;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
