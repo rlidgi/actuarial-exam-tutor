@@ -13,9 +13,21 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    // `ignore` guards against React's dev-mode double-invocation of effects
+    // (mount -> cleanup -> mount): without it, a discarded first run could
+    // still resolve after the real one and briefly redirect to the error
+    // banner even though sign-in actually succeeded.
+    let ignore = false;
     completeSupabaseSignIn()
-      .then(() => router.replace("/chat"))
-      .catch(() => setError(true));
+      .then(() => {
+        if (!ignore) router.replace("/chat");
+      })
+      .catch(() => {
+        if (!ignore) setError(true);
+      });
+    return () => {
+      ignore = true;
+    };
     // Intentionally run once -- completeSupabaseSignIn's identity is stable
     // (see auth-context.tsx) and re-running on every render would re-trigger
     // the exchange.

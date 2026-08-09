@@ -8,10 +8,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, type AuthResponse } from "./api";
+import { api, DEFAULT_EXAM_CODE, type AuthResponse } from "./api";
 import { supabaseClient } from "./supabase-client";
 
 const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
+// Same key exam-context.tsx persists the selected exam under -- read
+// directly (not imported) to avoid a circular import, since ExamProvider
+// itself depends on useAuth().
+const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
 
 interface AuthState {
   token: string | null;
@@ -26,7 +30,10 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 async function afterAuth(response: AuthResponse) {
-  await api.ensureProfile(response.access_token);
+  // A returning user who'd previously switched exams keeps that selection
+  // across a fresh sign-in; a first-ever sign-in has nothing stored yet.
+  const examCode = window.localStorage.getItem(EXAM_STORAGE_KEY) || DEFAULT_EXAM_CODE;
+  await api.ensureProfile(response.access_token, examCode);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -72,16 +79,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // -link redirect and established a Supabase session. Trades that session
   // for this app's own JWT and completes the same tail as the old login/
   // register flow (ensureProfile, localStorage, state).
-  const completeSupabaseSignIn = useCallback(async () => {
-    const { data, error } = await supabaseClient.auth.getSession();
-    if (error || !data.session) {
-      throw error ?? new Error("no Supabase session to complete sign-in with");
-    }
-    const response = await api.exchangeSupabaseToken(data.session.access_token);
-    await afterAuth(response);
-    window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
-    setToken(response.access_token);
-    setEmail(response.user.email);
+  //
+  // Deliberately event-driven (onAuthStateChange) rather than a one-shot
+  // getSession() call: supabase-js parses the redirect's URL fragment and
+  // establishes the session asynchronously, and a single getSession() can
+  // resolve before that finishes, reporting no session when one is about
+  // to exist a moment later. Subscribing fires immediately with whatever
+  // the current state already is (INITIAL_SESSION) and then again the
+  // moment the URL-derived session lands, so this can't lose that race.
+  const completeSupabaseSignIn = useCallback(() => {
+    return new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        subscription.unsubscribe();
+        reject(new Error("timed out waiting for Supabase to establish a session"));
+      }, 8000);
+
+      const {
+        data: { subscription },
+      } = supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (event !== "INITIAL_SESSION" && event !== "SIGNED_IN") return;
+        if (!session) return; // INITIAL_SESSION with nothing yet -- keep waiting
+        clearTimeout(timeout);
+        subscription.unsubscribe();
+        api
+          .exchangeSupabaseToken(session.access_token)
+          .then(async (response) => {
+            await afterAuth(response);
+            window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+            setToken(response.access_token);
+            setEmail(response.user.email);
+            resolve();
+          })
+          .catch(reject);
+      });
+    });
   }, []);
 
   const logout = useCallback(() => {

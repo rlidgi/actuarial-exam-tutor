@@ -29,6 +29,14 @@ def find_or_create_by_external_identity(external_id: str, email: str) -> User:
         db.session.commit()
     except IntegrityError as exc:
         db.session.rollback()
+        # A concurrent request for this exact identity (e.g. two
+        # near-simultaneous exchange calls from the same sign-in) may have
+        # already inserted this row -- that's not a real conflict, just the
+        # other side of the same race this request lost. Only a genuinely
+        # different external_id already holding this email is a real one.
+        existing = User.query.filter_by(external_auth_id=external_id).first()
+        if existing is not None:
+            return existing
         raise IdentityConflict(
             f"{email} is already linked to a different sign-in method"
         ) from exc
