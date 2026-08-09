@@ -24,17 +24,21 @@ def _make_profile(db):
     return profile, exam, parent
 
 
-def test_unstudied_topics_prioritized_by_exam_weight(app, db):
+def test_unstudied_topics_prioritized_by_syllabus_sequence(app, db):
     profile, exam, parent = _make_profile(db)
-    low = Topic(exam_id=exam.id, name="Low Weight", exam_weight=20.0, parent_topic_id=parent.id)
-    high = Topic(exam_id=exam.id, name="High Weight", exam_weight=50.0, parent_topic_id=parent.id)
-    db.session.add_all([low, high])
+    # "first" is seeded before "second" (lower id) despite carrying less exam
+    # weight -- unstudied topics should be recommended in syllabus order, not
+    # by weight, so a brand-new student isn't pointed at a later, merely
+    # heavier-weighted topic before its foundations.
+    first = Topic(exam_id=exam.id, name="First In Syllabus", exam_weight=20.0, parent_topic_id=parent.id)
+    second = Topic(exam_id=exam.id, name="Second In Syllabus", exam_weight=50.0, parent_topic_id=parent.id)
+    db.session.add_all([first, second])
     db.session.commit()
 
     topic, reason = curriculum_service.select_next_topic(profile)
 
-    assert topic.name == "High Weight"
-    assert "not been studied" in reason
+    assert topic.name == "First In Syllabus"
+    assert "next in the syllabus sequence" in reason
 
 
 def test_studied_topics_weigh_weakness_against_exam_weight(app, db):

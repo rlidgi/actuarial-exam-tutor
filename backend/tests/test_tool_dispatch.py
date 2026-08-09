@@ -83,7 +83,7 @@ def test_select_next_topic_returns_unstudied_topic(app, db):
     result = dispatch.select_next_topic({}, ctx)
 
     assert result["topic"] == "General Probability"
-    assert "not been studied" in result["reason"]
+    assert "next in the syllabus sequence" in result["reason"]
 
 
 def test_save_session_summary_persists_summary_and_mistakes(app, db):

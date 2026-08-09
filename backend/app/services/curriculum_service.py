@@ -9,14 +9,22 @@ DEFAULT_EXAM_WEIGHT = 100.0 / 3  # even split if a topic has no configured weigh
 def select_next_topic(student_profile: StudentProfile) -> tuple[Topic, str]:
     """Picks the exam topic the student most needs to review next.
 
-    Unstudied topics are prioritized by syllabus weight (cover the
-    heavier-weighted material first). Among studied topics, priority is
-    (100 - decayed_mastery) * weight -- a topic that's both weak and
-    heavily-weighted on the exam outranks one that's merely weak. Decay
-    accounts for forgetting since last review (Section 25), so a
-    previously-strong but long-untouched topic can resurface even with a
-    high recorded score. Full prerequisite-graph awareness stays deferred
-    per the spec's MVP scope.
+    Unstudied topics are prioritized by syllabus sequence (earliest
+    untouched topic first), not by exam weight -- learning outcomes are
+    seeded in the syllabus/textbook's own pedagogical order (see
+    exam_syllabus_<code>.py), so ascending Topic.id approximates a real
+    prerequisite chain (e.g. probability axioms before Bayes' theorem,
+    univariate before joint distributions) well enough to stop a
+    brand-new student from being pointed at an advanced, merely
+    heavier-weighted topic before its foundations. This is a proxy, not
+    a real prerequisite graph -- TopicPrerequisite exists in the schema
+    for that but isn't populated or consulted yet.
+
+    Among already-studied topics, priority is (100 - decayed_mastery) *
+    weight -- a topic that's both weak and heavily-weighted on the exam
+    outranks one that's merely weak. Decay accounts for forgetting since
+    last review (Section 25), so a previously-strong but long-untouched
+    topic can resurface even with a high recorded score.
     """
     # Mastery is only ever recorded against leaf (learning-outcome) topics --
     # parents (parent_topic_id IS NULL) are organizational category headers,
@@ -34,9 +42,9 @@ def select_next_topic(student_profile: StudentProfile) -> tuple[Topic, str]:
 
     unstudied = [t for t in topics if t.id not in mastery_by_topic]
     if unstudied:
-        topic = max(unstudied, key=lambda t: t.exam_weight or DEFAULT_EXAM_WEIGHT)
+        topic = min(unstudied, key=lambda t: t.id)
         weight = topic.exam_weight or DEFAULT_EXAM_WEIGHT
-        return topic, f"{topic.name} has not been studied yet and carries {weight:.0f}% exam weight."
+        return topic, f"{topic.name} is next in the syllabus sequence and carries {weight:.0f}% exam weight."
 
     def priority(topic: Topic) -> float:
         record = mastery_by_topic[topic.id]
