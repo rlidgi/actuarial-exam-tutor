@@ -14,7 +14,7 @@ def create_app(config_object: type = Config) -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, origins=app.config["CORS_ORIGINS"])
 
     from app import models  # noqa: F401  (ensures models are registered with SQLAlchemy)
 

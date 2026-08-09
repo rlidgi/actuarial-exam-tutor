@@ -46,6 +46,14 @@ class Config:
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    # Comma-separated list of origins allowed to call this API cross-origin.
+    # Defaults to just the frontend's own URL -- set explicitly (e.g. to add
+    # a temporary staging hostname during a rollout) via the env var.
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get("CORS_ORIGINS", "").split(",")
+        if origin.strip()
+    ] or [FRONTEND_URL]
 
 
 class TestingConfig(Config):
