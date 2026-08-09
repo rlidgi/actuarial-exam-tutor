@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="flex flex-col gap-2 border-b border-white/10 pb-3">
           <Link
-            href="/chat"
+            href="/"
             onClick={() => setSidebarOpen(false)}
             className="inline-flex items-center gap-2 self-start rounded-md bg-paper px-2 py-1"
           >

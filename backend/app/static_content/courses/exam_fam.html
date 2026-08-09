@@ -3904,6 +3904,23 @@ First-year acquisition expenses (commissions, underwriting costs) are much highe
       document.getElementById('sidebar').classList.remove('open');
     }
   });
+  // Handle in-page "#anchor" links ourselves instead of letting the browser
+  // navigate to them natively. This document is loaded via iframe[srcdoc],
+  // whose base URL for resolving relative hrefs is the EMBEDDING page's URL,
+  // not this document -- so a native click on href="#section" resolves to
+  // "<embedder-url>#section", which the browser treats as a real navigation
+  // and reloads this entire document from scratch (losing scroll position
+  // and any UI state) instead of just scrolling to the target.
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest('a[href^="#"]');
+    if(!a) return;
+    const id = a.getAttribute('href').slice(1);
+    const target = id ? document.getElementById(id) : null;
+    if(!target) return;
+    e.preventDefault();
+    target.scrollIntoView({behavior:'smooth', block:'start'});
+    history.replaceState(null, '', '#' + id);
+  });
 </script>
 </body>
 </html>
