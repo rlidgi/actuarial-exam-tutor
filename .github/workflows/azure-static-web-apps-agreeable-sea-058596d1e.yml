@@ -32,6 +32,15 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+        env:
+          # Next.js inlines NEXT_PUBLIC_* vars into the client bundle at
+          # build time -- setting these as Static Web App "Environment
+          # variables" alone (runtime-only) isn't enough, per
+          # https://aka.ms/swa-nextjs-env-vars. Not sensitive: these are
+          # meant to be public once compiled into the browser bundle.
+          NEXT_PUBLIC_API_URL: https://actuarial-exams-tutor.azurewebsites.net
+          NEXT_PUBLIC_SUPABASE_URL: https://mawlmnfwtzrwvudehxwq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_rRt8bLO_nbGLIDusWQKAbw_MduVxPxu
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
