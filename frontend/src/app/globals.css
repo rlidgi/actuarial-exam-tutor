@@ -253,6 +253,19 @@ body {
   margin: 0 auto 1.8rem;
   line-height: 1.6;
 }
+.landing-hero-sub {
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  color: var(--paper);
+  font-size: 1.5rem;
+  max-width: 640px;
+  margin: 0 auto 1.8rem;
+  line-height: 1.35;
+}
+@media (max-width: 720px) {
+  .landing-hero-sub {
+    font-size: 1.2rem;
+  }
+}
 .landing-features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -264,6 +277,19 @@ body {
   border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 1.3rem;
+  text-align: center;
+}
+.feature-illustration {
+  display: block;
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  margin: 0 auto 0.7rem;
+}
+.feature-illustration-photo {
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  object-fit: cover;
 }
 .feature-title {
   font-weight: 600;
@@ -489,48 +515,6 @@ body {
   flex-shrink: 0;
 }
 
-.how-it-works {
-  max-width: 960px;
-  margin: 3.5rem auto;
-  padding: 0 1.5rem;
-}
-.how-it-works h2 {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 1.4rem;
-  color: var(--ink);
-  text-align: center;
-  margin: 0 0 2rem;
-}
-.how-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-.how-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.6rem;
-}
-.how-illustration {
-  width: 100%;
-  max-width: 180px;
-  height: auto;
-  margin-bottom: 0.4rem;
-}
-.how-title {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--ledger);
-}
-.how-step p {
-  font-size: 0.85rem;
-  color: var(--pencil);
-  line-height: 1.55;
-  margin: 0;
-}
 .mag-glass-group {
   transform-origin: 140px 58px;
   animation: mag-scan 4.5s ease-in-out infinite;
@@ -550,24 +534,8 @@ body {
     transform: translate(6px, 4px) rotate(6deg);
   }
 }
-.how-checkmark {
-  stroke-dasharray: 90;
-  stroke-dashoffset: 90;
-}
-.reveal.in-view .how-checkmark {
-  animation: how-draw-checkmark 0.7s ease-out 0.35s forwards;
-}
-@keyframes how-draw-checkmark {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .mag-glass-group {
-    animation: none;
-  }
-  .how-checkmark {
-    stroke-dashoffset: 0;
     animation: none;
   }
 }
@@ -767,8 +735,5 @@ body {
   }
   .landing-hero h1 {
     font-size: 1.7rem;
-  }
-  .how-steps {
-    grid-template-columns: 1fr;
   }
 }

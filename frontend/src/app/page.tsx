@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -106,10 +107,9 @@ export default function LandingPage() {
             </span>
           ))}
         </div>
-        <h1>Your own personal tutor for actuarial exams</h1>
-        <p className="landing-sub">
-          Every answer is grounded in the exact textbooks the SOA specifies for your exam --
-          with a citation attached, for your reference.
+        <h1>You don&apos;t have to go it alone.</h1>
+        <p className="landing-hero-sub">
+          You can have your own personal tutor for actuarial exams.
         </p>
         <div className="exam-picker">
           {EXAMS.map((e) => (
@@ -166,126 +166,76 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div className="how-it-works">
-        <h2>How it works</h2>
-        <div className="how-steps">
-          <div className="how-step reveal">
-            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
-              <rect
-                x="20"
-                y="20"
-                width="160"
-                height="90"
-                rx="16"
-                fill="var(--paper-raised)"
-                stroke="var(--ledger)"
-                strokeWidth="2.5"
-              />
-              <path
-                d="M60 110 L45 138 L82 110 Z"
-                fill="var(--paper-raised)"
-                stroke="var(--ledger)"
-                strokeWidth="2.5"
-              />
-              <text
-                x="100"
-                y="80"
-                fontSize="46"
-                textAnchor="middle"
-                fill="var(--ledger)"
-                fontFamily="Georgia, serif"
-                fontWeight="700"
-              >
-                ?
-              </text>
-            </svg>
-            <div className="how-title">Ask</div>
-            <p>Type a question, paste a problem, or attach a screenshot.</p>
-          </div>
-          <div className="how-step reveal">
-            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
-              <rect x="35" y="92" width="95" height="15" rx="2" fill="var(--gold)" />
-              <rect x="42" y="77" width="85" height="15" rx="2" fill="var(--ledger)" />
-              <rect x="49" y="62" width="75" height="15" rx="2" fill="var(--sky)" />
-              <g className="mag-glass-group">
-                <circle
-                  cx="140"
-                  cy="58"
-                  r="21"
-                  fill="rgba(246,247,241,0.9)"
-                  stroke="var(--ink)"
-                  strokeWidth="5"
-                />
-                <line
-                  x1="155"
-                  y1="73"
-                  x2="173"
-                  y2="91"
-                  stroke="var(--ink)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                />
-              </g>
-            </svg>
-            <div className="how-title">Retrieve</div>
-            <p>The exact SOA-specified textbooks for your exam are searched for relevant passages.</p>
-          </div>
-          <div className="how-step reveal">
-            <svg className="how-illustration" viewBox="0 0 200 160" aria-hidden="true">
-              <rect
-                x="20"
-                y="20"
-                width="160"
-                height="90"
-                rx="16"
-                fill="var(--paper-raised)"
-                stroke="var(--ledger)"
-                strokeWidth="2.5"
-              />
-              <path
-                d="M60 110 L45 138 L82 110 Z"
-                fill="var(--paper-raised)"
-                stroke="var(--ledger)"
-                strokeWidth="2.5"
-              />
-              <path
-                className="how-checkmark"
-                d="M72 66 L90 84 L128 44"
-                fill="none"
-                stroke="var(--ledger)"
-                strokeWidth="7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <rect x="142" y="14" width="42" height="24" rx="3" fill="var(--gold)" />
-              <text
-                x="163"
-                y="31"
-                fontSize="11"
-                textAnchor="middle"
-                fill="var(--paper)"
-                fontFamily="ui-monospace, monospace"
-                fontWeight="700"
-              >
-                p.12
-              </text>
-            </svg>
-            <div className="how-title">Get a cited answer</div>
-            <p>A full explanation comes back with the exact textbook and page it&apos;s grounded in.</p>
-          </div>
-        </div>
-      </div>
-
       <div className="landing-features">
         <div className="feature-card reveal">
+          <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
+            <rect x="35" y="92" width="95" height="15" rx="2" fill="var(--gold)" />
+            <rect x="42" y="77" width="85" height="15" rx="2" fill="var(--ledger)" />
+            <rect x="49" y="62" width="75" height="15" rx="2" fill="var(--sky)" />
+            <g className="mag-glass-group">
+              <circle
+                cx="140"
+                cy="58"
+                r="21"
+                fill="rgba(246,247,241,0.9)"
+                stroke="var(--ink)"
+                strokeWidth="5"
+              />
+              <line
+                x1="155"
+                y1="73"
+                x2="173"
+                y2="91"
+                stroke="var(--ink)"
+                strokeWidth="6"
+                strokeLinecap="round"
+              />
+            </g>
+          </svg>
           <div className="feature-title">Grounded in your textbooks</div>
           <p>Every response comes with specific references to SOA exam textbooks for further study.</p>
         </div>
         <div className="feature-card reveal">
+          <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
+            <rect
+              x="20"
+              y="20"
+              width="160"
+              height="90"
+              rx="16"
+              fill="var(--paper-raised)"
+              stroke="var(--ledger)"
+              strokeWidth="2.5"
+            />
+            <path
+              d="M60 110 L45 138 L82 110 Z"
+              fill="var(--paper-raised)"
+              stroke="var(--ledger)"
+              strokeWidth="2.5"
+            />
+            <text
+              x="100"
+              y="80"
+              fontSize="46"
+              textAnchor="middle"
+              fill="var(--ledger)"
+              fontFamily="Georgia, serif"
+              fontWeight="700"
+            >
+              ?
+            </text>
+          </svg>
           <div className="feature-title">Ask, or paste a problem</div>
           <p>Type a question, paste a problem, or work through practice problems the tutor generates for you.</p>
         </div>
         <div className="feature-card reveal">
+          <Image
+            className="feature-illustration feature-illustration-photo"
+            src="/screenshotimage.png"
+            alt="A screenshot of a problem pasted into the tutor chat"
+            width={220}
+            height={147}
+          />
           <div className="feature-title">Paste a screenshot</div>
           <p>Attach or paste an image of a problem straight into the chat. It&apos;s transcribed and answered like any typed question.</p>
         </div>
