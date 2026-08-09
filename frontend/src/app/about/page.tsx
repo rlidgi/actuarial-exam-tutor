@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -41,11 +42,20 @@ export default function AboutPage() {
         </p>
 
         <h2>Meet the Founder</h2>
-        <p>
-          <strong>Yaron Lidgi</strong>
-          <br />
-          Founder, Actuarial Exams Tutor
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <Image
+            src="/founder.png"
+            alt="Yaron Lidgi"
+            width={64}
+            height={64}
+            style={{ borderRadius: "50%", objectFit: "cover" }}
+          />
+          <p style={{ margin: 0 }}>
+            <strong>Yaron Lidgi</strong>
+            <br />
+            Founder, Actuarial Exams Tutor
+          </p>
+        </div>
         <div style={{ height: '8px' }} /> {/* Adjust '8px' to make it smaller or larger */}
         <p>
           After years of taking exams, I expect to attain an ASA designation at the Society of
