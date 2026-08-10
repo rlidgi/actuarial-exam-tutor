@@ -35,10 +35,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/screenshotimage3.png",
-        width: 1254,
-        height: 1254,
-        alt: "Actuarial Exams Tutor",
+        url: "/og-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Actuarial Exams Tutor -- a real tutoring exchange with worked math",
       },
     ],
   },
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/screenshotimage3.png"],
+    images: ["/og-preview.png"],
   },
 };
 
