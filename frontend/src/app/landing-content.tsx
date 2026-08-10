@@ -12,14 +12,17 @@ import { SiteFooter } from "@/components/site-footer";
 import { MessageContent } from "@/components/message-content";
 import { SignInModal } from "@/components/sign-in-modal";
 
-// Fullwidth dollar sign (U+FF04), not a regular "$" -- avoids the markdown
-// math parser reading "accumulated value is $595.51" as an unterminated
-// math delimiter alongside the real $...$ math earlier in the same string.
-const PREVIEW_ANSWER = `The accumulated value formula is $AV = PV(1+i)^n$. Substituting $PV = 500$, $i = 0.06$, and $n = 3$:
+const PREVIEW_ANSWER = `Let's work on **Combinatorics**, the recommended next topic. Your basic set reasoning is developing well, and counting methods will support many later probability problems.
 
-$$AV = 500(1.06)^3 = 595.51$$
+**Diagnostic:**
 
-So the accumulated value after 3 years is **＄595.51**.`;
+A committee of 3 people is selected from 8 people. Does order matter?
+
+A. Yes—use permutations
+
+B. No—use combinations
+
+Reply **A or B** and briefly say why.`;
 
 const HERO_SYMBOLS: { text: string; left: string; top: string; fontSize: string; delay: string }[] = [
   { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
@@ -147,27 +150,12 @@ export default function LandingContent() {
           <span className="preview-dot" />
           <span className="preview-dot" />
           <span className="preview-dot" />
-          <span className="preview-exam">Exam FM -- Financial Mathematics</span>
+          <span className="preview-exam">Exam P -- Probability</span>
         </div>
         <div className="preview-chat">
-          <div className="bubble user">
-            An investment of 500 earns interest at an annual effective rate of 6%. Find its
-            accumulated value after 3 years.
-          </div>
+          <div className="bubble user">What should we work on next?</div>
           <div className="bubble assistant">
             <MessageContent text={PREVIEW_ANSWER} />
-            <div className="sources">
-              <div className="sources-label">Sources (1)</div>
-              <div className="source-item">
-                <div className="source-row">
-                  <span className="source-num">1</span>
-                  <span className="source-meta">
-                    <span className="source-book">Vaaler &amp; Daniel -- Mathematical Interest Theory</span>
-                    <span className="source-page">p. 12</span>
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
