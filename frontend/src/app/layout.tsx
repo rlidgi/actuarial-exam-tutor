@@ -14,8 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Actuarial Tutor",
-  description: "AI tutor for SOA Exam P",
+  title: {
+    default: "Actuarial Exams Tutor -- AI Tutor for SOA Exam P, FM & FAM",
+    template: "%s -- Actuarial Exams Tutor",
+  },
+  description:
+    "Your own AI tutor for actuarial exams. Every answer is grounded in the exact SOA-specified " +
+    "textbooks, with a citation attached. Free study manual and a 6-message free trial for Exam P, " +
+    "FM, and FAM.",
+  metadataBase: new URL("https://actuarialexamstutor.com"),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -5,8 +5,8 @@ import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
-  title: "About -- Actuarial Exam Tutor",
-  description: "Meet the founder behind Actuarial Exam Tutor and why it was built.",
+  title: "About",
+  description: "Meet the founder behind Actuarial Exams Tutor and why it was built.",
 };
 
 export default function AboutPage() {
