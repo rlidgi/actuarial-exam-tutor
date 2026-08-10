@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FAQ_ITEMS } from "@/lib/faq-data";
 import LandingContent from "./landing-content";
 
 export const metadata: Metadata = {
@@ -8,6 +9,27 @@ export const metadata: Metadata = {
     "FM, and FAM.",
 };
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 export default function LandingPage() {
-  return <LandingContent />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <LandingContent />
+    </>
+  );
 }

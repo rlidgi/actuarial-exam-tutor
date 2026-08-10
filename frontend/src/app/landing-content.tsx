@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { FAQ_ITEMS } from "@/lib/faq-data";
 import { useReveal } from "@/lib/use-reveal";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -243,29 +244,12 @@ export default function LandingContent() {
 
       <div className="landing-faq">
         <h2>Questions</h2>
-        <div className="faq-item reveal">
-          <div className="faq-q">Which textbooks does it actually use?</div>
-          <p>We use the textbooks the Society of Actuaries lists in the exam syllabus.</p>
-        </div>
-        <div className="faq-item reveal">
-          <div className="faq-q">Is there anything free before I subscribe?</div>
-          <p>
-            Yes -- once you register, the full study manual for each exam and 6 messages with the
-            AI tutor are free, no subscription required.
-          </p>
-        </div>
-        <div className="faq-item reveal">
-          <div className="faq-q">Do I need to subscribe to all three exams?</div>
-          <p>No, each exam is billed and accessed separately, so you only pay for the one you&apos;re currently studying for.</p>
-        </div>
-        <div className="faq-item reveal">
-          <div className="faq-q">Can I cancel anytime?</div>
-          <p>Yes, with one click from your account, no minimum commitment.</p>
-        </div>
-        <div className="faq-item reveal">
-          <div className="faq-q">What if I already have a screenshot of a problem?</div>
-          <p>Paste or attach it directly into the chat. It&apos;s transcribed automatically and answered like any typed question.</p>
-        </div>
+        {FAQ_ITEMS.map((item) => (
+          <div key={item.question} className="faq-item reveal">
+            <div className="faq-q">{item.question}</div>
+            <p>{item.answer}</p>
+          </div>
+        ))}
       </div>
 
       <SiteFooter />

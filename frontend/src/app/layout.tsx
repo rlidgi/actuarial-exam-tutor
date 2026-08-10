@@ -13,16 +13,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_TITLE = "Actuarial Exams Tutor -- AI Tutor for SOA Exam P, FM & FAM";
+const SITE_DESCRIPTION =
+  "Your own AI tutor for actuarial exams. Every answer is grounded in the exact SOA-specified " +
+  "textbooks, with a citation attached. Free study manual and a 6-message free trial for Exam P, " +
+  "FM, and FAM.";
+
 export const metadata: Metadata = {
   title: {
-    default: "Actuarial Exams Tutor -- AI Tutor for SOA Exam P, FM & FAM",
+    default: SITE_TITLE,
     template: "%s -- Actuarial Exams Tutor",
   },
-  description:
-    "Your own AI tutor for actuarial exams. Every answer is grounded in the exact SOA-specified " +
-    "textbooks, with a citation attached. Free study manual and a 6-message free trial for Exam P, " +
-    "FM, and FAM.",
+  description: SITE_DESCRIPTION,
   metadataBase: new URL("https://actuarialexamstutor.com"),
+  openGraph: {
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "https://actuarialexamstutor.com",
+    siteName: "Actuarial Exams Tutor",
+    type: "website",
+    images: [
+      {
+        url: "/screenshotimage.png",
+        width: 1536,
+        height: 1024,
+        alt: "Actuarial Exams Tutor chat -- a worked problem with a textbook citation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/screenshotimage.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
