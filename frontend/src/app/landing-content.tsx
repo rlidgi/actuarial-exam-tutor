@@ -199,7 +199,7 @@ export default function LandingContent() {
             </g>
           </svg>
           <div className="feature-title">Grounded in your textbooks</div>
-          <p>Every response comes with specific references to SOA exam textbooks for further study.</p>
+          <p>Every response is grounded in the exact SOA/CASACT specified textbooks for that exam.</p>
         </div>
         <div className="feature-card reveal">
           <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
@@ -237,7 +237,7 @@ export default function LandingContent() {
         <div className="feature-card reveal">
           <Image
             className="feature-illustration feature-illustration-photo"
-            src="/screenshotimage.png"
+            src="/screenshotimage2.png"
             alt="A screenshot of a problem pasted into the tutor chat"
             width={220}
             height={147}
