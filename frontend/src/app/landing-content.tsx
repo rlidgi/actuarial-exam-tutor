@@ -237,7 +237,7 @@ export default function LandingContent() {
         <div className="feature-card reveal">
           <Image
             className="feature-illustration feature-illustration-photo"
-            src="/screenshotimage2.png"
+            src="/screenshotimage3.png"
             alt="A screenshot of a problem pasted into the tutor chat"
             width={220}
             height={147}
