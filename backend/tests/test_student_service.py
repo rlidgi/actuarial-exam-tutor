@@ -1,5 +1,40 @@
+from unittest.mock import patch
+
+from sqlalchemy.exc import IntegrityError
+
 from app.models import Exam, Session, StudentProfile, Topic, User
 from app.services import mastery_service, student_service
+
+
+def test_create_profile_recovers_from_concurrent_insert_race(app, db):
+    """Two near-simultaneous ensureProfile calls for the same brand-new
+    sign-in (e.g. React's dev-mode double effect invocation) both see no
+    existing profile and both attempt to insert one. The loser's insert
+    fails on the (user_id, exam_id) uniqueness constraint -- that must
+    resolve to the winner's row, not an unhandled 500.
+    """
+    user = User(email="racer2@example.com", external_auth_id="ext-racer2")
+    exam = Exam(code="P", name="Exam P")
+    db.session.add_all([user, exam])
+    db.session.commit()
+
+    real_commit = db.session.commit
+
+    def racing_commit():
+        # Simulate a concurrent request winning the insert race for this
+        # exact (user_id, exam_id) pair in between this call's own (empty)
+        # lookup and its own commit.
+        db.session.rollback()
+        db.session.add(StudentProfile(user_id=user.id, exam_id=exam.id))
+        real_commit()
+        raise IntegrityError("insert", {}, Exception("duplicate key"))
+
+    with patch.object(db.session, "commit", side_effect=racing_commit):
+        profile = student_service.create_profile(user_id=user.id, exam_code="P")
+
+    assert profile.user_id == user.id
+    assert profile.exam_id == exam.id
+    assert StudentProfile.query.filter_by(user_id=user.id, exam_id=exam.id).count() == 1
 
 
 def _make_profile(db):

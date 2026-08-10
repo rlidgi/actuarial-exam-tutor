@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 from app.models.exam import Exam, Topic
 from app.models.mistake import Mistake
@@ -26,7 +28,18 @@ def create_profile(user_id: int, exam_code: str, goals: str | None = None,
         user_id=user_id, exam_id=exam.id, goals=goals, experience_level=experience_level
     )
     db.session.add(profile)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        # A concurrent request (e.g. React Strict Mode's dev-mode double
+        # effect invocation) can win the race between the existence check
+        # above and this insert -- re-query for its row instead of letting
+        # the unique constraint violation surface as an unhandled 500.
+        db.session.rollback()
+        existing = StudentProfile.query.filter_by(user_id=user_id, exam_id=exam.id).first()
+        if existing is not None:
+            return existing
+        raise
     return profile
 
 
