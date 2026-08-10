@@ -50,6 +50,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* body is `flex flex-col` (see layout.tsx) -- flex items default to
+   min-width: auto, meaning they refuse to shrink below their content's
+   intrinsic minimum width. On narrow viewports this forced the entire page
+   wider than the screen (page-level horizontal scroll) instead of letting
+   normal text wrapping happen inside it. */
+body > * {
+  min-width: 0;
+}
 
 /* Rendered markdown inside chat bubbles (see MessageContent). */
 .prose-chat p {
@@ -109,6 +117,7 @@ body {
 }
 
 .landing {
+  width: 100%;
   max-width: 960px;
   margin: 0 auto;
   padding: 0 1.5rem 4rem;
