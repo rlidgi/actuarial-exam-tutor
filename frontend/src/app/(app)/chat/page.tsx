@@ -423,7 +423,7 @@ export default function ChatPage() {
               type="button"
               onClick={() => setCameraOpen(true)}
               title="Take a photo of your work"
-              className="hidden flex-shrink-0 items-center gap-1 rounded-md border border-rule bg-paper-raised px-2 py-1.5 text-xs text-pencil hover:border-ledger-bright hover:text-ledger-bright sm:flex"
+              className="flex flex-shrink-0 items-center gap-1 rounded-md border border-rule bg-paper-raised px-2 py-1.5 text-xs text-pencil hover:border-ledger-bright hover:text-ledger-bright"
             >
               &#128247; Photo
             </button>
