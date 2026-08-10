@@ -63,7 +63,7 @@ function SignInErrorBanner() {
 }
 
 export default function LandingContent() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [showSignIn, setShowSignIn] = useState(false);
   useReveal();
 
@@ -83,9 +83,14 @@ export default function LandingContent() {
           Pricing
         </Link>
         {token ? (
-          <Link className="btn btn-primary" href="/chat">
-            Go to Tutor
-          </Link>
+          <>
+            <button type="button" className="btn" onClick={() => logout()}>
+              Sign out
+            </button>
+            <Link className="btn btn-primary" href="/chat">
+              Go to Tutor
+            </Link>
+          </>
         ) : (
           <button type="button" className="btn btn-primary" onClick={() => setShowSignIn(true)}>
             Sign in

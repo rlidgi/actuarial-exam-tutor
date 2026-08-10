@@ -207,9 +207,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
 
           {!loading && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pt-1 text-xs text-paper/50">
-              {email && <span>{email}</span>}
-              <button type="button" onClick={handleLogout} className="hover:text-ledger-bright">
+            <div className="flex flex-col gap-2 pt-1">
+              {email && <span className="px-1 text-xs text-paper/50">{email}</span>}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
+              >
                 Sign out
               </button>
             </div>
