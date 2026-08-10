@@ -205,6 +205,12 @@ export default function ChatPage() {
       { role: "user", content: text, imagePreviewUrl: previewUrl },
     ]);
     setInput("");
+    // autoGrow reads scrollHeight off the DOM directly, so it must run after
+    // React commits the cleared value -- otherwise it measures the textarea
+    // still showing the old multi-line content and the grown height never
+    // shrinks back down (same ordering issue insertSnippet already guards
+    // against above).
+    requestAnimationFrame(() => autoGrow());
     clearAttachedImage({ revoke: false });
     setSending(true);
     setError(null);

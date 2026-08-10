@@ -199,7 +199,7 @@ export default function LandingContent() {
             </g>
           </svg>
           <div className="feature-title">Grounded in your textbooks</div>
-          <p>Every response is grounded in the exact SOA/CASACT specified textbooks for that exam.</p>
+          <p>Every response is grounded in the exact SOA/CAS specified textbooks for that exam.</p>
         </div>
         <div className="feature-card reveal">
           <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
