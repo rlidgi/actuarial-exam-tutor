@@ -21,10 +21,17 @@ function normalizeMathDelimiters(text: string): string {
 // character typed -- input lag that gets worse the longer the chat gets.
 // Memoizing on `text` means a keystroke only touches components whose
 // content actually changed.
+// If the model emits a malformed expression (unbalanced delimiters, stray
+// \boxed{} outside math mode, etc.), KaTeX falls back to rendering the raw
+// source instead of crashing the page -- in its own hardcoded error red by
+// default, which reads as a much louder "broken" signal than it should.
+// Match the app's own error color instead of KaTeX's stock #cc0000.
+const KATEX_OPTIONS = { errorColor: "#b23a2e" };
+
 export const MessageContent = memo(function MessageContent({ text }: { text: string }) {
   return (
     <div className="prose-chat">
-      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[[rehypeKatex, KATEX_OPTIONS]]}>
         {normalizeMathDelimiters(text)}
       </ReactMarkdown>
     </div>
