@@ -106,7 +106,7 @@ export default function PricingContent() {
             ))}
           </ul>
           <Link href={token ? "/chat" : "/register"} className="pricing-card-btn">
-            {token ? "Go to chat" : "Get started free"}
+            {token ? "Go to Tutor" : "Get started free"}
           </Link>
         </div>
         {EXAMS.map((e) => {
