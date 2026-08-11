@@ -16,10 +16,9 @@ const EXAMS = [
 ];
 
 const FEATURES = [
-  "Unlimited questions",
-  "Full textbook citations",
+  "Unlimited tutor sessions",
+  "Textbook citations",
   "Free study manual included",
-  "Screenshot upload",
   "Cancel anytime, no commitment",
 ];
 
@@ -76,7 +75,7 @@ export default function PricingContent() {
               Proficiency Dashboard
             </Link>
             <Link className="btn" href="/chat">
-              Back to chat
+              Back to Tutor
             </Link>
           </>
         ) : (
@@ -88,9 +87,6 @@ export default function PricingContent() {
 
       <div className="pricing-header">
         <h1>Pricing</h1>
-        <p className="landing-sub" style={{ color: "var(--pencil)" }}>
-          $35/month per exam, unlimited use. Subscribe only to the exams you&apos;re studying for.
-        </p>
       </div>
 
       {highlightExam && (
