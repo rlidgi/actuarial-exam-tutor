@@ -543,7 +543,9 @@ body > * {
   margin: 3rem auto 0;
   padding: 1.2rem 1.5rem 2rem;
   display: flex;
+  align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 1.2rem;
   font-size: 0.78rem;
   color: var(--pencil-soft);
@@ -552,6 +554,10 @@ body > * {
 .site-footer a {
   color: var(--pencil);
   text-decoration: none;
+}
+.site-footer-icon {
+  display: inline-flex;
+  align-items: center;
 }
 .site-footer a:hover {
   color: var(--ledger-bright);
