@@ -24,7 +24,7 @@ const FEATURES = [
 ];
 
 export default function PricingContent() {
-  const { token, email } = useAuth();
+  const { token } = useAuth();
   const searchParams = useSearchParams();
   const highlightExam = searchParams.get("exam")?.toUpperCase() ?? null;
 
@@ -137,8 +137,6 @@ export default function PricingContent() {
           );
         })}
       </div>
-
-      {email && <p className="landing-microcopy">Signed in as {email}.</p>}
 
       <SiteFooter />
     </div>

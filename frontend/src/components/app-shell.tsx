@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    router.push("/login");
+    router.push("/");
   };
 
   const handleSelectExam = async (code: string) => {
