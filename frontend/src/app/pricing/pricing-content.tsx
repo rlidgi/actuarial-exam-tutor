@@ -89,11 +89,6 @@ export default function PricingContent() {
         <h1>Pricing</h1>
       </div>
 
-      {highlightExam && (
-        <div className="banner warn pricing-notice">
-          You need an active subscription to {highlightExam} to continue.
-        </div>
-      )}
       {error && (
         <div className="banner warn pricing-notice">{error}</div>
       )}
