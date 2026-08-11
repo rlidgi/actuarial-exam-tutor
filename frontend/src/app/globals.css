@@ -295,9 +295,6 @@ body > * {
   height: auto;
   margin: 0 auto 0.7rem;
 }
-.feature-illustration-photo {
-  object-fit: cover;
-}
 .feature-title {
   font-weight: 600;
   color: var(--ledger);
@@ -520,31 +517,6 @@ body > * {
   font-size: 0.7rem;
   color: var(--pencil);
   flex-shrink: 0;
-}
-
-.mag-glass-group {
-  transform-origin: 140px 58px;
-  animation: mag-scan 4.5s ease-in-out infinite;
-}
-@keyframes mag-scan {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  25% {
-    transform: translate(-6px, 4px) rotate(-6deg);
-  }
-  50% {
-    transform: translate(0, 7px) rotate(0deg);
-  }
-  75% {
-    transform: translate(6px, 4px) rotate(6deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .mag-glass-group {
-    animation: none;
-  }
 }
 
 .reveal {

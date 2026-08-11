@@ -162,76 +162,49 @@ export default function LandingContent() {
 
       <div className="landing-features">
         <div className="feature-card reveal">
-          <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
-            <rect x="35" y="92" width="95" height="15" rx="2" fill="var(--gold)" />
-            <rect x="42" y="77" width="85" height="15" rx="2" fill="var(--ledger)" />
-            <rect x="49" y="62" width="75" height="15" rx="2" fill="var(--sky)" />
-            <g className="mag-glass-group">
-              <circle
-                cx="140"
-                cy="58"
-                r="21"
-                fill="rgba(246,247,241,0.9)"
-                stroke="var(--ink)"
-                strokeWidth="5"
-              />
-              <line
-                x1="155"
-                y1="73"
-                x2="173"
-                y2="91"
-                stroke="var(--ink)"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-            </g>
-          </svg>
+          <Image
+            className="feature-illustration"
+            src="/books-v3.webp"
+            alt="An icon of a stack of books with a magnifying glass, representing textbook-grounded answers"
+            width={300}
+            height={200}
+          />
           <div className="feature-title">Grounded in your textbooks</div>
-          <p>Every response is grounded in the exact SOA/CAS specified textbooks for that exam.</p>
-        </div>
-        <div className="feature-card reveal">
-          <svg className="feature-illustration" viewBox="0 0 200 160" aria-hidden="true">
-            <rect
-              x="20"
-              y="20"
-              width="160"
-              height="90"
-              rx="16"
-              fill="var(--paper-raised)"
-              stroke="var(--ledger)"
-              strokeWidth="2.5"
-            />
-            <path
-              d="M60 110 L45 138 L82 110 Z"
-              fill="var(--paper-raised)"
-              stroke="var(--ledger)"
-              strokeWidth="2.5"
-            />
-            <text
-              x="100"
-              y="80"
-              fontSize="46"
-              textAnchor="middle"
-              fill="var(--ledger)"
-              fontFamily="Georgia, serif"
-              fontWeight="700"
-            >
-              ?
-            </text>
-          </svg>
-          <div className="feature-title">Ask, or paste a problem</div>
-          <p>Type a question, paste a problem, or work through practice problems the tutor generates for you.</p>
+          <p>
+            Every response is grounded in the exact SOA/CAS specified textbooks for that exam.
+            When appropriate, cites text directly and provides page number and textbook name for
+            further study.
+          </p>
         </div>
         <div className="feature-card reveal">
           <Image
-            className="feature-illustration feature-illustration-photo"
-            src="/screenshotimage3.png"
-            alt="A screenshot of a problem pasted into the tutor chat"
-            width={220}
-            height={147}
+            className="feature-illustration"
+            src="/problem-v3.webp"
+            alt="An icon of a question bubble next to an image with a copy badge, representing asking or pasting a problem"
+            width={300}
+            height={200}
           />
-          <div className="feature-title">Paste a screenshot</div>
-          <p>Attach or paste an image of a problem straight into the chat. It&apos;s transcribed and answered like any typed question.</p>
+          <div className="feature-title">Help with a problem</div>
+          <p>
+            Attach an image or paste a screenshot of a problem. Instead of simply giving you the
+            answer, the tutor works through the problem with you step by step, helping you
+            understand how to solve it.
+          </p>
+        </div>
+        <div className="feature-card reveal">
+          <Image
+            className="feature-illustration"
+            src="/growth-icon-v2.webp"
+            alt="An icon of a student in a circle next to a rising bar chart, representing adaptive progress tracking"
+            width={300}
+            height={200}
+          />
+          <div className="feature-title">Personalized learning that adapts</div>
+          <p>
+            The actuarial tutor adapts to each student&apos;s unique needs, much like a human
+            tutor. It continuously tracks proficiency, strengthens foundational knowledge where
+            needed, and guides students step by step toward mastery.
+          </p>
         </div>
       </div>
 
