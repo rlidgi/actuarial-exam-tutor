@@ -1,11 +1,13 @@
 export function SiteFooter() {
   return (
     <footer className="site-footer">
-      <span>&copy; Actuarial Exams Tutor. All Rights Reserved 2026.</span>
-      {/* Static self-contained HTML files (frontend/public/), not React
-          routes -- a plain reload is correct here, not client-side nav. */}
-      <a href="/terms.html">Terms of Service</a>
-      <a href="/privacy.html">Privacy Policy</a>
+      <div className="site-footer-legal">
+        <span>&copy; Actuarial Exams Tutor. All Rights Reserved 2026.</span>
+        {/* Static self-contained HTML files (frontend/public/), not React
+            routes -- a plain reload is correct here, not client-side nav. */}
+        <a href="/terms.html">Terms of Service</a>
+        <a href="/privacy.html">Privacy Policy</a>
+      </div>
       <a
         href="https://www.facebook.com/profile.php?id=61592801835167"
         target="_blank"
@@ -13,8 +15,12 @@ export function SiteFooter() {
         aria-label="Facebook"
         className="site-footer-icon"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12Z" />
+        <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="12" fill="#1877F2" />
+          <path
+            fill="#fff"
+            d="M15.5 12.3h-2.1v7.6h-3.1v-7.6H8.8v-2.7h1.5V8c0-1.6.8-3.4 3.5-3.4h2.1v2.6h-1.5c-.3 0-.7.2-.7.9v1.5h2.2l-.4 2.7Z"
+          />
         </svg>
       </a>
     </footer>
