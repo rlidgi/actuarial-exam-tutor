@@ -44,7 +44,7 @@ export default function AboutPage() {
         <h2>Meet the Founder</h2>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <Image
-            src="/founder.png"
+            src="/founder.webp"
             alt="Yaron Lidgi"
             width={64}
             height={64}
