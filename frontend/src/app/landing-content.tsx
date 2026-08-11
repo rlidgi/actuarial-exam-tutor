@@ -57,10 +57,11 @@ const EXAMS = [
 function SignInErrorBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get("signin_error") !== "1") return null;
+  const reason = searchParams.get("reason");
 
   return (
     <div className="banner warn pricing-notice">
-      Sign-in didn&apos;t go through -- try again.
+      {reason || "Sign-in didn't go through -- try again."}
     </div>
   );
 }
