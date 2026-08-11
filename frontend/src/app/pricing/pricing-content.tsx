@@ -19,6 +19,7 @@ const FEATURES = [
   "Unlimited tutor sessions",
   "Textbook citations",
   "Free study manual included",
+  "Proficiency Dashboard",
   "Cancel anytime, no commitment",
 ];
 

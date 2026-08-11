@@ -117,7 +117,7 @@ export default function LandingContent() {
             </span>
           ))}
         </div>
-        <h1>You don&apos;t have to go it alone.</h1>
+        <h1>You don&apos;t have to go it alone!</h1>
         <p className="landing-hero-sub">
           Have your own personal tutor for actuarial exams.
         </p>
