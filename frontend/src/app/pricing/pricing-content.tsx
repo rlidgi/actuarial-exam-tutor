@@ -23,6 +23,12 @@ const FEATURES = [
   "Cancel anytime, no commitment",
 ];
 
+const FREE_FEATURES = [
+  "Study manual access for all 3 exams",
+  "Up to 6 tutor messages",
+  "No credit card required",
+];
+
 export default function PricingContent() {
   const { token } = useAuth();
   const searchParams = useSearchParams();
@@ -97,6 +103,21 @@ export default function PricingContent() {
       )}
 
       <div className="pricing-cards">
+        <div className="pricing-card">
+          <div className="pricing-card-name">Free</div>
+          <div className="pricing-card-price">
+            $0
+            <span>/forever</span>
+          </div>
+          <ul className="pricing-card-features">
+            {FREE_FEATURES.map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+          <Link href={token ? "/chat" : "/register"} className="pricing-card-btn">
+            {token ? "Go to chat" : "Get started free"}
+          </Link>
+        </div>
         {EXAMS.map((e) => {
           const isP = e.code === DEFAULT_EXAM_CODE;
           const subscribed = isP && billingStatus?.subscribed;
