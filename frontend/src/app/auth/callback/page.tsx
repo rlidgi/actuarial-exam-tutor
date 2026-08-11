@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
@@ -54,7 +55,13 @@ export default function AuthCallbackPage() {
   }, [error, router]);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center">
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4">
+      <Image src="/logo-mark.png" alt="" width={40} height={40} className="h-10 w-10" />
+      <div
+        role="status"
+        aria-label="Signing you in"
+        className="h-6 w-6 animate-spin rounded-full border-2 border-rule border-t-ledger"
+      />
       <p className="text-sm text-pencil">Signing you in...</p>
     </div>
   );

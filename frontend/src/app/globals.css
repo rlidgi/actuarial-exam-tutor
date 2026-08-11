@@ -265,14 +265,14 @@ body > * {
 .landing-hero-sub {
   font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   color: var(--paper);
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   max-width: 640px;
   margin: 0 auto 1.8rem;
   line-height: 1.35;
 }
 @media (max-width: 720px) {
   .landing-hero-sub {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
   }
 }
 .landing-features {

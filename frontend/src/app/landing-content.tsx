@@ -119,7 +119,7 @@ export default function LandingContent() {
         </div>
         <h1>You don&apos;t have to go it alone.</h1>
         <p className="landing-hero-sub">
-          You can have your own personal tutor for actuarial exams.
+          Have your own personal tutor for actuarial exams.
         </p>
         <div className="exam-picker">
           {EXAMS.map((e) => (
