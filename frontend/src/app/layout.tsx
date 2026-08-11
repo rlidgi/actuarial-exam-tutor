@@ -57,10 +57,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Google Ads conversion tracking (gtag.js) -- afterInteractive loads
-            it once the page is interactive, rather than blocking initial
-            render, and next/script here in the root layout applies it to
-            every route instead of needing to repeat it per page. */}
+        {/* Google Ads conversion tracking + GA4 (gtag.js) -- afterInteractive
+            loads it once the page is interactive, rather than blocking
+            initial render, and next/script here in the root layout applies
+            it to every route instead of needing to repeat it per page. Both
+            products share one gtag.js load and dataLayer (Google's own
+            recommended pattern) rather than loading the script twice. */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18381595346"
           strategy="afterInteractive"
@@ -71,6 +73,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'AW-18381595346');
+            gtag('config', 'G-95GFSBW1LD');
           `}
         </Script>
         {/* Microsoft Clarity session recording -- same afterInteractive
