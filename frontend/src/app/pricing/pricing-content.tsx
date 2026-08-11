@@ -134,7 +134,7 @@ export default function PricingContent() {
               </ul>
               {subscribed ? (
                 <Link href="/chat" className="pricing-card-btn active">
-                  Active -- manage from chat
+                  Active
                 </Link>
               ) : !token ? (
                 <Link href="/register" className="pricing-card-btn">
