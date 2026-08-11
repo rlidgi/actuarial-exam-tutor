@@ -25,7 +25,7 @@ const FEATURES = [
 
 const FREE_FEATURES = [
   "Study manual access for all 3 exams",
-  "Up to 6 tutor messages",
+  "Up to 6 messages to try the tutor",
   "No credit card required",
 ];
 
