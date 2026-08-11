@@ -56,7 +56,7 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4">
-      <Image src="/logo-mark.png" alt="" width={40} height={40} className="h-10 w-10" />
+      <Image src="/logo-mark.png" alt="" width={691} height={350} className="h-10 w-auto" />
       <div
         role="status"
         aria-label="Signing you in"
