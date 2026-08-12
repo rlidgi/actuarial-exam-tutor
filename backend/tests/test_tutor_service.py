@@ -259,3 +259,87 @@ def test_handle_message_does_not_auto_summarize_under_threshold(app, db):
 
     client.chat.completions.create.assert_not_called()
     assert session.summary is None
+
+
+def test_generate_opening_message_sends_an_unseen_hello(app, db):
+    profile, session = _make_profile_and_session(db)
+    db.session.add(Message(session_id=session.id, role="user", content="earlier today"))
+    db.session.commit()
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _response_with_text("Welcome back!")
+
+        text = tutor_service.generate_opening_message(profile, session)
+
+    assert text == "Welcome back!"
+    sent_input = client.responses.create.call_args.kwargs["input"]
+    assert sent_input[-1] == {"role": "user", "content": "Hello"}
+    assert sent_input[0] == {"role": "user", "content": "earlier today"}
+    # Pure -- doesn't persist anything itself, including the "Hello" trigger.
+    assert Message.query.filter_by(session_id=session.id).count() == 1
+
+
+def test_open_session_for_today_generates_and_persists_when_empty(app, db):
+    profile, session = _make_profile_and_session(db)
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _response_with_text("Welcome back! Ready to dive in?")
+
+        tutor_service.open_session_for_today(profile, session)
+
+    messages = Message.query.filter_by(session_id=session.id).all()
+    assert len(messages) == 1
+    assert messages[0].role == "assistant"
+    assert messages[0].content == "Welcome back! Ready to dive in?"
+
+
+def test_open_session_for_today_is_a_noop_when_today_already_has_messages(app, db):
+    profile, session = _make_profile_and_session(db)
+    db.session.add(Message(session_id=session.id, role="user", content="already talking"))
+    db.session.commit()
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+
+        tutor_service.open_session_for_today(profile, session)
+
+    client.responses.create.assert_not_called()
+    assert Message.query.filter_by(session_id=session.id).count() == 1
+
+
+def test_open_session_for_today_recovers_from_concurrent_greeting(app, db):
+    """Two near-simultaneous page loads (e.g. React Strict Mode's dev-mode
+    double effect invocation) can both see no messages today and both start
+    generating a greeting. The loser must not also persist one."""
+    profile, session = _make_profile_and_session(db)
+
+    def racing_generate(*args, **kwargs):
+        db.session.add(Message(session_id=session.id, role="assistant", content="the winner's greeting"))
+        db.session.commit()
+        return "the loser's greeting"
+
+    with patch(
+        "app.services.tutor_service.generate_opening_message", side_effect=racing_generate
+    ):
+        tutor_service.open_session_for_today(profile, session)
+
+    messages = Message.query.filter_by(session_id=session.id).all()
+    assert len(messages) == 1
+    assert messages[0].content == "the winner's greeting"
+
+
+def test_restart_conversation_always_persists_a_new_message(app, db):
+    profile, session = _make_profile_and_session(db)
+    db.session.add(Message(session_id=session.id, role="assistant", content="earlier today"))
+    db.session.commit()
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _response_with_text("We were just working on sample spaces.")
+
+        message = tutor_service.restart_conversation(profile, session)
+
+    assert message.content == "We were just working on sample spaces."
+    assert Message.query.filter_by(session_id=session.id).count() == 2

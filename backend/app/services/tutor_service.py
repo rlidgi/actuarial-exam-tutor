@@ -53,6 +53,7 @@ is a no-op -- the app runs the same either way.
 """
 
 import json
+from datetime import datetime, timezone
 
 from flask import current_app
 from langfuse import Langfuse
@@ -232,10 +233,11 @@ def _run_tool_call(call, ctx: ToolContext, tracer: Langfuse) -> dict:
     return {"type": "function_call_output", "call_id": call.call_id, "output": json.dumps(result)}
 
 
-def handle_message(student_profile: StudentProfile, session: Session, user_text: str) -> str:
-    db.session.add(Message(session_id=session.id, role="user", content=user_text))
-    db.session.commit()
-
+def _run_turn(student_profile: StudentProfile, session: Session, next_input: list) -> str:
+    """Runs the tool-calling loop for one turn against whatever input
+    messages the caller has already assembled -- shared by handle_message
+    (a real student message) and generate_opening_message (a synthetic,
+    unpersisted "Hello" standing in for the tutor speaking first)."""
     ctx = ToolContext(student_profile=student_profile, session=session)
     client = _client()
     tracer = _tracer()
@@ -243,7 +245,7 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
     with tracer.start_as_current_observation(
         name="tutor_turn",
         as_type="span",
-        input=user_text,
+        input=next_input,
         metadata={
             "student_profile_id": student_profile.id,
             "session_id": session.id,
@@ -253,9 +255,8 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
         _maybe_auto_summarize(client, tracer, student_profile, session)
 
         # First call of the turn: fresh input from our own bounded history.
-        # Later iterations (still resolving the same user message) chain via
+        # Later iterations (still resolving the same turn) chain via
         # previous_response_id instead, sending only new tool outputs.
-        next_input: list = _build_history(session)
         previous_response_id: str | None = None
 
         final_text = FALLBACK_REPLY
@@ -298,7 +299,78 @@ def handle_message(student_profile: StudentProfile, session: Session, user_text:
         turn_span.update(output=final_text)
 
     tracer.flush()
+    return final_text
+
+
+def handle_message(student_profile: StudentProfile, session: Session, user_text: str) -> str:
+    db.session.add(Message(session_id=session.id, role="user", content=user_text))
+    db.session.commit()
+
+    final_text = _run_turn(student_profile, session, _build_history(session))
 
     db.session.add(Message(session_id=session.id, role="assistant", content=final_text))
     db.session.commit()
     return final_text
+
+
+def _messages_today(session: Session) -> list[Message]:
+    today = datetime.now(timezone.utc).date()
+    return (
+        Message.query.filter(
+            Message.session_id == session.id, db.func.date(Message.created_at) == today
+        )
+        .order_by(Message.created_at)
+        .all()
+    )
+
+
+def generate_opening_message(student_profile: StudentProfile, session: Session) -> str:
+    """The tutor speaking first, rather than replying to a student message.
+    Runs the exact same turn-running logic as a real message (so the model
+    can use its usual tools, e.g. to check progress, if it judges that
+    useful) -- the only difference is the trigger: an unseen "Hello" stands
+    in for the student, appended to the real history but never persisted,
+    so it never appears in the transcript/history, isn't editable, and
+    (since it bypasses handle_message and entitlement_service's free-turn
+    counter entirely) doesn't cost the student one of their free-trial
+    messages. Pure: callers own persisting the result (see
+    open_session_for_today/restart_conversation), since the two callers
+    have different persistence/race-safety needs."""
+    next_input = _build_history(session) + [{"role": "user", "content": "Hello"}]
+    return _run_turn(student_profile, session, next_input)
+
+
+def open_session_for_today(student_profile: StudentProfile, session: Session) -> None:
+    """Generates and persists the tutor's opening reply for today's
+    sitting, if nothing's been sent yet today. No-op (no API call) if
+    today's conversation has already started -- callers re-fetch today's
+    messages themselves after calling this, so there's nothing to return
+    here."""
+    if _messages_today(session):
+        return
+
+    text = generate_opening_message(student_profile, session)
+
+    # Re-check right before persisting -- a concurrent call (e.g. React
+    # Strict Mode's dev-mode double effect invocation) could have generated
+    # and persisted its own opening message while this one was waiting on
+    # the model call above.
+    if _messages_today(session):
+        return
+
+    db.session.add(Message(session_id=session.id, role="assistant", content=text))
+    db.session.commit()
+
+
+def restart_conversation(student_profile: StudentProfile, session: Session) -> Message:
+    """The "New Conversation" button: unconditionally generates and
+    persists a fresh opening reply -- unlike open_session_for_today, this
+    is an explicit user action, so it always produces a new message rather
+    than checking for an existing one first. The model sees today's real
+    history (if any) alongside the same unseen "Hello", so it naturally
+    picks the conversation back up rather than re-introducing itself."""
+    text = generate_opening_message(student_profile, session)
+    message = Message(session_id=session.id, role="assistant", content=text)
+    db.session.add(message)
+    db.session.commit()
+    return message

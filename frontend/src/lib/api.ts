@@ -75,6 +75,17 @@ export interface ChatMessageDTO {
   content: string;
 }
 
+export interface OpenChatResponse {
+  messages: ChatMessageDTO[];
+}
+
+export interface RestartChatResponse {
+  message?: ChatMessageDTO;
+  // Set instead of message when the caller is out of free-trial turns and
+  // isn't subscribed -- see entitlement_service.chat_access_status.
+  blocked?: "trial_exhausted";
+}
+
 export interface ExamInfo {
   code: string;
   name: string;
@@ -151,6 +162,10 @@ export const api = {
       },
       token
     ),
+  openChat: (token: string, examCode: string) =>
+    request<OpenChatResponse>(`/api/chat/open?exam=${examCode}`, { method: "POST" }, token),
+  restartChat: (token: string, examCode: string) =>
+    request<RestartChatResponse>(`/api/chat/restart?exam=${examCode}`, { method: "POST" }, token),
   getProgress: (token: string, examCode: string) =>
     request<ProgressSummary>(`/api/students/me/progress?exam=${examCode}`, {}, token),
   getSessions: (token: string, examCode: string) =>

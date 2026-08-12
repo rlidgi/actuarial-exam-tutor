@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -43,6 +43,15 @@ def _delete_last_exchange(session: Session) -> str | None:
     ).delete()
     db.session.commit()
     return original_text
+
+
+def _messages_for_day(student_profile, day) -> list[Message]:
+    return (
+        Message.query.join(Session, Message.session_id == Session.id)
+        .filter(Session.student_profile_id == student_profile.id, db.func.date(Message.created_at) == day)
+        .order_by(Message.created_at)
+        .all()
+    )
 
 
 def _access_gate(profile):
@@ -112,6 +121,54 @@ def send_message():
     return _run_tutor_turn(profile, session, text, subscribed)
 
 
+@bp.post("/open")
+@jwt_required()
+def open_chat():
+    """Called when the chat page loads (not viewing a past day): generates
+    the tutor's proactive opening message for today's sitting if nothing's
+    been sent yet today, then returns today's full message list either way
+    -- also how today's own conversation survives a page reload, since nothing
+    else fetches it into the live view."""
+    exam_code = request.args.get("exam", "").strip().upper()
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
+
+    session = _get_or_create_open_session(profile)
+    # A user with no chat access shouldn't cost an API call every time they
+    # load the page -- just show whatever's already there, same as today's
+    # conversation would look with no side effects at all.
+    _, blocked = _access_gate(profile)
+    if not blocked:
+        tutor_service.open_session_for_today(profile, session)
+
+    today = datetime.now(timezone.utc).date()
+    messages = _messages_for_day(profile, today)
+    return jsonify(messages=[{"role": m.role, "content": m.content} for m in messages])
+
+
+@bp.post("/restart")
+@jwt_required()
+def restart_chat():
+    """The "New Conversation" button: the display clears client-side and
+    the tutor immediately posts a fresh, same-day restart message -- the
+    model sees today's real history alongside the unseen "Hello", so it
+    naturally picks the conversation back up rather than re-greeting.
+    Underlying memory is untouched."""
+    exam_code = request.args.get("exam", "").strip().upper()
+    profile, error = resolve_profile(exam_code, missing_message="exam query param is required")
+    if error:
+        return error
+
+    session = _get_or_create_open_session(profile)
+    _, blocked = _access_gate(profile)
+    if blocked:
+        return jsonify(blocked="trial_exhausted")
+
+    message = tutor_service.restart_conversation(profile, session)
+    return jsonify(message={"role": message.role, "content": message.content})
+
+
 @bp.post("/regenerate")
 @jwt_required()
 def regenerate():
@@ -170,10 +227,5 @@ def history_day(date_str):
     if error:
         return error
 
-    messages = (
-        Message.query.join(Session, Message.session_id == Session.id)
-        .filter(Session.student_profile_id == profile.id, db.func.date(Message.created_at) == day)
-        .order_by(Message.created_at)
-        .all()
-    )
+    messages = _messages_for_day(profile, day)
     return jsonify(messages=[{"role": m.role, "content": m.content} for m in messages])

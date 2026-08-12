@@ -86,17 +86,6 @@ export default function ChatPage() {
   const messages = viewingPastDay ? dayMessages : liveMessages;
   const dayLoading = viewingPastDay && selectedDate !== loadedDate;
 
-  // "New Conversation" never resets any backend memory -- it's the same
-  // ongoing session either way -- it just clears what's displayed, the
-  // same as a page reload already does today. Adjusting state during
-  // render (rather than in an effect) on a signal change, per React's own
-  // guidance for this pattern -- avoids an extra render pass.
-  const [handledSignal, setHandledSignal] = useState(newConversationSignal);
-  if (newConversationSignal !== handledSignal) {
-    setHandledSignal(newConversationSignal);
-    setLiveMessages([]);
-  }
-
   useEffect(() => {
     if (!token || !selectedDate) return;
     api
@@ -107,6 +96,69 @@ export default function ChatPage() {
       })
       .catch(() => setError("Couldn't load that day's conversation."));
   }, [token, examCode, selectedDate]);
+
+  // Populates the live view: on mount, on an exam switch, and whenever the
+  // student returns to live from browsing a past day, this restores
+  // today's actual conversation (including generating the tutor's opening
+  // message server-side, if nothing's been sent yet today -- see
+  // POST /api/chat/open). "New Conversation" reuses the same effect rather
+  // than a separate one specifically to avoid two fetches racing when it's
+  // clicked while browsing a past day (which flips viewingPastDay AND bumps
+  // newConversationSignal in the same render) -- a ref (not state) tracks
+  // the last-handled signal so updating it doesn't itself retrigger this
+  // effect the way updating state would.
+  // examCode is tracked alongside the signal (not just the signal alone)
+  // because app-shell.tsx's exam switcher also bumps newConversationSignal
+  // when it changes examCode -- without this, switching exams would hit
+  // /restart (mid-conversation framing) instead of /open (a proper first
+  // load) for the newly selected exam.
+  const handledRef = useRef({ signal: newConversationSignal, examCode });
+  useEffect(() => {
+    if (!token || viewingPastDay) return;
+    const isRestart =
+      newConversationSignal !== handledRef.current.signal &&
+      examCode === handledRef.current.examCode;
+    handledRef.current = { signal: newConversationSignal, examCode };
+
+    let cancelled = false;
+    if (isRestart) setLiveMessages([]);
+    // Deliberately synchronous, ahead of the async call below -- these
+    // drive the "Thinking..." indicator and clear any stale error right
+    // when the fetch starts, not after some other trigger.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSending(true);
+    setError(null);
+
+    const load = isRestart
+      ? api.restartChat(token, examCode).then((r) => {
+          if (r.blocked) {
+            if (!cancelled) setBlocked(true);
+            return null;
+          }
+          return r.message ? [r.message] : [];
+        })
+      : api.openChat(token, examCode).then((r) => r.messages);
+
+    load
+      .then((msgs) => {
+        if (!cancelled && msgs) setLiveMessages(msgs);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (isAuthError(err)) {
+          redirectToExpiredLogin();
+          return;
+        }
+        setError(err instanceof ApiError ? err.message : "Failed to reach the tutor. Try again.");
+      })
+      .finally(() => {
+        if (!cancelled) setSending(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, examCode, viewingPastDay, newConversationSignal, redirectToExpiredLogin]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -290,12 +342,8 @@ export default function ChatPage() {
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
         <TrialBanner status={billingStatus} examCode={examCode} />
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
-          {messages.length === 0 && !dayLoading && (
-            <p className="text-sm text-pencil">
-              {viewingPastDay
-                ? "No messages on this day."
-                : `Ask a question about Exam ${examCode}, paste or upload a screenshot of a problem, or say what you'd like to work on.`}
-            </p>
+          {viewingPastDay && messages.length === 0 && !dayLoading && (
+            <p className="text-sm text-pencil">No messages on this day.</p>
           )}
           {dayLoading && <p className="text-sm text-pencil">Loading...</p>}
 
@@ -309,7 +357,13 @@ export default function ChatPage() {
             const isLastAssistant =
               m.role === "assistant" && i === messages.length - 1;
             const showEdit = !viewingPastDay && isLastUser;
-            const showRegenerate = !viewingPastDay && isLastAssistant;
+            // The tutor's proactive opening message (see POST /api/chat/open
+            // and /restart) can be the only message present, with no
+            // preceding user question -- there's nothing for the backend to
+            // regenerate in that case (_delete_last_exchange needs a prior
+            // user message), so require one exists before offering the button.
+            const showRegenerate =
+              !viewingPastDay && isLastAssistant && messages.some((n) => n.role === "user");
             return (
               <div
                 key={i}
