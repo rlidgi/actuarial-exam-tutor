@@ -233,11 +233,21 @@ def _run_tool_call(call, ctx: ToolContext, tracer: Langfuse) -> dict:
     return {"type": "function_call_output", "call_id": call.call_id, "output": json.dumps(result)}
 
 
-def _run_turn(student_profile: StudentProfile, session: Session, next_input: list) -> str:
+def _run_turn(student_profile: StudentProfile, session: Session, next_input: list):
     """Runs the tool-calling loop for one turn against whatever input
     messages the caller has already assembled -- shared by handle_message
     (a real student message) and generate_opening_message (a synthetic,
-    unpersisted "Hello" standing in for the tutor speaking first)."""
+    unpersisted "Hello" standing in for the tutor speaking first).
+
+    A generator: yields each text delta as it streams in from the model, so
+    callers that want to forward it live (see chat.py's streaming routes)
+    can. The final assembled reply is the generator's return value
+    (accessible via `yield from` or StopIteration.value -- see _drain for
+    callers that just want the finished string). Tool-calling rounds don't
+    yield visible text -- the Responses API only emits output_text.delta
+    events for an actual text output item, not a function-call one -- so
+    only the turn's real final answer ever streams to the caller.
+    """
     ctx = ToolContext(student_profile=student_profile, session=session)
     client = _client()
     tracer = _tracer()
@@ -258,43 +268,65 @@ def _run_turn(student_profile: StudentProfile, session: Session, next_input: lis
         # Later iterations (still resolving the same turn) chain via
         # previous_response_id instead, sending only new tool outputs.
         previous_response_id: str | None = None
+        # None until a round actually finishes with a real answer (no
+        # function calls) -- every other exit path (an API/stream error, a
+        # stream that never sent response.completed, or exhausting
+        # MAX_TOOL_ITERATIONS) leaves this None, so the fallback-yield right
+        # after the loop is the one place that handles all of them.
+        final_text: str | None = None
 
-        final_text = FALLBACK_REPLY
         for _ in range(MAX_TOOL_ITERATIONS):
             with tracer.start_as_current_observation(
                 name="tutor_model_call", as_type="generation", model=CHAT_MODEL,
                 input={"input": next_input, "previous_response_id": previous_response_id},
             ) as gen:
+                text_parts: list[str] = []
+                final_response = None
                 try:
-                    response = client.responses.create(
+                    stream = client.responses.create(
                         model=CHAT_MODEL,
                         instructions=_build_instructions(student_profile, session),
                         tools=build_tools(student_profile.exam.code),
                         input=next_input,
                         previous_response_id=previous_response_id,
+                        stream=True,
                     )
+                    for event in stream:
+                        if event.type == "response.output_text.delta":
+                            text_parts.append(event.delta)
+                            yield event.delta
+                        elif event.type == "response.completed":
+                            final_response = event.response
                 except Exception as exc:
                     current_app.logger.exception("OpenAI responses call failed")
                     gen.update(level="ERROR", status_message=str(exc))
                     break
 
-                function_calls = [item for item in response.output if item.type == "function_call"]
+                if final_response is None:
+                    current_app.logger.warning("tutor stream ended without response.completed")
+                    break
+
+                function_calls = [item for item in final_response.output if item.type == "function_call"]
                 gen.update(
                     output=(
-                        response.output_text if not function_calls
+                        "".join(text_parts) if not function_calls
                         else [{"tool": c.name, "arguments": c.arguments} for c in function_calls]
                     ),
-                    usage_details=_usage_details(response),
+                    usage_details=_usage_details(final_response),
                 )
 
             if not function_calls:
-                final_text = response.output_text or FALLBACK_REPLY
+                final_text = "".join(text_parts) or FALLBACK_REPLY
                 break
 
-            previous_response_id = response.id
+            previous_response_id = final_response.id
             next_input = [_run_tool_call(call, ctx, tracer) for call in function_calls]
         else:
             current_app.logger.warning("tutor tool-calling loop hit MAX_TOOL_ITERATIONS")
+
+        if final_text is None:
+            final_text = FALLBACK_REPLY
+            yield final_text
 
         turn_span.update(output=final_text)
 
@@ -302,11 +334,25 @@ def _run_turn(student_profile: StudentProfile, session: Session, next_input: lis
     return final_text
 
 
-def handle_message(student_profile: StudentProfile, session: Session, user_text: str) -> str:
+def _drain(chunks) -> str:
+    """Exhausts a chunk-yielding generator (see _run_turn) for callers that
+    want the finished reply without streaming it themselves."""
+    try:
+        while True:
+            next(chunks)
+    except StopIteration as stop:
+        return stop.value
+
+
+def handle_message(student_profile: StudentProfile, session: Session, user_text: str):
+    """Generator: yields the tutor's reply as it streams in (see
+    _run_turn), then persists the finished reply as an assistant Message
+    once the stream completes. Callers that don't want to stream can drain
+    it themselves (see _drain) -- e.g. a future non-streaming caller."""
     db.session.add(Message(session_id=session.id, role="user", content=user_text))
     db.session.commit()
 
-    final_text = _run_turn(student_profile, session, _build_history(session))
+    final_text = yield from _run_turn(student_profile, session, _build_history(session))
 
     db.session.add(Message(session_id=session.id, role="assistant", content=final_text))
     db.session.commit()
@@ -335,9 +381,11 @@ def generate_opening_message(student_profile: StudentProfile, session: Session) 
     counter entirely) doesn't cost the student one of their free-trial
     messages. Pure: callers own persisting the result (see
     open_session_for_today/restart_conversation), since the two callers
-    have different persistence/race-safety needs."""
+    have different persistence/race-safety needs. Not streamed to the
+    caller -- these are short, page-load-time opening turns rather than the
+    "waiting on a real answer" case streaming is for."""
     next_input = _build_history(session) + [{"role": "user", "content": "Hello"}]
-    return _run_turn(student_profile, session, next_input)
+    return _drain(_run_turn(student_profile, session, next_input))
 
 
 def open_session_for_today(student_profile: StudentProfile, session: Session) -> None:

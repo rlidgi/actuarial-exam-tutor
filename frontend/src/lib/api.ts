@@ -51,17 +51,72 @@ async function request<T>(
   return body as T;
 }
 
+export interface ChatStreamEvent {
+  delta?: string;
+  done?: boolean;
+  // Set instead of delta/done when the caller is out of free-trial turns
+  // and isn't subscribed -- see entitlement_service.chat_access_status.
+  // Arrives as a single plain-JSON response (never a stream), same as any
+  // other blocked turn -- see chat.py's _access_gate.
+  blocked?: "trial_exhausted";
+}
+
+// POST /api/chat/message and /regenerate stream their reply as
+// Server-Sent Events (see chat.py's _run_tutor_turn) so the tutor's answer
+// can render as it's generated instead of waiting for the whole thing.
+// An async generator, not request<T>() -- the response body is a sequence
+// of `data: {...}\n\n` frames, not one JSON value.
+async function* streamRequest(
+  path: string,
+  options: RequestInit,
+  token: string
+): AsyncGenerator<ChatStreamEvent> {
+  const isFormData = options.body instanceof FormData;
+  const res = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      Authorization: `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ApiError(body?.error ?? res.statusText, res.status);
+  }
+
+  // A blocked turn short-circuits before the tutor ever runs, so it's a
+  // plain JSON response ({blocked: "trial_exhausted"}), not a stream.
+  if (!(res.headers.get("content-type") ?? "").includes("text/event-stream")) {
+    const body = await res.json().catch(() => null);
+    if (body) yield body as ChatStreamEvent;
+    return;
+  }
+
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let boundary: number;
+    while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+      const rawEvent = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      if (rawEvent.startsWith("data: ")) {
+        yield JSON.parse(rawEvent.slice("data: ".length)) as ChatStreamEvent;
+      }
+    }
+  }
+}
+
 export interface AuthResponse {
   access_token: string;
   user: { id: number; email: string };
-}
-
-export interface ChatResponse {
-  session_id?: number;
-  reply?: string;
-  // Set instead of session_id/reply when the caller is out of free-trial
-  // turns and isn't subscribed -- see entitlement_service.chat_access_status.
-  blocked?: "trial_exhausted";
 }
 
 export interface BillingStatus {
@@ -141,20 +196,16 @@ export const api = {
       formData.set("exam_code", examCode);
       formData.set("message", message);
       formData.set("image", image);
-      return request<ChatResponse>(
-        "/api/chat/message",
-        { method: "POST", body: formData },
-        token
-      );
+      return streamRequest("/api/chat/message", { method: "POST", body: formData }, token);
     }
-    return request<ChatResponse>(
+    return streamRequest(
       "/api/chat/message",
       { method: "POST", body: JSON.stringify({ exam_code: examCode, message }) },
       token
     );
   },
   regenerate: (token: string, examCode: string, editedMessage?: string) =>
-    request<ChatResponse>(
+    streamRequest(
       "/api/chat/regenerate",
       {
         method: "POST",
@@ -207,6 +258,16 @@ export const api = {
   // so there's no body to parse as an ApiError-shaped object on failure.
   getCourseHtml: async (token: string, examCode: string): Promise<string> => {
     const res = await fetch(`${API_URL}/api/courses/${examCode}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      throw new ApiError(res.statusText, res.status);
+    }
+    return res.text();
+  },
+  // Same treatment as getCourseHtml -- raw text/html, not JSON.
+  getFormulaSheetHtml: async (token: string, examCode: string): Promise<string> => {
+    const res = await fetch(`${API_URL}/api/formulas/${examCode}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {

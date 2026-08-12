@@ -3,9 +3,12 @@ from unittest.mock import MagicMock, patch
 from app.models import Exam, Message, Session, StudentProfile, User
 
 
-def _response_with_text(text):
+def _stream_events(text, response_id="resp_1"):
+    delta_event = MagicMock(type="response.output_text.delta", delta=text)
     message_item = MagicMock(type="message")
-    return MagicMock(output=[message_item], output_text=text)
+    final_response = MagicMock(id=response_id, output=[message_item], output_text=text)
+    completed_event = MagicMock(type="response.completed", response=final_response)
+    return [delta_event, completed_event]
 
 
 def _register_with_profile(client, db, register_user, email):
@@ -36,7 +39,7 @@ def test_open_chat_generates_a_greeting_when_nothing_sent_today(client, db, regi
     headers = _register_with_profile(client, db, register_user, "open1@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
-        mock_openai.return_value.responses.create.return_value = _response_with_text(
+        mock_openai.return_value.responses.create.return_value = _stream_events(
             "Welcome! Let's get started."
         )
         resp = client.post("/api/chat/open?exam=P", headers=headers)
@@ -87,7 +90,7 @@ def test_restart_chat_always_posts_a_new_message(client, db, register_user):
     db.session.commit()
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
-        mock_openai.return_value.responses.create.return_value = _response_with_text(
+        mock_openai.return_value.responses.create.return_value = _stream_events(
             "We were just working on sample spaces."
         )
         resp = client.post("/api/chat/restart?exam=P", headers=headers)

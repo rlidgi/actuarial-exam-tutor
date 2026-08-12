@@ -1,6 +1,7 @@
+import json
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_jwt_extended import jwt_required
 
 from app.api.helpers import resolve_profile
@@ -67,13 +68,25 @@ def _access_gate(profile):
     return subscribed, None
 
 
+def _sse(data: dict) -> str:
+    return f"data: {json.dumps(data)}\n\n"
+
+
 def _run_tutor_turn(profile, session: Session, text: str, subscribed: bool):
-    """Runs an already access-gated turn, drawing down the free-trial pool
-    on a successful unsubscribed one."""
-    reply = tutor_service.handle_message(profile, session, text)
-    if not subscribed:
-        entitlement_service.increment_free_turns_used(profile)
-    return jsonify(session_id=session.id, reply=reply)
+    """Runs an already access-gated turn as a streamed SSE response (one
+    `data: {"delta": "..."}` event per chunk as the reply comes in, then a
+    final `data: {"done": true}`), so the frontend can render the tutor's
+    answer as it's generated rather than waiting for the whole thing.
+    Draws down the free-trial pool on a successful unsubscribed turn once
+    the stream completes."""
+    def generate():
+        for chunk in tutor_service.handle_message(profile, session, text):
+            yield _sse({"delta": chunk})
+        if not subscribed:
+            entitlement_service.increment_free_turns_used(profile)
+        yield _sse({"done": True})
+
+    return Response(stream_with_context(generate()), mimetype="text/event-stream")
 
 
 def _parse_message_request():

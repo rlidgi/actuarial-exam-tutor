@@ -80,6 +80,9 @@ export default function ProgressPage() {
   return (
     <div className="flex-1 w-full overflow-y-auto">
       <div className="dashboard-page">
+        <Link href="/chat" className="btn mb-2 inline-block">
+          &larr; Back to Tutor
+        </Link>
         <div className="dashboard-header">
           <h1>Proficiency Dashboard</h1>
           <p>

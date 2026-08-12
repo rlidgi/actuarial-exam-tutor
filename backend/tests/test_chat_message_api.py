@@ -1,12 +1,24 @@
 import io
+import json
 from unittest.mock import MagicMock, patch
 
 from app.models import Exam, Message, Session, StudentProfile, User
 
 
-def _response_with_text(text):
+def _stream_events(text, response_id="resp_1"):
+    delta_event = MagicMock(type="response.output_text.delta", delta=text)
     message_item = MagicMock(type="message")
-    return MagicMock(output=[message_item], output_text=text)
+    final_response = MagicMock(id=response_id, output=[message_item], output_text=text)
+    completed_event = MagicMock(type="response.completed", response=final_response)
+    return [delta_event, completed_event]
+
+
+def _parse_sse(raw: str) -> list[dict]:
+    return [json.loads(block[len("data: "):]) for block in raw.strip().split("\n\n") if block]
+
+
+def _reply_text(raw: str) -> str:
+    return "".join(e["delta"] for e in _parse_sse(raw) if "delta" in e)
 
 
 def _register_with_profile(client, db, register_user, email):
@@ -27,7 +39,7 @@ def test_send_message_json_body_still_works(client, db, register_user):
     headers = _register_with_profile(client, db, register_user, "jsonmsg@example.com")
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
-        mock_openai.return_value.responses.create.return_value = _response_with_text("Sure thing.")
+        mock_openai.return_value.responses.create.return_value = _stream_events("Sure thing.")
         resp = client.post(
             "/api/chat/message",
             json={"exam_code": "P", "message": "what is a sample space?"},
@@ -35,7 +47,8 @@ def test_send_message_json_body_still_works(client, db, register_user):
         )
 
     assert resp.status_code == 200
-    assert resp.get_json()["reply"] == "Sure thing."
+    assert resp.mimetype == "text/event-stream"
+    assert _reply_text(resp.get_data(as_text=True)) == "Sure thing."
 
 
 def test_send_message_with_image_transcribes_and_combines_text(client, db, register_user):
@@ -44,7 +57,7 @@ def test_send_message_with_image_transcribes_and_combines_text(client, db, regis
     with patch("app.services.tutor_service.OpenAI") as mock_openai, \
          patch("app.api.chat.vision_service.downscale_image") as mock_downscale, \
          patch("app.api.chat.vision_service.transcribe_image") as mock_transcribe:
-        mock_openai.return_value.responses.create.return_value = _response_with_text("Here's the solution.")
+        mock_openai.return_value.responses.create.return_value = _stream_events("Here's the solution.")
         mock_downscale.return_value = (b"fake-jpeg-bytes", "image/jpeg")
         mock_transcribe.return_value = "A bag has 3 red and 2 blue balls..."
 
@@ -60,6 +73,7 @@ def test_send_message_with_image_transcribes_and_combines_text(client, db, regis
         )
 
     assert resp.status_code == 200
+    assert _reply_text(resp.get_data(as_text=True)) == "Here's the solution."
     mock_downscale.assert_called_once()
     mock_transcribe.assert_called_once_with(b"fake-jpeg-bytes", "image/jpeg")
 

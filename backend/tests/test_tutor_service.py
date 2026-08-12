@@ -33,17 +33,36 @@ def _make_profile_and_session(db):
     return profile, session
 
 
-def _response_with_text(text):
+def _stream_events(deltas, response_id="resp_1"):
+    """Simulates client.responses.create(..., stream=True)'s return value
+    for a turn that ends in a real answer (no tool calls): one
+    response.output_text.delta event per chunk in `deltas` (a single str is
+    treated as one chunk), followed by response.completed carrying the
+    final Response object -- the shape _run_turn actually consumes."""
+    if isinstance(deltas, str):
+        deltas = [deltas]
+    events = [MagicMock(type="response.output_text.delta", delta=d) for d in deltas]
     message_item = MagicMock(type="message")
-    return MagicMock(output=[message_item], output_text=text)
+    final_response = MagicMock(id=response_id, output=[message_item], output_text="".join(deltas))
+    events.append(MagicMock(type="response.completed", response=final_response))
+    return events
 
 
-def _response_with_tool_call(name, arguments, call_id="call_1"):
+def _stream_tool_call(name, arguments, call_id="call_1", response_id="resp_1"):
+    """Simulates a streamed turn that ends in a function call -- no text
+    deltas, just the completed event with a function_call output item."""
     # MagicMock(name=...) sets the mock's own repr name, not a `.name`
     # attribute -- must be assigned separately.
     call_item = MagicMock(type="function_call", call_id=call_id, arguments=arguments)
     call_item.name = name
-    return MagicMock(output=[call_item], output_text="")
+    final_response = MagicMock(id=response_id, output=[call_item], output_text="")
+    return [MagicMock(type="response.completed", response=final_response)]
+
+
+def _handle_message(profile, session, text):
+    """Drains handle_message's stream for tests that just want the final
+    reply text, same as calling the old non-streaming version would have."""
+    return tutor_service._drain(tutor_service.handle_message(profile, session, text))
 
 
 def test_handle_message_no_tool_calls_persists_both_messages(app, db):
@@ -51,11 +70,11 @@ def test_handle_message_no_tool_calls_persists_both_messages(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text(
+        client.responses.create.return_value = _stream_events(
             "Let's start with what you already know about sample spaces."
         )
 
-        reply = tutor_service.handle_message(profile, session, "I don't understand probability.")
+        reply = _handle_message(profile, session, "I don't understand probability.")
 
     assert reply == "Let's start with what you already know about sample spaces."
 
@@ -67,17 +86,31 @@ def test_handle_message_no_tool_calls_persists_both_messages(app, db):
     assert messages[1].content == reply
 
 
+def test_handle_message_streams_chunks_as_they_arrive(app, db):
+    profile, session = _make_profile_and_session(db)
+
+    with patch("app.services.tutor_service.OpenAI") as mock_openai:
+        client = mock_openai.return_value
+        client.responses.create.return_value = _stream_events(["Sam", "ple ", "spaces."])
+
+        chunks = list(tutor_service.handle_message(profile, session, "hi"))
+
+    assert chunks == ["Sam", "ple ", "spaces."]
+    assistant_message = Message.query.filter_by(session_id=session.id, role="assistant").first()
+    assert assistant_message.content == "Sample spaces."
+
+
 def test_handle_message_executes_tool_call_then_returns_final_text(app, db):
     profile, session = _make_profile_and_session(db)
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
         client.responses.create.side_effect = [
-            _response_with_tool_call("select_next_topic", "{}"),
-            _response_with_text("You should focus on General Probability next."),
+            _stream_tool_call("select_next_topic", "{}"),
+            _stream_events("You should focus on General Probability next."),
         ]
 
-        reply = tutor_service.handle_message(profile, session, "What should I study?")
+        reply = _handle_message(profile, session, "What should I study?")
 
     assert reply == "You should focus on General Probability next."
     assert client.responses.create.call_count == 2
@@ -94,11 +127,11 @@ def test_handle_message_unknown_tool_reports_error_without_crashing(app, db):
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
         client.responses.create.side_effect = [
-            _response_with_tool_call("not_a_real_tool", "{}"),
-            _response_with_text("Let's continue."),
+            _stream_tool_call("not_a_real_tool", "{}"),
+            _stream_events("Let's continue."),
         ]
 
-        reply = tutor_service.handle_message(profile, session, "hello")
+        reply = _handle_message(profile, session, "hello")
 
     assert reply == "Let's continue."
 
@@ -110,9 +143,11 @@ def test_handle_message_openai_failure_falls_back_gracefully(app, db):
         client = mock_openai.return_value
         client.responses.create.side_effect = RuntimeError("network error")
 
-        reply = tutor_service.handle_message(profile, session, "hello")
+        chunks = list(tutor_service.handle_message(profile, session, "hello"))
 
-    assert reply == tutor_service.FALLBACK_REPLY
+    assert chunks == [tutor_service.FALLBACK_REPLY]
+    assistant_message = Message.query.filter_by(session_id=session.id, role="assistant").first()
+    assert assistant_message.content == tutor_service.FALLBACK_REPLY
 
 
 def test_build_instructions_plain_when_no_summary(app, db):
@@ -231,7 +266,7 @@ def test_handle_message_triggers_auto_summary_when_threshold_crossed(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text("Sure, let's continue.")
+        client.responses.create.return_value = _stream_events("Sure, let's continue.")
         client.chat.completions.create.return_value = MagicMock(
             choices=[MagicMock(message=MagicMock(content=json.dumps({
                 "summary": "Long conversation about probability.",
@@ -241,7 +276,7 @@ def test_handle_message_triggers_auto_summary_when_threshold_crossed(app, db):
             })))]
         )
 
-        reply = tutor_service.handle_message(profile, session, "one more message")
+        reply = _handle_message(profile, session, "one more message")
 
     assert reply == "Sure, let's continue."
     client.chat.completions.create.assert_called_once()
@@ -253,9 +288,9 @@ def test_handle_message_does_not_auto_summarize_under_threshold(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text("Hi there!")
+        client.responses.create.return_value = _stream_events("Hi there!")
 
-        tutor_service.handle_message(profile, session, "hello")
+        _handle_message(profile, session, "hello")
 
     client.chat.completions.create.assert_not_called()
     assert session.summary is None
@@ -268,7 +303,7 @@ def test_generate_opening_message_sends_an_unseen_hello(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text("Welcome back!")
+        client.responses.create.return_value = _stream_events("Welcome back!")
 
         text = tutor_service.generate_opening_message(profile, session)
 
@@ -285,7 +320,7 @@ def test_open_session_for_today_generates_and_persists_when_empty(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text("Welcome back! Ready to dive in?")
+        client.responses.create.return_value = _stream_events("Welcome back! Ready to dive in?")
 
         tutor_service.open_session_for_today(profile, session)
 
@@ -337,7 +372,7 @@ def test_restart_conversation_always_persists_a_new_message(app, db):
 
     with patch("app.services.tutor_service.OpenAI") as mock_openai:
         client = mock_openai.return_value
-        client.responses.create.return_value = _response_with_text("We were just working on sample spaces.")
+        client.responses.create.return_value = _stream_events("We were just working on sample spaces.")
 
         message = tutor_service.restart_conversation(profile, session)
 

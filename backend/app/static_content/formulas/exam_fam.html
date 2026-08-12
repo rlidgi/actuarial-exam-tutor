@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam FAM Formula Sheet</title>
+<style>
+  :root{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+      --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+      --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+    --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+    --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:"Source Sans Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--fg); font-variant-numeric: tabular-nums;
+  }
+  header.topbar{
+    position:sticky; top:0; z-index:50; background:var(--bar-bg); color:var(--bar-fg);
+    padding:0.9rem clamp(1rem,4vw,3rem); display:flex; flex-wrap:wrap; gap:0.8rem 1.4rem;
+    align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .topbar-title h1{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-size:1.25rem; margin:0; color:#fff; letter-spacing:0.01em;}
+  .topbar-title p{margin:0.1rem 0 0 0; font-size:0.78rem; color:var(--bar-muted);}
+  nav.jumpnav{display:flex; flex-wrap:wrap; gap:0.25rem; flex:1 1 auto; justify-content:center;}
+  nav.jumpnav a{color:var(--bar-fg); text-decoration:none; font-size:0.78rem; padding:0.3rem 0.55rem; border-radius:6px; white-space:nowrap;}
+  nav.jumpnav a:hover{background:rgba(255,255,255,0.08);}
+  .topbar-actions{display:flex; align-items:center; gap:0.5rem; flex:0 0 auto;}
+  .topbar-actions button, .topbar-actions a.btn-link{
+    background:transparent; border:1px solid rgba(255,255,255,0.22); color:var(--bar-fg);
+    border-radius:6px; cursor:pointer; font-size:0.82rem; padding:0.4rem 0.65rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:0.3rem; white-space:nowrap;
+  }
+  .topbar-actions button:hover, .topbar-actions a.btn-link:hover{background:rgba(255,255,255,0.1);}
+  main{max-width:1180px; margin:0 auto; padding:1.8rem clamp(1rem,4vw,3rem) 5rem clamp(1rem,4vw,3rem);}
+  .lead{color:var(--muted); font-size:0.95rem; max-width:80ch; margin:0 0 1.6rem 0;}
+  section.fsection{padding-top:1rem; margin-top:0.6rem; scroll-margin-top:4.6rem;}
+  h2.sec-title{
+    font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.3rem;
+    border-bottom:2px solid var(--border); padding-bottom:0.4rem; margin:0 0 0.9rem 0;
+  }
+  h3{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.02rem; color:var(--accent); margin:1.3rem 0 0.5rem 0;}
+  .fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:0.6rem; margin-bottom:0.6rem;}
+  .formula-box{
+    background:var(--card); border:1px solid var(--border); border-radius:7px; padding:0.65rem 0.85rem;
+    font-family:"Cambria Math",Cambria,Georgia,serif; font-size:0.92rem; overflow-x:auto;
+  }
+  .formula-box .label{display:block; font-family:"Segoe UI",Arial,sans-serif; font-size:0.66rem; text-transform:uppercase;
+    letter-spacing:0.04em; color:var(--muted); margin-bottom:0.25rem;}
+  code, .code{font-family:Consolas,"Courier New",monospace; background:var(--code); padding:0.08rem 0.3rem; border-radius:4px; font-size:0.88em;}
+  table{border-collapse:collapse; width:100%; margin:0.6rem 0 1rem 0; font-size:0.83rem;}
+  table caption{caption-side:top; text-align:left; font-weight:600; margin-bottom:0.35rem; color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em;}
+  th,td{border:1px solid var(--border); padding:0.38rem 0.5rem; text-align:left; vertical-align:top;}
+  th{background:var(--card);}
+  .callout{border-radius:7px; padding:0.7rem 0.9rem; margin:1rem 0; font-size:0.86rem;}
+  .callout.tip{background:rgba(10,125,92,0.08); border:1px solid var(--accent2);}
+  .callout.warn{background:var(--warnbg); border:1px solid var(--warn); color:var(--warn);}
+  .part-tag{color:var(--accent2); font-weight:400; font-size:0.82rem;}
+  footer.sheet-footer{max-width:1180px; margin:2.5rem auto 0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 0 clamp(1rem,4vw,3rem); border-top:1px solid var(--border); color:var(--muted); font-size:0.78rem;}
+  @media (max-width: 700px){
+    header.topbar{flex-direction:column; align-items:flex-start;}
+    nav.jumpnav{justify-content:flex-start;}
+  }
+  @media print{
+    header.topbar{position:static; background:#fff; color:#000;}
+    .topbar-actions, nav.jumpnav{display:none;}
+    body{background:#fff; color:#000;}
+    .formula-box{background:#fafafa; border-color:#ccc;}
+    .fgrid{grid-template-columns:repeat(2,1fr);}
+    a{color:inherit; text-decoration:none;}
+  }
+  ::selection{background:var(--accent); color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <h1>Exam FAM Formula Sheet</h1>
+    <p>Fundamentals of Actuarial Mathematics &middot; SOA &middot; July 2026 syllabus</p>
+  </div>
+  <nav class="jumpnav">
+    <a href="#sec-p1">Short-Term Coverages</a>
+    <a href="#sec-p2">Severity/Frequency/Aggregate</a>
+    <a href="#sec-p3">Estimation</a>
+    <a href="#sec-p4">Credibility</a>
+    <a href="#sec-p5">Pricing &amp; Reserving</a>
+    <a href="#sec-p6">Options</a>
+    <a href="#sec-p8">Mortality</a>
+    <a href="#sec-p9">PV Random Variables</a>
+    <a href="#sec-p10">Premiums &amp; Policy Values</a>
+  </nav>
+  <div class="topbar-actions">
+    <button onclick="window.print()" title="Print or save as PDF">🖨️ Print</button>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">🌙</button>
+    <a class="btn-link" href="/manual" target="_top">Full Manual →</a>
+  </div>
+</header>
+
+<main>
+<p class="lead">Every formula below is derived and explained in full in the <a href="/manual" target="_top">Exam FAM Study Manual</a> — this page exists purely for fast lookup and final-week memorization, condensed to fit a short printout. Nothing here is a substitute for understanding where each formula comes from.</p>
+
+<section class="fsection" id="sec-p1">
+<h2 class="sec-title">1. Short-Term Insurance &amp; Reinsurance Coverages <span class="part-tag">(5–10%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Payment R.V. (Deductible d, Limit u, Coinsurance α)</span><span>Yᴸ = α·[min(X,u) − min(X,d)]</span></div>
+<div class="formula-box"><span class="label">Loss Elimination Ratio</span><span>LER = E[X∧d] / E[X]</span></div>
+<div class="formula-box"><span class="label">Per-Payment vs. Per-Loss Variable</span><span>Yᴾ = Yᴸ | X &gt; d</span></div>
+<div class="formula-box"><span class="label">Excess-of-Loss Reinsurer's Share</span><span>min(max(X−r,0), m) (layer from retention r, width m)</span></div>
+<div class="formula-box"><span class="label">Quota Share</span><span>Insurer retains α·X; Reinsurer pays (1−α)·X</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p2">
+<h2 class="sec-title">2. Severity, Frequency &amp; Aggregate Models <span class="part-tag">(12.5–17.5%)</span></h2>
+
+<h3>Severity Distributions</h3>
+<table>
+<caption>Common severity distributions — mean and variance</caption>
+<tr><th>Distribution</th><th>E[X]</th><th>Var(X)</th><th>Notes</th></tr>
+<tr><td>Exponential(θ)</td><td class="code">θ</td><td class="code">θ²</td><td>special case: Weibull(τ=1), Gamma(α=1)</td></tr>
+<tr><td>Gamma(α,θ)</td><td class="code">αθ</td><td class="code">αθ²</td><td>sum of α iid Exponential(θ) when α∈ℤ⁺</td></tr>
+<tr><td>Pareto(α,θ)</td><td class="code">θ/(α−1), α&gt;1</td><td class="code">αθ²/[(α−1)²(α−2)], α&gt;2</td><td>E[Xᵏ] exists only for k&lt;α; heavy-tailed, no MGF</td></tr>
+<tr><td>Weibull(τ,θ)</td><td class="code">θΓ(1+1/τ)</td><td class="code">θ²[Γ(1+2/τ) − Γ(1+1/τ)²]</td><td>E[Xᵏ] = θᵏΓ(1+k/τ); τ=1 reduces to Exponential</td></tr>
+<tr><td>Lognormal(μ,σ²)</td><td class="code">e^(μ+σ²/2)</td><td class="code">e^(2μ+σ²)(e^σ² − 1)</td><td>ln X ~ Normal(μ,σ²); no MGF, heavy-tailed</td></tr>
+</table>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Pareto pdf / survival</span><span>f(x) = αθᵅ/(x+θ)^(α+1), S(x) = [θ/(x+θ)]ᵅ</span></div>
+<div class="formula-box"><span class="label">Existence of Moments (Pareto)</span><span>E[Xᵏ] finite ⟺ k &lt; α</span></div>
+</div>
+
+<h3>Frequency: The (a,b,0) Class</h3>
+<div class="formula-box" style="margin-bottom:0.6rem;"><span class="label">(a,b,0) Recursion</span><span>p_k/p_(k−1) = a + b/k, k=1,2,3,…</span></div>
+<table>
+<caption>(a,b,0) members — parameters, mean, variance</caption>
+<tr><th>Distribution</th><th>a</th><th>b</th><th>E[N]</th><th>Var(N)</th></tr>
+<tr><td>Poisson(λ)</td><td class="code">0</td><td class="code">λ</td><td class="code">λ</td><td class="code">λ</td></tr>
+<tr><td>Binomial(m,q)</td><td class="code">−q/(1−q)</td><td class="code">(m+1)q/(1−q)</td><td class="code">mq</td><td class="code">mq(1−q)</td></tr>
+<tr><td>Negative Binomial(r,β)</td><td class="code">β/(1+β)</td><td class="code">(r−1)β/(1+β)</td><td class="code">rβ</td><td class="code">rβ(1+β)</td></tr>
+</table>
+
+<h3>Aggregate Loss Models</h3>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Collective Risk Model</span><span>S = X₁+⋯+X_N, E[S]=E[N]E[X], Var(S)=E[N]Var(X)+Var(N)E[X]²</span></div>
+<div class="formula-box"><span class="label">Individual Risk Model</span><span>S = Y₁+⋯+Yₙ, Yᵢ independent (not identical)</span></div>
+<div class="formula-box"><span class="label">Normal Approximation</span><span>P(S≤s) ≈ Φ[(s−E[S])/√Var(S)]</span></div>
+<div class="formula-box"><span class="label">Lognormal Approximation (Moment Matching)</span><span>σ² = ln(1+Var(S)/E[S]²), μ = ln(E[S]) − σ²/2</span></div>
+<div class="formula-box"><span class="label">Expected Stop-Loss Payment</span><span>E[(S−d)⁺] = E[S] − E[S∧d]</span></div>
+<div class="formula-box"><span class="label">Value at Risk</span><span>VaR_p(S) = inf{s : F_S(s) ≥ p}</span></div>
+<div class="formula-box"><span class="label">Tail Value at Risk</span><span>TVaR_p(S) = VaR_p(S) + E[(S−VaR_p(S))⁺] / (1−p)</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p3">
+<h2 class="sec-title">3. Parametric Estimation <span class="part-tag">(2.5–7.5%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Likelihood — Complete Data</span><span>L(θ) = Π f(xᵢ; θ)</span></div>
+<div class="formula-box"><span class="label">Likelihood — Grouped Data</span><span>L(θ) = Π [F(c_(j+1);θ) − F(c_j;θ)]^(n_j)</span></div>
+<div class="formula-box"><span class="label">Likelihood — Left Truncation at d</span><span>Contribution = f(x;θ) / S(d;θ), x &gt; d</span></div>
+<div class="formula-box"><span class="label">Likelihood — Right Censoring at u</span><span>Contribution = S(u;θ)</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p4">
+<h2 class="sec-title">4. Introduction to Credibility <span class="part-tag">(2.5–5%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Credibility Premium</span><span>P = Z·(observed) + (1−Z)·(prior/manual)</span></div>
+<div class="formula-box"><span class="label">Standard for Full Credibility (Claim Counts)</span><span>λ₀ = (z_((1+p)/2) / k)²</span></div>
+<div class="formula-box"><span class="label">Partial Credibility</span><span>Z = √(n/n₀), capped at 1</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p5">
+<h2 class="sec-title">5. Pricing &amp; Reserving for Short-Term Coverages <span class="part-tag">(10–15%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Expected Loss Ratio Reserve</span><span>Ultimate Losses = ELR × Earned Premium</span></div>
+<div class="formula-box"><span class="label">Chain-Ladder Age-to-Age Factor</span><span>f_k = Σ(losses at age k+1) / Σ(losses at age k), volume-weighted</span></div>
+<div class="formula-box"><span class="label">Bornhuetter-Ferguson</span><span>Ultimate = Actual-to-date + (1 − 1/CDF)×(Expected Losses)</span></div>
+<div class="formula-box"><span class="label">Permissible Loss Ratio</span><span>PLR = 1 − Variable Expense Ratio − Target Profit %</span></div>
+<div class="formula-box"><span class="label">Loss Ratio Method</span><span>Indicated Rate Change = (Experience Loss Ratio / PLR) − 1</span></div>
+<div class="formula-box"><span class="label">Pure Premium Method</span><span>Indicated Rate = Projected Pure Premium / PLR</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p6">
+<h2 class="sec-title">6. Option Pricing Fundamentals <span class="part-tag">(2.5–7.5%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Call / Put Payoff</span><span>Call: max(S_T−K,0) Put: max(K−S_T,0)</span></div>
+<div class="formula-box"><span class="label">Binomial Risk-Neutral Probability</span><span>p* = (e^(rh) − d) / (u − d)</span></div>
+<div class="formula-box"><span class="label">Binomial Option Price</span><span>V₀ = e^(−rh)[p*·V_u + (1−p*)·V_d]</span></div>
+<div class="formula-box"><span class="label">Black-Scholes Call Price</span><span>C = S₀N(d₁) − Ke^(−rT)N(d₂)</span></div>
+<div class="formula-box"><span class="label">d1, d2</span><span>d₁ = [ln(S₀/K) + (r+σ²/2)T] / (σ√T), d₂ = d₁ − σ√T</span></div>
+<div class="formula-box"><span class="label">Delta</span><span>Δ_call = N(d₁), Δ_put = N(d₁) − 1</span></div>
+<div class="formula-box"><span class="label">Put-Call Parity</span><span>C − P = S₀ − Ke^(−rT)</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p8">
+<h2 class="sec-title">7. Mortality Models <span class="part-tag">(10–15%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Survival Probability</span><span>ₜpₓ = S(x+t)/S(x) = l_(x+t)/l_x</span></div>
+<div class="formula-box"><span class="label">Force of Mortality</span><span>μ(x) = −S′(x)/S(x), S(x) = exp[−∫₀ˣ μ(s)ds]</span></div>
+<div class="formula-box"><span class="label">De Moivre</span><span>μ(x) = 1/(ω−x), ₜpₓ = (ω−x−t)/(ω−x)</span></div>
+<div class="formula-box"><span class="label">Constant Force (Exponential)</span><span>μ(x) = μ, ₜpₓ = e^(−μt)</span></div>
+<div class="formula-box"><span class="label">Gompertz / Makeham</span><span>μ(x) = Bcˣ (Gompertz), μ(x) = A+Bcˣ (Makeham)</span></div>
+<div class="formula-box"><span class="label">Complete / Curtate Expectation</span><span>e̊ₓ = ∫₀^∞ ₜpₓ dt, eₓ = Σ_(k≥1) ₖpₓ, e̊ₓ ≈ eₓ + 0.5 (UDD)</span></div>
+<div class="formula-box"><span class="label">UDD Fractional Age</span><span>ₛqₓ = s·qₓ, 0≤s≤1</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p9">
+<h2 class="sec-title">8. Present Value Random Variables <span class="part-tag">(12.5–20%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Whole Life Insurance (discrete)</span><span>Z = v^(K_x+1), A_x = E[Z] = Σ_(k≥0) v^(k+1)·ₖpₓ·q_(x+k)</span></div>
+<div class="formula-box"><span class="label">Whole Life Insurance (continuous)</span><span>Z = v^(T_x), Āₓ = ∫₀^∞ vᵗ·ₜpₓ·μ(x+t) dt</span></div>
+<div class="formula-box"><span class="label">Whole Life Annuity-Due</span><span>äₓ = Σ_(k≥0) vᵏ·ₖpₓ</span></div>
+<div class="formula-box"><span class="label">Insurance–Annuity Identity</span><span>Aₓ = 1 − d·äₓ (discrete); Āₓ = 1 − δ·āₓ (continuous)</span></div>
+<div class="formula-box"><span class="label">Variance — Insurance</span><span>Var(Z) = ²Aₓ − (Aₓ)² (²Aₓ uses double the force of interest, i.e. v²)</span></div>
+<div class="formula-box"><span class="label">Variance — Annuity</span><span>Var(Y) = [²Aₓ − (Aₓ)²] / d²</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-p10">
+<h2 class="sec-title">9. Premium &amp; Policy Value Calculation <span class="part-tag">(15–22.5%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Future Loss R.V. (Whole Life)</span><span>L₀ = v^(K_x+1) − P·ä_(K_x+1⌐)</span></div>
+<div class="formula-box"><span class="label">Equivalence Principle Premium</span><span>E[L₀]=0 ⟹ P = Aₓ/äₓ = (1/äₓ) − d (whole life)</span></div>
+<div class="formula-box"><span class="label">Prospective Policy Value</span><span>ₜV = EPV(future benefits) − EPV(future net premiums)</span></div>
+<div class="formula-box"><span class="label">Recursive Reserve Relationship</span><span>(ₜV + P)(1+i) = q_(x+t)·(benefit) + p_(x+t)·ₜ₊₁V</span></div>
+<div class="formula-box"><span class="label">Extra Risk — Constant Addition</span><span>μ*(x) = μ(x) + c</span></div>
+<div class="formula-box"><span class="label">Extra Risk — Constant Multiple</span><span>q*(x) = k·q(x)</span></div>
+</div>
+</section>
+
+<div class="callout warn">This sheet is an independent study aid, not affiliated with, endorsed by, or reviewed by the Society of Actuaries (SOA). Always confirm current exam rules and permitted materials on the SOA's official website before sitting for the exam.</div>
+</main>
+
+<footer class="sheet-footer">
+  Exam FAM Formula Sheet — condensed from the Exam FAM Study Manual's Appendix A, with an added severity/frequency moment reference (Section 2) not in the manual's own appendix. For derivations and worked examples, see the <a href="/manual" target="_top">full study manual</a>.
+</footer>
+
+<script>
+  function updateThemeIcon(){
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+  }
+  function toggleTheme(){
+    const r = document.documentElement;
+    const isDark = r.getAttribute('data-theme') !== 'light';
+    r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    updateThemeIcon();
+  }
+  updateThemeIcon();
+</script>
+</body>
+</html>

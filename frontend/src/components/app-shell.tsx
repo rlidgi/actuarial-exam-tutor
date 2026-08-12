@@ -181,11 +181,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <Link
             href="/manual"
-            target="_blank"
-            rel="noopener"
             className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
           >
             Study Manual
+          </Link>
+          <Link
+            href="/formulas"
+            className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
+          >
+            Formula Sheet
           </Link>
           {billingStatus &&
             (billingStatus.subscribed ? (

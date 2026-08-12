@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam FM Formula Sheet</title>
+<style>
+  :root{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+      --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+      --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+    --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+    --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:"Source Sans Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--fg); font-variant-numeric: tabular-nums;
+  }
+  header.topbar{
+    position:sticky; top:0; z-index:50; background:var(--bar-bg); color:var(--bar-fg);
+    padding:0.9rem clamp(1rem,4vw,3rem); display:flex; flex-wrap:wrap; gap:0.8rem 1.4rem;
+    align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .topbar-title h1{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-size:1.25rem; margin:0; color:#fff; letter-spacing:0.01em;}
+  .topbar-title p{margin:0.1rem 0 0 0; font-size:0.78rem; color:var(--bar-muted);}
+  nav.jumpnav{display:flex; flex-wrap:wrap; gap:0.3rem; flex:1 1 auto; justify-content:center;}
+  nav.jumpnav a{color:var(--bar-fg); text-decoration:none; font-size:0.82rem; padding:0.3rem 0.6rem; border-radius:6px; white-space:nowrap;}
+  nav.jumpnav a:hover{background:rgba(255,255,255,0.08);}
+  .topbar-actions{display:flex; align-items:center; gap:0.5rem; flex:0 0 auto;}
+  .topbar-actions button, .topbar-actions a.btn-link{
+    background:transparent; border:1px solid rgba(255,255,255,0.22); color:var(--bar-fg);
+    border-radius:6px; cursor:pointer; font-size:0.82rem; padding:0.4rem 0.65rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:0.3rem; white-space:nowrap;
+  }
+  .topbar-actions button:hover, .topbar-actions a.btn-link:hover{background:rgba(255,255,255,0.1);}
+  main{max-width:1180px; margin:0 auto; padding:1.8rem clamp(1rem,4vw,3rem) 5rem clamp(1rem,4vw,3rem);}
+  .lead{color:var(--muted); font-size:0.95rem; max-width:80ch; margin:0 0 1.6rem 0;}
+  section.fsection{padding-top:1rem; margin-top:0.6rem; scroll-margin-top:4.6rem;}
+  h2.sec-title{
+    font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.35rem;
+    border-bottom:2px solid var(--border); padding-bottom:0.4rem; margin:0 0 0.9rem 0;
+  }
+  h3{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.02rem; color:var(--accent); margin:1.3rem 0 0.5rem 0;}
+  .fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:0.6rem; margin-bottom:0.6rem;}
+  .formula-box{
+    background:var(--card); border:1px solid var(--border); border-radius:7px; padding:0.65rem 0.85rem;
+    font-family:"Cambria Math",Cambria,Georgia,serif; font-size:0.94rem; overflow-x:auto;
+  }
+  .formula-box .label{display:block; font-family:"Segoe UI",Arial,sans-serif; font-size:0.68rem; text-transform:uppercase;
+    letter-spacing:0.04em; color:var(--muted); margin-bottom:0.25rem;}
+  code, .code{font-family:Consolas,"Courier New",monospace; background:var(--code); padding:0.08rem 0.3rem; border-radius:4px; font-size:0.88em;}
+  table{border-collapse:collapse; width:100%; margin:0.6rem 0 1rem 0; font-size:0.85rem;}
+  table caption{caption-side:top; text-align:left; font-weight:600; margin-bottom:0.35rem; color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em;}
+  th,td{border:1px solid var(--border); padding:0.4rem 0.55rem; text-align:left; vertical-align:top;}
+  th{background:var(--card);}
+  .callout{border-radius:7px; padding:0.7rem 0.9rem; margin:1rem 0; font-size:0.86rem;}
+  .callout.tip{background:rgba(10,125,92,0.08); border:1px solid var(--accent2);}
+  .callout.warn{background:var(--warnbg); border:1px solid var(--warn); color:var(--warn);}
+  footer.sheet-footer{max-width:1180px; margin:2.5rem auto 0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 0 clamp(1rem,4vw,3rem); border-top:1px solid var(--border); color:var(--muted); font-size:0.78rem;}
+  @media (max-width: 700px){
+    header.topbar{flex-direction:column; align-items:flex-start;}
+    nav.jumpnav{justify-content:flex-start;}
+  }
+  @media print{
+    header.topbar{position:static; background:#fff; color:#000;}
+    .topbar-actions, nav.jumpnav{display:none;}
+    body{background:#fff; color:#000;}
+    .formula-box{background:#fafafa; border-color:#ccc;}
+    .fgrid{grid-template-columns:repeat(2,1fr);}
+    a{color:inherit; text-decoration:none;}
+  }
+  ::selection{background:var(--accent); color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <h1>Exam FM Formula Sheet</h1>
+    <p>Financial Mathematics &middot; Society of Actuaries &middot; June 2026 syllabus</p>
+  </div>
+  <nav class="jumpnav">
+    <a href="#sec-tvm">Time Value of Money</a>
+    <a href="#sec-annuities">Annuities</a>
+    <a href="#sec-loans">Loans</a>
+    <a href="#sec-bonds">Bonds</a>
+    <a href="#sec-alm">Cash Flows &amp; ALM</a>
+  </nav>
+  <div class="topbar-actions">
+    <button onclick="window.print()" title="Print or save as PDF">🖨️ Print</button>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">🌙</button>
+    <a class="btn-link" href="/manual" target="_top">Full Manual →</a>
+  </div>
+</header>
+
+<main>
+<p class="lead">Every formula below is derived and explained in full in the <a href="/manual" target="_top">Exam FM Study Manual</a> — this page exists purely for fast lookup and final-week memorization, condensed to fit a short printout. Nothing here is a substitute for understanding where each formula comes from.</p>
+
+<section class="fsection" id="sec-tvm">
+<h2 class="sec-title">1. Time Value of Money <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(5–15%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Compound Accumulation</span><span>a(t) = (1+i)ᵗ, AV = PV(1+i)ⁿ</span></div>
+<div class="formula-box"><span class="label">Discount Factor</span><span>v = 1/(1+i), PV = AV·vⁿ</span></div>
+<div class="formula-box"><span class="label">Simple Interest</span><span>a(t) = 1 + it</span></div>
+<div class="formula-box"><span class="label">Effective Discount Rate</span><span>d = iv = 1−v = i/(1+i)</span></div>
+<div class="formula-box"><span class="label">Nominal Rate Conversion</span><span>1+i = (1+i⁽ᵐ⁾/m)ᵐ = (1−d⁽ᵐ⁾/m)⁻ᵐ = e^δ</span></div>
+<div class="formula-box"><span class="label">Force of Interest (constant)</span><span>δ = ln(1+i)</span></div>
+<div class="formula-box"><span class="label">Force of Interest (variable)</span><span>δ(t) = a′(t)/a(t), a(t) = exp[∫₀ᵗ δ(s)ds]</span></div>
+<div class="formula-box"><span class="label">Equation of Value</span><span>Σ(inflows disc./accum. to T) = Σ(outflows disc./accum. to T)</span></div>
+</div>
+<h3>Rate Conversion Quick-Reference</h3>
+<table>
+<tr><th>Given</th><th>To find i</th></tr>
+<tr><td>i⁽ᵐ⁾</td><td>i = (1+i⁽ᵐ⁾/m)ᵐ − 1</td></tr>
+<tr><td>d</td><td>i = d/(1−d)</td></tr>
+<tr><td>d⁽ᵐ⁾</td><td>i = (1−d⁽ᵐ⁾/m)⁻ᵐ − 1</td></tr>
+<tr><td>δ</td><td>i = e^δ − 1</td></tr>
+</table>
+</section>
+
+<section class="fsection" id="sec-annuities">
+<h2 class="sec-title">2. Annuities <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(20–30%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Annuity-Immediate (PV, AV)</span><span>a_n⌐ = (1−vⁿ)/i, s_n⌐ = [(1+i)ⁿ−1]/i</span></div>
+<div class="formula-box"><span class="label">Annuity-Due (PV, AV)</span><span>ä_n⌐ = a_n⌐(1+i) = (1−vⁿ)/d, s̈_n⌐ = s_n⌐(1+i)</span></div>
+<div class="formula-box"><span class="label">Level Perpetuities</span><span>a_∞⌐ = 1/i (immediate), ä_∞⌐ = 1/d (due)</span></div>
+<div class="formula-box"><span class="label">Annuity Payable m-thly</span><span>a_n⌐⁽ᵐ⁾ = (1−vⁿ)/i⁽ᵐ⁾, ä_n⌐⁽ᵐ⁾ = (1−vⁿ)/d⁽ᵐ⁾</span></div>
+<div class="formula-box"><span class="label">Continuous Annuity</span><span>ā_n⌐ = (1−vⁿ)/δ</span></div>
+<div class="formula-box"><span class="label">Deferred Annuity (m-year deferral, n-year immediate)</span><span>PV = vᵐ · a_n⌐</span></div>
+<div class="formula-box"><span class="label">Increasing Annuity-Immediate</span><span>(Ia)_n⌐ = [ä_n⌐ − n·vⁿ] / i</span></div>
+<div class="formula-box"><span class="label">Decreasing Annuity-Immediate</span><span>(Da)_n⌐ = [n − a_n⌐] / i</span></div>
+<div class="formula-box"><span class="label">Increasing Perpetuity-Immediate</span><span>(Ia)_∞⌐ = 1/i + 1/i² = (1+i)/i²</span></div>
+<div class="formula-box"><span class="label">Geometric Annuity (payments 1,(1+k),(1+k)²,…)</span><span>PV = [1 − ((1+k)/(1+i))ⁿ] / (i−k), i ≠ k</span></div>
+<div class="formula-box"><span class="label">Geometric Perpetuity</span><span>PV = 1/(i−k), requires i &gt; k</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-loans">
+<h2 class="sec-title">3. Loans <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(15–25%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Level Loan Payment</span><span>Principal = Payment × a_n⌐</span></div>
+<div class="formula-box"><span class="label">Outstanding Balance — Prospective</span><span>B_t = Payment × a_(n−t)⌐</span></div>
+<div class="formula-box"><span class="label">Outstanding Balance — Retrospective</span><span>B_t = Principal×(1+i)ᵗ − Payment × s_t⌐</span></div>
+<div class="formula-box"><span class="label">Interest &amp; Principal Split</span><span>I_t = i × B_(t−1), P_t = Payment − I_t</span></div>
+<div class="formula-box"><span class="label">Principal Repaid Growth</span><span>P_t = P_1 × (1+i)^(t−1) (level-payment loan)</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-bonds">
+<h2 class="sec-title">4. Bonds <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(15–25%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Bond Price</span><span>P = Fr × a_n⌐ + C × vⁿ</span></div>
+<div class="formula-box"><span class="label">Premium / Discount</span><span>P − C = (Fr − Ci) × a_n⌐</span></div>
+<div class="formula-box"><span class="label">Book Value Recursion</span><span>B_t = B_(t−1)(1+i) − Fr</span></div>
+<div class="formula-box"><span class="label">Premium Amortized in Period t</span><span>Fr − i·B_(t−1)</span></div>
+<div class="formula-box"><span class="label">Discount Accumulated in Period t</span><span>i·B_(t−1) − Fr</span></div>
+</div>
+<h3>Premium vs. Discount at a Glance</h3>
+<table>
+<tr><th>Relationship</th><th>Bond trades at</th><th>Book value over time</th></tr>
+<tr><td>r &gt; i</td><td>Premium (P &gt; C)</td><td>Amortizes down to C</td></tr>
+<tr><td>r &lt; i</td><td>Discount (P &lt; C)</td><td>Accumulates up to C</td></tr>
+<tr><td>r = i</td><td>Par (P = C)</td><td>Constant at C</td></tr>
+</table>
+</section>
+
+<section class="fsection" id="sec-alm">
+<h2 class="sec-title">5. General Cash Flows, Portfolios &amp; ALM <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(20–30%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Dollar-Weighted Return (exact)</span><span>B(1+i) − ΣC_t(1+i)^(1−t) = A</span></div>
+<div class="formula-box"><span class="label">Dollar-Weighted Return (approx.)</span><span>i ≈ I / [B + ΣC_t(1−t)]</span></div>
+<div class="formula-box"><span class="label">Time-Weighted Return</span><span>1+i = Π(Value just before each CF / Value just after previous CF)</span></div>
+<div class="formula-box"><span class="label">Forward Rate from Spot Rates</span><span>(1+s_t)ᵗ(1+f_[t,t+k])ᵏ = (1+s_(t+k))^(t+k)</span></div>
+<div class="formula-box"><span class="label">Macaulay Duration</span><span>D_Mac = Σt·PV(CF_t) / ΣPV(CF_t)</span></div>
+<div class="formula-box"><span class="label">Modified Duration</span><span>D_mod = D_Mac / (1+i)</span></div>
+<div class="formula-box"><span class="label">Convexity</span><span>C = Σt(t+1)·PV(CF_t) / [ΣPV(CF_t) × (1+i)²]</span></div>
+<div class="formula-box"><span class="label">1st-Order Approx. (modified duration)</span><span>ΔPV/PV ≈ −D_mod × Δi</span></div>
+<div class="formula-box"><span class="label">1st-Order Approx. (Macaulay duration)</span><span>ΔPV/PV ≈ −D_Mac × Δi / (1+i)</span></div>
+<div class="formula-box"><span class="label">2nd-Order (Convexity-Adjusted)</span><span>ΔPV/PV ≈ −D_mod×Δi + ½×C×(Δi)²</span></div>
+</div>
+<h3>Redington Immunization — Three Conditions</h3>
+<table>
+<tr><th>#</th><th>Condition</th></tr>
+<tr><td>1</td><td>PV(Assets) = PV(Liabilities)</td></tr>
+<tr><td>2</td><td>Duration(Assets) = Duration(Liabilities)</td></tr>
+<tr><td>3</td><td>Convexity(Assets) &gt; Convexity(Liabilities)</td></tr>
+</table>
+<h3>Immunization / Matching Techniques Compared</h3>
+<table>
+<tr><th>Technique</th><th>Protects against</th><th>Requires</th></tr>
+<tr><td>Redington immunization</td><td>Small parallel shifts in i</td><td>PV, duration, convexity conditions above</td></tr>
+<tr><td>Full immunization</td><td>Any size shift in i</td><td>Asset CF strictly before &amp; after each liability CF ("sandwich")</td></tr>
+<tr><td>Cash-flow matching / dedication</td><td>Any shift in i (no reinvestment risk)</td><td>Exact asset CF for every liability CF</td></tr>
+</table>
+</section>
+
+<div class="callout warn">This sheet is an independent study aid, not affiliated with, endorsed by, or reviewed by the Society of Actuaries (SOA). Always confirm current exam rules and permitted materials on the SOA's official website before sitting for the exam.</div>
+</main>
+
+<footer class="sheet-footer">
+  Exam FM Formula Sheet — condensed from the Exam FM Study Manual's Appendix A. For derivations and worked examples, see the <a href="/manual" target="_top">full study manual</a>.
+</footer>
+
+<script>
+  function updateThemeIcon(){
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+  }
+  function toggleTheme(){
+    const r = document.documentElement;
+    const isDark = r.getAttribute('data-theme') !== 'light';
+    r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    updateThemeIcon();
+  }
+  updateThemeIcon();
+</script>
+</body>
+</html>

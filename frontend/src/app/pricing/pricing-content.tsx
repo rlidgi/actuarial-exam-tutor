@@ -19,12 +19,14 @@ const FEATURES = [
   "Unlimited tutor sessions",
   "Textbook citations",
   "Free study manual included",
+  "Formula sheet included",
   "Proficiency Dashboard",
   "Cancel anytime, no commitment",
 ];
 
 const FREE_FEATURES = [
   "Study manual access for all 3 exams",
+  "Formula sheet access for all 3 exams",
   "Up to 6 messages to try the tutor",
   "No credit card required",
 ];

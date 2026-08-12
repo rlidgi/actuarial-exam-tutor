@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam P Formula Sheet</title>
+<style>
+  /* Same ledger palette as the study manuals (courses/*.html), but a denser
+     cheat-sheet layout: a sticky top bar instead of a persistent sidebar, and
+     a multi-column formula grid, so the whole thing prints to a handful of
+     pages instead of reading like a book. */
+  :root{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+      --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+      --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121714; --fg:#e6ece7; --muted:#93a19a; --accent:#4fbf9d; --accent2:#d1a54e;
+    --card:#1a221d; --border:#2b352e; --code:#1d251f; --warn:#e8a56b; --warnbg:#382712;
+    --bar-bg:#0a0f0c; --bar-fg:#cdd9d0; --bar-muted:#728478;
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1ec; --fg:#1a2420; --muted:#5c6b60; --accent:#1f6f5c; --accent2:#a1721f;
+    --card:#e2e8e2; --border:#c7d1c8; --code:#e4ece6; --warn:#8a3324; --warnbg:#f5e6dc;
+    --bar-bg:#0e1a15; --bar-fg:#d8e3da; --bar-muted:#84988b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; font-family:"Source Sans Pro","Segoe UI","Helvetica Neue",Arial,sans-serif;
+    background:var(--bg); color:var(--fg); font-variant-numeric: tabular-nums;
+  }
+  header.topbar{
+    position:sticky; top:0; z-index:50; background:var(--bar-bg); color:var(--bar-fg);
+    padding:0.9rem clamp(1rem,4vw,3rem); display:flex; flex-wrap:wrap; gap:0.8rem 1.4rem;
+    align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .topbar-title h1{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-size:1.25rem; margin:0; color:#fff; letter-spacing:0.01em;}
+  .topbar-title p{margin:0.1rem 0 0 0; font-size:0.78rem; color:var(--bar-muted);}
+  nav.jumpnav{display:flex; flex-wrap:wrap; gap:0.3rem; flex:1 1 auto; justify-content:center;}
+  nav.jumpnav a{color:var(--bar-fg); text-decoration:none; font-size:0.82rem; padding:0.3rem 0.6rem; border-radius:6px; white-space:nowrap;}
+  nav.jumpnav a:hover{background:rgba(255,255,255,0.08);}
+  .topbar-actions{display:flex; align-items:center; gap:0.5rem; flex:0 0 auto;}
+  .topbar-actions button, .topbar-actions a.btn-link{
+    background:transparent; border:1px solid rgba(255,255,255,0.22); color:var(--bar-fg);
+    border-radius:6px; cursor:pointer; font-size:0.82rem; padding:0.4rem 0.65rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:0.3rem; white-space:nowrap;
+  }
+  .topbar-actions button:hover, .topbar-actions a.btn-link:hover{background:rgba(255,255,255,0.1);}
+  main{max-width:1180px; margin:0 auto; padding:1.8rem clamp(1rem,4vw,3rem) 5rem clamp(1rem,4vw,3rem);}
+  .lead{color:var(--muted); font-size:0.95rem; max-width:80ch; margin:0 0 1.6rem 0;}
+  section.fsection{padding-top:1rem; margin-top:0.6rem; scroll-margin-top:4.6rem;}
+  h2.sec-title{
+    font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.35rem;
+    border-bottom:2px solid var(--border); padding-bottom:0.4rem; margin:0 0 0.9rem 0;
+  }
+  h3{font-family:"Iowan Old Style","Sitka Text",Georgia,"Cambria",serif; font-weight:600; font-size:1.02rem; color:var(--accent); margin:1.3rem 0 0.5rem 0;}
+  .fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:0.6rem; margin-bottom:0.6rem;}
+  .formula-box{
+    background:var(--card); border:1px solid var(--border); border-radius:7px; padding:0.65rem 0.85rem;
+    font-family:"Cambria Math",Cambria,Georgia,serif; font-size:0.94rem; overflow-x:auto;
+  }
+  .formula-box .label{display:block; font-family:"Segoe UI",Arial,sans-serif; font-size:0.68rem; text-transform:uppercase;
+    letter-spacing:0.04em; color:var(--muted); margin-bottom:0.25rem;}
+  code, .code{font-family:Consolas,"Courier New",monospace; background:var(--code); padding:0.08rem 0.3rem; border-radius:4px; font-size:0.88em;}
+  table{border-collapse:collapse; width:100%; margin:0.6rem 0 1rem 0; font-size:0.85rem;}
+  table caption{caption-side:top; text-align:left; font-weight:600; margin-bottom:0.35rem; color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em;}
+  th,td{border:1px solid var(--border); padding:0.4rem 0.55rem; text-align:left; vertical-align:top;}
+  th{background:var(--card);}
+  .callout{border-radius:7px; padding:0.7rem 0.9rem; margin:1rem 0; font-size:0.86rem;}
+  .callout.tip{background:rgba(10,125,92,0.08); border:1px solid var(--accent2);}
+  .callout.warn{background:var(--warnbg); border:1px solid var(--warn); color:var(--warn);}
+  footer.sheet-footer{max-width:1180px; margin:2.5rem auto 0 auto; padding:1.2rem clamp(1rem,4vw,3rem) 0 clamp(1rem,4vw,3rem); border-top:1px solid var(--border); color:var(--muted); font-size:0.78rem;}
+  @media (max-width: 700px){
+    header.topbar{flex-direction:column; align-items:flex-start;}
+    nav.jumpnav{justify-content:flex-start;}
+  }
+  @media print{
+    header.topbar{position:static; background:#fff; color:#000;}
+    .topbar-actions, nav.jumpnav{display:none;}
+    body{background:#fff; color:#000;}
+    .formula-box{background:#fafafa; border-color:#ccc;}
+    .fgrid{grid-template-columns:repeat(2,1fr);}
+    a{color:inherit; text-decoration:none;}
+  }
+  ::selection{background:var(--accent); color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <h1>Exam P Formula Sheet</h1>
+    <p>Probability &middot; Society of Actuaries &middot; July 2026 syllabus</p>
+  </div>
+  <nav class="jumpnav">
+    <a href="#sec-general">General Probability</a>
+    <a href="#sec-univariate">Univariate R.V.s</a>
+    <a href="#sec-multivariate">Multivariate R.V.s</a>
+    <a href="#sec-mgf">MGFs</a>
+    <a href="#sec-normal">Normal Table</a>
+  </nav>
+  <div class="topbar-actions">
+    <button onclick="window.print()" title="Print or save as PDF">🖨️ Print</button>
+    <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">🌙</button>
+    <a class="btn-link" href="/manual" target="_top">Full Manual →</a>
+  </div>
+</header>
+
+<main>
+<p class="lead">Every formula below is derived and explained in full in the <a href="/manual" target="_top">Exam P Study Manual</a> — this page exists purely for fast lookup and final-week memorization, condensed to fit a short printout. Nothing here is a substitute for understanding where each formula comes from.</p>
+
+<section class="fsection" id="sec-general">
+<h2 class="sec-title">1. General Probability <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(23–30%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Complement Rule</span><span>P(A<sup>c</sup>) = 1 − P(A)</span></div>
+<div class="formula-box"><span class="label">Addition Rule (General)</span><span>P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</span></div>
+<div class="formula-box"><span class="label">Addition Rule (Mutually Exclusive)</span><span>P(A ∪ B) = P(A) + P(B)</span></div>
+<div class="formula-box"><span class="label">Inclusion–Exclusion (3 Events)</span><span>P(A∪B∪C) = P(A)+P(B)+P(C) − P(A∩B) − P(A∩C) − P(B∩C) + P(A∩B∩C)</span></div>
+<div class="formula-box"><span class="label">Conditional Probability</span><span>P(A | B) = P(A ∩ B) / P(B), P(B) &gt; 0</span></div>
+<div class="formula-box"><span class="label">Multiplication Rule</span><span>P(A ∩ B) = P(A|B)·P(B) = P(B|A)·P(A)</span></div>
+<div class="formula-box"><span class="label">Independence</span><span>P(A ∩ B) = P(A)·P(B) ⟺ P(A|B) = P(A)</span></div>
+<div class="formula-box"><span class="label">Law of Total Probability</span><span>P(A) = Σᵢ P(A|Bᵢ)·P(Bᵢ), for a partition {B₁,…,Bₙ}</span></div>
+<div class="formula-box"><span class="label">Bayes' Theorem</span><span>P(Bⱼ|A) = [P(A|Bⱼ)·P(Bⱼ)] / Σᵢ P(A|Bᵢ)·P(Bᵢ)</span></div>
+<div class="formula-box"><span class="label">Permutations</span><span>ₙPᵣ = n! / (n − r)!</span></div>
+<div class="formula-box"><span class="label">Combinations</span><span>ₙCᵣ = n! / [r!(n − r)!]</span></div>
+<div class="formula-box"><span class="label">Multinomial Coefficient</span><span>n! / (n₁!n₂!…nₖ!), Σnᵢ = n</span></div>
+</div>
+<h3>Which Counting Tool?</h3>
+<table>
+<tr><th>Order matters?</th><th>Repetition allowed?</th><th>Tool</th></tr>
+<tr><td>Yes</td><td>No</td><td>Permutations, ₙPᵣ</td></tr>
+<tr><td>Yes</td><td>Yes</td><td>nʳ (multiplication principle)</td></tr>
+<tr><td>No</td><td>No</td><td>Combinations, ₙCᵣ</td></tr>
+<tr><td>No</td><td>Yes</td><td>Stars and bars, (n+r−1 choose r)</td></tr>
+</table>
+</section>
+
+<section class="fsection" id="sec-univariate">
+<h2 class="sec-title">2. Univariate Random Variables <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(44–50%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Expected Value</span><span>E[X] = Σₓ x·f(x) (discrete) or ∫x·f(x)dx (continuous)</span></div>
+<div class="formula-box"><span class="label">Law of the Unconscious Statistician</span><span>E[g(X)] = Σₓ g(x)·f(x) or ∫g(x)·f(x)dx</span></div>
+<div class="formula-box"><span class="label">Variance (Shortcut)</span><span>Var(X) = E[X²] − (E[X])²</span></div>
+<div class="formula-box"><span class="label">Linear Transformation</span><span>E[aX+b] = aE[X]+b, Var(aX+b) = a²Var(X)</span></div>
+<div class="formula-box"><span class="label">Coefficient of Variation</span><span>CV(X) = σ/μ, μ ≠ 0</span></div>
+<div class="formula-box"><span class="label">Limited Expected Value</span><span>E[X∧u] = ∫₀ᵘ x f(x)dx + u·P(X&gt;u) = ∫₀ᵘ [1−F(x)]dx</span></div>
+<div class="formula-box"><span class="label">Payment R.V. (Deductible d, Coinsurance α, Limit u)</span><span>Y = α·[min(X,u) − min(X,d)] = α·[(X∧u) − (X∧d)]</span></div>
+</div>
+
+<h3>Discrete Distributions</h3>
+<table>
+<caption>Discrete distribution summary</caption>
+<tr><th>Distribution</th><th>pmf f(x)</th><th>E[X]</th><th>Var(X)</th><th>Notes</th></tr>
+<tr><td>Bernoulli(p)</td><td class="code">pˣ(1−p)¹⁻ˣ</td><td class="code">p</td><td class="code">p(1−p)</td><td>x ∈ {0,1}</td></tr>
+<tr><td>Binomial(n,p)</td><td class="code">(n choose x)pˣ(1−p)ⁿ⁻ˣ</td><td class="code">np</td><td class="code">np(1−p)</td><td>sum of n iid Bernoulli(p)</td></tr>
+<tr><td>Geometric(p) — trials to 1st success</td><td class="code">(1−p)ˣ⁻¹p</td><td class="code">1/p</td><td class="code">(1−p)/p²</td><td>x=1,2,…; memoryless</td></tr>
+<tr><td>Geometric(p) — failures before success</td><td class="code">(1−p)ˣp</td><td class="code">(1−p)/p</td><td class="code">(1−p)/p²</td><td>x=0,1,…; watch parameterization!</td></tr>
+<tr><td>Negative Binomial(r,p)</td><td class="code">(x−1 choose r−1)pʳ(1−p)ˣ⁻ʳ</td><td class="code">r/p</td><td class="code">r(1−p)/p²</td><td>sum of r iid Geometrics</td></tr>
+<tr><td>Hypergeometric(N,K,n)</td><td class="code">(K choose x)(N−K choose n−x)/(N choose n)</td><td class="code">nK/N</td><td class="code">n(K/N)(1−K/N)[(N−n)/(N−1)]</td><td>sampling w/o replacement</td></tr>
+<tr><td>Poisson(λ)</td><td class="code">e⁻λλˣ/x!</td><td class="code">λ</td><td class="code">λ</td><td>sum of independent Poissons adds λ's</td></tr>
+<tr><td>Discrete Uniform{1,…,n}</td><td class="code">1/n</td><td class="code">(n+1)/2</td><td class="code">(n²−1)/12</td><td>equally likely integers</td></tr>
+</table>
+
+<h3>Continuous Distributions</h3>
+<table>
+<caption>Continuous distribution summary</caption>
+<tr><th>Distribution</th><th>pdf f(x)</th><th>E[X]</th><th>Var(X)</th><th>Notes</th></tr>
+<tr><td>Uniform(a,b)</td><td class="code">1/(b−a)</td><td class="code">(a+b)/2</td><td class="code">(b−a)²/12</td><td>a ≤ x ≤ b</td></tr>
+<tr><td>Exponential(λ)</td><td class="code">λe⁻λˣ</td><td class="code">1/λ</td><td class="code">1/λ²</td><td>x&gt;0; memoryless; λ=rate</td></tr>
+<tr><td>Gamma(α,λ)</td><td class="code">λᵅxᵅ⁻¹e⁻λˣ/Γ(α)</td><td class="code">α/λ</td><td class="code">α/λ²</td><td>sum of α iid Exp(λ) when α∈ℤ⁺</td></tr>
+<tr><td>Normal(μ,σ²)</td><td class="code">(1/√(2πσ²))e⁻⁽ˣ⁻μ⁾²/2σ²</td><td class="code">μ</td><td class="code">σ²</td><td>standardize Z=(X−μ)/σ</td></tr>
+<tr><td>Beta(a,b)</td><td class="code">xᵃ⁻¹(1−x)ᵇ⁻¹/B(a,b)</td><td class="code">a/(a+b)</td><td class="code">ab/[(a+b)²(a+b+1)]</td><td>0≤x≤1; models proportions</td></tr>
+</table>
+</section>
+
+<section class="fsection" id="sec-multivariate">
+<h2 class="sec-title">3. Multivariate Random Variables <span style="color:var(--accent2); font-weight:400; font-size:0.85rem;">(23–30%)</span></h2>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Marginal pmf</span><span>f_X(x) = Σᵧ f(x,y)</span></div>
+<div class="formula-box"><span class="label">Conditional pmf</span><span>f(x|y) = f(x,y) / f_Y(y)</span></div>
+<div class="formula-box"><span class="label">Independence (Joint)</span><span>f(x,y) = f_X(x)·f_Y(y) for all x,y</span></div>
+<div class="formula-box"><span class="label">Covariance</span><span>Cov(X,Y) = E[XY] − E[X]E[Y]</span></div>
+<div class="formula-box"><span class="label">Correlation</span><span>ρ = Cov(X,Y)/(σ_Xσ_Y), −1 ≤ ρ ≤ 1</span></div>
+<div class="formula-box"><span class="label">Variance of a Sum</span><span>Var(aX+bY) = a²Var(X) + b²Var(Y) + 2ab·Cov(X,Y)</span></div>
+<div class="formula-box"><span class="label">Variance of a Sum (Independent)</span><span>Var(ΣXᵢ) = ΣVar(Xᵢ)</span></div>
+<div class="formula-box"><span class="label">Law of Total Expectation</span><span>E[X] = E[E[X|Y]]</span></div>
+<div class="formula-box"><span class="label">Law of Total Variance</span><span>Var(X) = E[Var(X|Y)] + Var(E[X|Y])</span></div>
+<div class="formula-box"><span class="label">Max Order Statistic (n iid)</span><span>F₍ₙ₎(x) = [F(x)]ⁿ, f₍ₙ₎(x) = n[F(x)]ⁿ⁻¹f(x)</span></div>
+<div class="formula-box"><span class="label">Min Order Statistic (n iid)</span><span>F₍₁₎(x) = 1−[1−F(x)]ⁿ, f₍₁₎(x) = n[1−F(x)]ⁿ⁻¹f(x)</span></div>
+<div class="formula-box"><span class="label">General Order Statistic pdf</span><span>f₍ₖ₎(x) = [n!/((k−1)!(n−k)!)]·[F(x)]ᵏ⁻¹[1−F(x)]ⁿ⁻ᵏf(x)</span></div>
+<div class="formula-box"><span class="label">Central Limit Theorem</span><span>(X̄−μ)/(σ/√n) → N(0,1) as n→∞</span></div>
+<div class="formula-box"><span class="label">Continuity Correction</span><span>P(X≤k) ≈ Φ[(k+0.5−μ)/σ]</span></div>
+</div>
+<h3>Reproductive ("Sum-Stable") Families — Independent Xᵢ</h3>
+<table>
+<tr><th>If X₁,…,Xₙ are independent…</th><th>…then the sum is</th></tr>
+<tr><td>Binomial(nᵢ,p) — common p</td><td>Binomial(Σnᵢ,p)</td></tr>
+<tr><td>Poisson(λᵢ)</td><td>Poisson(Σλᵢ)</td></tr>
+<tr><td>Normal(μᵢ,σᵢ²)</td><td>Normal(Σμᵢ,Σσᵢ²)</td></tr>
+<tr><td>Gamma(αᵢ,λ) — common λ</td><td>Gamma(Σαᵢ,λ)</td></tr>
+<tr><td>Exponential(λ) — n of them</td><td>Gamma(n,λ)</td></tr>
+</table>
+</section>
+
+<section class="fsection" id="sec-mgf">
+<h2 class="sec-title">4. Moment Generating Functions</h2>
+<p class="lead" style="margin-bottom:0.8rem;">Not always tested directly, but useful for confirming sums of independent random variables (a repeated MGF-product argument underlies every row of the "reproductive families" table above): if X, Y independent, M_{X+Y}(t) = M_X(t)·M_Y(t).</p>
+<div class="fgrid">
+<div class="formula-box"><span class="label">Bernoulli(p)</span><span>M(t) = (1−p) + pe^t</span></div>
+<div class="formula-box"><span class="label">Binomial(n,p)</span><span>M(t) = [(1−p) + pe^t]ⁿ</span></div>
+<div class="formula-box"><span class="label">Geometric(p) — trials to success</span><span>M(t) = pe^t / [1−(1−p)e^t], t &lt; −ln(1−p)</span></div>
+<div class="formula-box"><span class="label">Poisson(λ)</span><span>M(t) = exp[λ(e^t−1)]</span></div>
+<div class="formula-box"><span class="label">Uniform(a,b)</span><span>M(t) = (e^tb − e^ta) / [t(b−a)], t ≠ 0</span></div>
+<div class="formula-box"><span class="label">Exponential(λ)</span><span>M(t) = λ/(λ−t), t &lt; λ</span></div>
+<div class="formula-box"><span class="label">Gamma(α,λ)</span><span>M(t) = [λ/(λ−t)]ᵅ, t &lt; λ</span></div>
+<div class="formula-box"><span class="label">Normal(μ,σ²)</span><span>M(t) = exp[μt + σ²t²/2]</span></div>
+</div>
+</section>
+
+<section class="fsection" id="sec-normal">
+<h2 class="sec-title">5. Standard Normal Table (Φ(z))</h2>
+<p class="lead" style="margin-bottom:0.8rem;">On the real exam, always use the official table under the Exhibit button rather than a memorized abbreviated table — this is for quick sanity-checking only.</p>
+<table>
+<caption>Φ(z) = P(Z ≤ z) for selected z</caption>
+<tr><th>z</th><th>Φ(z)</th><th>z</th><th>Φ(z)</th></tr>
+<tr><td>0.00</td><td>0.5000</td><td>1.28</td><td>0.8997</td></tr>
+<tr><td>0.25</td><td>0.5987</td><td>1.40</td><td>0.9192</td></tr>
+<tr><td>0.50</td><td>0.6915</td><td>1.645</td><td>0.9500</td></tr>
+<tr><td>0.67</td><td>0.7486</td><td>1.75</td><td>0.9599</td></tr>
+<tr><td>0.75</td><td>0.7734</td><td>1.96</td><td>0.9750</td></tr>
+<tr><td>0.84</td><td>0.7995</td><td>2.00</td><td>0.9772</td></tr>
+<tr><td>1.00</td><td>0.8413</td><td>2.33</td><td>0.9901</td></tr>
+<tr><td>1.04</td><td>0.8508</td><td>2.576</td><td>0.9950</td></tr>
+<tr><td>1.15</td><td>0.8749</td><td>3.00</td><td>0.9987</td></tr>
+</table>
+</section>
+
+<div class="callout warn">This sheet is an independent study aid, not affiliated with, endorsed by, or reviewed by the Society of Actuaries (SOA). Always confirm current exam rules and permitted materials on the SOA's official website before sitting for the exam.</div>
+</main>
+
+<footer class="sheet-footer">
+  Exam P Formula Sheet — condensed from the Exam P Study Manual's Appendix A. For derivations and worked examples, see the <a href="/manual" target="_top">full study manual</a>.
+</footer>
+
+<script>
+  function updateThemeIcon(){
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    document.getElementById('themeToggle').textContent = isDark ? '🌙' : '☀️';
+  }
+  function toggleTheme(){
+    const r = document.documentElement;
+    const isDark = r.getAttribute('data-theme') !== 'light';
+    r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    updateThemeIcon();
+  }
+  updateThemeIcon();
+</script>
+</body>
+</html>

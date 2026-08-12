@@ -58,6 +58,21 @@ function CheckoutSyncHandler({
   return null;
 }
 
+// Shown while waiting for the tutor's reply to start streaming in (see
+// awaitingFirstToken) -- once real text starts arriving, the growing
+// message bubble itself is the "it's working" signal, so this disappears.
+function ThinkingIndicator() {
+  return (
+    <div className="self-start rounded bg-paper-raised px-3 py-2.5">
+      <div className="thinking-dots" role="status" aria-label="Tutor is thinking">
+        <span />
+        <span />
+        <span />
+      </div>
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   const { selectedDate, setSelectedDate, newConversationSignal, refreshHistoryDays } =
@@ -75,6 +90,11 @@ export default function ChatPage() {
   const [cameraOpen, setCameraOpen] = useState(false);
 
   const [sending, setSending] = useState(false);
+  // True from when a turn starts until the first streamed chunk of the
+  // tutor's reply arrives -- distinct from `sending` (which stays true for
+  // the whole turn) so the "thinking" indicator hides once real text
+  // starts appearing instead of showing alongside the growing reply.
+  const [awaitingFirstToken, setAwaitingFirstToken] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blocked, setBlocked] = useState(false);
 
@@ -123,10 +143,15 @@ export default function ChatPage() {
     let cancelled = false;
     if (isRestart) setLiveMessages([]);
     // Deliberately synchronous, ahead of the async call below -- these
-    // drive the "Thinking..." indicator and clear any stale error right
-    // when the fetch starts, not after some other trigger.
+    // drive the thinking indicator and clear any stale error right when
+    // the fetch starts, not after some other trigger. /open and /restart
+    // aren't streamed (unlike a real reply, there's no "first chunk" to
+    // distinguish), so awaitingFirstToken just stays true for the whole
+    // fetch -- the indicator shows the entire time, same as the loading
+    // phase of a real streamed turn.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSending(true);
+    setAwaitingFirstToken(true);
     setError(null);
 
     const load = isRestart
@@ -152,7 +177,10 @@ export default function ChatPage() {
         setError(err instanceof ApiError ? err.message : "Failed to reach the tutor. Try again.");
       })
       .finally(() => {
-        if (!cancelled) setSending(false);
+        if (!cancelled) {
+          setSending(false);
+          setAwaitingFirstToken(false);
+        }
       });
 
     return () => {
@@ -265,21 +293,46 @@ export default function ChatPage() {
     requestAnimationFrame(() => autoGrow());
     clearAttachedImage({ revoke: false });
     setSending(true);
+    setAwaitingFirstToken(true);
     setError(null);
     setBlocked(false);
 
     try {
-      const response = await api.sendMessage(token, examCode, text, imageToSend);
-      if (response.blocked) {
-        // No reply to show -- roll back the optimistic user bubble so the
-        // transcript doesn't end on an unanswered question.
-        setLiveMessages((prev) => prev.slice(0, -1));
-        setBlocked(true);
-        refreshBilling();
-        return;
+      // A plain `let` read inside the setLiveMessages updater below would be
+      // a stale-closure bug here: React doesn't call these updaters
+      // synchronously as each delta arrives (several can queue before any of
+      // them actually run), so by the time the *first* delta's updater runs,
+      // a shared mutable flag would already reflect a *later* delta's value.
+      // Snapshotting into a fresh `const` per iteration closes over the
+      // value as of that delta, immune to when React actually applies it.
+      let streaming = false;
+      for await (const event of api.sendMessage(token, examCode, text, imageToSend)) {
+        if (event.blocked) {
+          // No reply to show -- roll back the optimistic user bubble so the
+          // transcript doesn't end on an unanswered question.
+          setLiveMessages((prev) => prev.slice(0, -1));
+          setBlocked(true);
+          refreshBilling();
+          return;
+        }
+        if (event.delta !== undefined) {
+          const delta = event.delta;
+          const isFirstChunk = !streaming;
+          setAwaitingFirstToken(false);
+          setLiveMessages((prev) =>
+            isFirstChunk
+              ? [...prev, { role: "assistant", content: delta }]
+              : [
+                  ...prev.slice(0, -1),
+                  { ...prev[prev.length - 1], content: prev[prev.length - 1].content + delta },
+                ]
+          );
+          streaming = true;
+        }
+        if (event.done) {
+          refreshHistoryDays();
+        }
       }
-      setLiveMessages((prev) => [...prev, { role: "assistant", content: response.reply ?? "" }]);
-      refreshHistoryDays();
     } catch (err) {
       if (isAuthError(err)) {
         redirectToExpiredLogin();
@@ -288,30 +341,49 @@ export default function ChatPage() {
       setError(err instanceof ApiError ? err.message : "Failed to reach the tutor. Try again.");
     } finally {
       setSending(false);
+      setAwaitingFirstToken(false);
     }
   };
 
   const runRegenerate = async (editedMessage?: string) => {
     if (!token || sending || liveMessages.length === 0) return;
     setSending(true);
+    setAwaitingFirstToken(true);
     setError(null);
     setBlocked(false);
+    const questionText = editedMessage ?? liveMessages[liveMessages.length - 2]?.content ?? "";
     try {
-      const response = await api.regenerate(token, examCode, editedMessage);
-      if (response.blocked) {
-        // The backend checks access before deleting anything, so the
-        // existing exchange is untouched -- nothing to roll back here.
-        setBlocked(true);
-        refreshBilling();
-        return;
+      let streaming = false;
+      for await (const event of api.regenerate(token, examCode, editedMessage)) {
+        if (event.blocked) {
+          // The backend checks access before deleting anything, so the
+          // existing exchange is untouched -- nothing to roll back here.
+          setBlocked(true);
+          refreshBilling();
+          return;
+        }
+        if (event.delta !== undefined) {
+          const delta = event.delta;
+          const isFirstChunk = !streaming;
+          setAwaitingFirstToken(false);
+          setLiveMessages((prev) =>
+            isFirstChunk
+              ? [
+                  ...prev.slice(0, -2),
+                  { role: "user", content: questionText },
+                  { role: "assistant", content: delta },
+                ]
+              : [
+                  ...prev.slice(0, -1),
+                  { role: "assistant", content: prev[prev.length - 1].content + delta },
+                ]
+          );
+          streaming = true;
+        }
+        if (event.done) {
+          refreshHistoryDays();
+        }
       }
-      const questionText = editedMessage ?? liveMessages[liveMessages.length - 2]?.content ?? "";
-      setLiveMessages((prev) => [
-        ...prev.slice(0, -2),
-        { role: "user", content: questionText },
-        { role: "assistant", content: response.reply ?? "" },
-      ]);
-      refreshHistoryDays();
     } catch (err) {
       if (isAuthError(err)) {
         redirectToExpiredLogin();
@@ -320,6 +392,7 @@ export default function ChatPage() {
       setError(err instanceof ApiError ? err.message : "Failed to regenerate. Try again.");
     } finally {
       setSending(false);
+      setAwaitingFirstToken(false);
     }
   };
 
@@ -410,11 +483,7 @@ export default function ChatPage() {
             );
           })}
 
-          {sending && (
-            <div className="self-start rounded bg-paper-raised px-3 py-2 text-sm text-pencil">
-              Thinking...
-            </div>
-          )}
+          {sending && awaitingFirstToken && <ThinkingIndicator />}
           {blocked && (
             <div className="self-start rounded border border-redink/30 bg-redink/5 px-3 py-2 text-sm text-redink">
               You&apos;ve used up your free trial messages.{" "}
