@@ -16,6 +16,12 @@ const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
 // directly (not imported) to avoid a circular import, since ExamProvider
 // itself depends on useAuth().
 const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
+// Set right after a real sign-in completes (never on a page refresh that
+// just restores an existing token from localStorage -- see
+// completeSupabaseSignIn, the only place this gets set). chat/page.tsx
+// reads and clears this on its next mount to start a fresh conversation,
+// same as clicking "New Conversation".
+export const FRESH_LOGIN_STORAGE_KEY = "actuarial_tutor_fresh_login";
 
 interface AuthState {
   token: string | null;
@@ -106,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .then(async (response) => {
             await afterAuth(response);
             window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+            window.sessionStorage.setItem(FRESH_LOGIN_STORAGE_KEY, "1");
             setToken(response.access_token);
             setEmail(response.user.email);
             resolve();

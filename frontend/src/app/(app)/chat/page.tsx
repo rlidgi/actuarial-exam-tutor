@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { FRESH_LOGIN_STORAGE_KEY } from "@/lib/auth-context";
 import { api, ApiError, isAuthError, type ChatMessageDTO } from "@/lib/api";
 import { useChatView } from "@/lib/chat-view-context";
 import { useExam } from "@/lib/exam-context";
@@ -132,12 +133,19 @@ export default function ChatPage() {
   // when it changes examCode -- without this, switching exams would hit
   // /restart (mid-conversation framing) instead of /open (a proper first
   // load) for the newly selected exam.
+  // A fresh sign-in gets the same /restart treatment as clicking "New
+  // Conversation" -- see FRESH_LOGIN_STORAGE_KEY in auth-context.tsx, set
+  // only by a real completeSupabaseSignIn, never by a page refresh that
+  // just restores an existing token. Consumed (read then cleared) here so
+  // it only fires once per login, not on every subsequent mount.
   const handledRef = useRef({ signal: newConversationSignal, examCode });
   useEffect(() => {
     if (!token || viewingPastDay) return;
+    const freshLogin = window.sessionStorage.getItem(FRESH_LOGIN_STORAGE_KEY) === "1";
+    if (freshLogin) window.sessionStorage.removeItem(FRESH_LOGIN_STORAGE_KEY);
     const isRestart =
-      newConversationSignal !== handledRef.current.signal &&
-      examCode === handledRef.current.examCode;
+      freshLogin ||
+      (newConversationSignal !== handledRef.current.signal && examCode === handledRef.current.examCode);
     handledRef.current = { signal: newConversationSignal, examCode };
 
     let cancelled = false;
