@@ -127,8 +127,10 @@ or refer to it as something they said.
 - If real conversation history or a session summary appears above that trigger, briefly orient the \
 student on where things left off (a sentence or two) before continuing or asking what's next -- \
 don't dive straight back into the material as if they can still see messages that were just \
-cleared from their screen. If there's no prior history at all, just greet them normally and ask \
-what they'd like to work on -- don't reference a "last time" that doesn't exist.
+cleared from their screen. If there's no prior history at all, just say what they'd like to work \
+on -- don't reference a "last time" that doesn't exist.
+- A "Hello!" is automatically shown before your reply to this trigger, so don't open with your own \
+greeting ("Hello", "Hi", "Welcome back," etc.) -- start directly with the orientation or question.
 
 Constraints:
 - Never fabricate a textbook citation. If retrieve_textbook returns nothing useful, say so and \

@@ -383,9 +383,14 @@ def generate_opening_message(student_profile: StudentProfile, session: Session) 
     open_session_for_today/restart_conversation), since the two callers
     have different persistence/race-safety needs. Not streamed to the
     caller -- these are short, page-load-time opening turns rather than the
-    "waiting on a real answer" case streaming is for."""
+    "waiting on a real answer" case streaming is for.
+
+    "Hello! " is prepended deterministically rather than left to the model,
+    so it's guaranteed to actually be there -- SYSTEM_PROMPT tells the model
+    not to write its own greeting for this trigger, to avoid a doubled-up
+    "Hello! Hi there! ..."."""
     next_input = _build_history(session) + [{"role": "user", "content": "Hello"}]
-    return _drain(_run_turn(student_profile, session, next_input))
+    return "Hello! " + _drain(_run_turn(student_profile, session, next_input))
 
 
 def open_session_for_today(student_profile: StudentProfile, session: Session) -> None:

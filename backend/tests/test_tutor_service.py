@@ -307,7 +307,7 @@ def test_generate_opening_message_sends_an_unseen_hello(app, db):
 
         text = tutor_service.generate_opening_message(profile, session)
 
-    assert text == "Welcome back!"
+    assert text == "Hello! Welcome back!"
     sent_input = client.responses.create.call_args.kwargs["input"]
     assert sent_input[-1] == {"role": "user", "content": "Hello"}
     assert sent_input[0] == {"role": "user", "content": "earlier today"}
@@ -327,7 +327,7 @@ def test_open_session_for_today_generates_and_persists_when_empty(app, db):
     messages = Message.query.filter_by(session_id=session.id).all()
     assert len(messages) == 1
     assert messages[0].role == "assistant"
-    assert messages[0].content == "Welcome back! Ready to dive in?"
+    assert messages[0].content == "Hello! Welcome back! Ready to dive in?"
 
 
 def test_open_session_for_today_is_a_noop_when_today_already_has_messages(app, db):
@@ -376,5 +376,5 @@ def test_restart_conversation_always_persists_a_new_message(app, db):
 
         message = tutor_service.restart_conversation(profile, session)
 
-    assert message.content == "We were just working on sample spaces."
+    assert message.content == "Hello! We were just working on sample spaces."
     assert Message.query.filter_by(session_id=session.id).count() == 2

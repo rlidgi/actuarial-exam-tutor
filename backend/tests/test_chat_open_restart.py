@@ -46,7 +46,7 @@ def test_open_chat_generates_a_greeting_when_nothing_sent_today(client, db, regi
 
     assert resp.status_code == 200
     messages = resp.get_json()["messages"]
-    assert messages == [{"role": "assistant", "content": "Welcome! Let's get started."}]
+    assert messages == [{"role": "assistant", "content": "Hello! Welcome! Let's get started."}]
 
 
 def test_open_chat_does_not_regreet_when_today_already_has_messages(client, db, register_user):
@@ -97,7 +97,7 @@ def test_restart_chat_always_posts_a_new_message(client, db, register_user):
 
     assert resp.status_code == 200
     assert resp.get_json()["message"] == {
-        "role": "assistant", "content": "We were just working on sample spaces.",
+        "role": "assistant", "content": "Hello! We were just working on sample spaces.",
     }
     assert Message.query.filter_by(session_id=session.id).count() == 2
 
