@@ -15,6 +15,7 @@ def test_exchange_creates_new_user(client, db, supabase_tokens):
     assert resp.status_code == 200
     assert resp.json["access_token"]
     assert resp.json["user"]["email"] == "student@example.com"
+    assert resp.json["is_new_user"] is True
     user = db.session.query(User).filter_by(external_auth_id=sub).one()
     assert user.email == "student@example.com"
 
@@ -31,6 +32,8 @@ def test_exchange_reuses_existing_user(client, db, supabase_tokens):
     )
 
     assert first.json["user"]["id"] == second.json["user"]["id"]
+    assert first.json["is_new_user"] is True
+    assert second.json["is_new_user"] is False
     assert db.session.query(User).filter_by(external_auth_id=sub).count() == 1
 
 

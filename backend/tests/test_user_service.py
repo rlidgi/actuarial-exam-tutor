@@ -29,10 +29,35 @@ def test_find_or_create_recovers_from_concurrent_insert_race(db):
         raise IntegrityError("insert", {}, Exception("duplicate key"))
 
     with patch.object(db.session, "commit", side_effect=racing_commit):
-        user = user_service.find_or_create_by_external_identity(external_id, email)
+        user, is_new = user_service.find_or_create_by_external_identity(external_id, email)
 
     assert user.external_auth_id == external_id
     assert User.query.filter_by(external_auth_id=external_id).count() == 1
+    # This request lost the race -- the *other* concurrent request is the
+    # one that actually created the account, so this side must report
+    # is_new=False to avoid double-firing a "new signup" conversion event.
+    assert is_new is False
+
+
+def test_find_or_create_reports_is_new_for_a_brand_new_identity(db):
+    user, is_new = user_service.find_or_create_by_external_identity(
+        str(uuid.uuid4()), "brandnew@example.com"
+    )
+
+    assert user.email == "brandnew@example.com"
+    assert is_new is True
+
+
+def test_find_or_create_reports_not_new_for_a_returning_identity(db):
+    external_id = str(uuid.uuid4())
+    user_service.find_or_create_by_external_identity(external_id, "returning@example.com")
+
+    user, is_new = user_service.find_or_create_by_external_identity(
+        external_id, "returning@example.com"
+    )
+
+    assert user.email == "returning@example.com"
+    assert is_new is False
 
 
 def test_find_or_create_still_rejects_a_real_email_conflict(db):

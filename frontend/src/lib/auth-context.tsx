@@ -10,6 +10,7 @@ import {
 } from "react";
 import { api, DEFAULT_EXAM_CODE, type AuthResponse } from "./api";
 import { supabaseClient } from "./supabase-client";
+import { reportAdsConversion, SIGNUP_CONVERSION_LABEL } from "./gtag";
 
 const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
 // Same key exam-context.tsx persists the selected exam under -- read
@@ -115,6 +116,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             window.sessionStorage.setItem(FRESH_LOGIN_STORAGE_KEY, "1");
             setToken(response.access_token);
             setEmail(response.user.email);
+            // Only the exchange call that actually created the account
+            // reports is_new_user -- a returning login must never re-fire
+            // this, or Google Ads would count every login as a new signup.
+            if (response.is_new_user) {
+              reportAdsConversion(SIGNUP_CONVERSION_LABEL, response.user.email);
+            }
             resolve();
           })
           .catch(reject);

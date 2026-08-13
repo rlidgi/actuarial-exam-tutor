@@ -23,11 +23,18 @@ def exchange():
         return jsonify(error="invalid or expired session"), 401
 
     try:
-        user = user_service.find_or_create_by_external_identity(
+        user, is_new_user = user_service.find_or_create_by_external_identity(
             claims["sub"], claims["email"]
         )
     except user_service.IdentityConflict as exc:
         return jsonify(error=str(exc)), 409
 
     token = create_access_token(identity=str(user.id))
-    return jsonify(access_token=token, user={"id": user.id, "email": user.email}), 200
+    return (
+        jsonify(
+            access_token=token,
+            user={"id": user.id, "email": user.email},
+            is_new_user=is_new_user,
+        ),
+        200,
+    )

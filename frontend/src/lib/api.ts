@@ -117,6 +117,11 @@ async function* streamRequest(
 export interface AuthResponse {
   access_token: string;
   user: { id: number; email: string };
+  // True only for the exchange call that actually created the account --
+  // see user_service.find_or_create_by_external_identity. Drives the
+  // Google Ads "Sign-up" conversion (see auth-context.tsx) so a returning
+  // login never fires it again.
+  is_new_user: boolean;
 }
 
 export interface BillingStatus {

@@ -12,8 +12,9 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { FRESH_LOGIN_STORAGE_KEY } from "@/lib/auth-context";
+import { FRESH_LOGIN_STORAGE_KEY, useAuth } from "@/lib/auth-context";
 import { api, ApiError, isAuthError, type ChatMessageDTO } from "@/lib/api";
+import { reportAdsConversion, SUBSCRIBE_CONVERSION_LABEL } from "@/lib/gtag";
 import { useChatView } from "@/lib/chat-view-context";
 import { useExam } from "@/lib/exam-context";
 import { useBillingStatus } from "@/lib/use-billing-status";
@@ -31,9 +32,11 @@ interface DisplayMessage extends ChatMessageDTO {
 // out from ChatPage since useSearchParams requires a Suspense boundary.
 function CheckoutSyncHandler({
   token,
+  email,
   onSynced,
 }: {
   token: string | null;
+  email: string | null;
   onSynced: () => void;
 }) {
   const searchParams = useSearchParams();
@@ -46,6 +49,12 @@ function CheckoutSyncHandler({
 
     api
       .syncCheckoutSession(token, sessionId)
+      .then((r) => {
+        // Only a confirmed, successful sync is a real completed purchase --
+        // firing on a failed/incomplete sync would report conversions for
+        // checkouts that never actually went through.
+        if (r.ok) reportAdsConversion(SUBSCRIBE_CONVERSION_LABEL, email ?? undefined);
+      })
       .catch(() => {})
       .finally(() => {
         onSynced();
@@ -54,7 +63,7 @@ function CheckoutSyncHandler({
         // resulting re-render instead of re-syncing.
         router.replace("/chat");
       });
-  }, [token, searchParams, router, onSynced]);
+  }, [token, email, searchParams, router, onSynced]);
 
   return null;
 }
@@ -76,6 +85,7 @@ function ThinkingIndicator() {
 
 export default function ChatPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  const { email } = useAuth();
   const { selectedDate, setSelectedDate, newConversationSignal, refreshHistoryDays } =
     useChatView();
   const { examCode } = useExam();
@@ -418,7 +428,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <Suspense fallback={null}>
-        <CheckoutSyncHandler token={token} onSynced={refreshBilling} />
+        <CheckoutSyncHandler token={token} email={email} onSynced={refreshBilling} />
       </Suspense>
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
         <TrialBanner status={billingStatus} examCode={examCode} />

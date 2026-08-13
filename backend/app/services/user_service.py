@@ -15,13 +15,17 @@ class IdentityConflict(Exception):
     """
 
 
-def find_or_create_by_external_identity(external_id: str, email: str) -> User:
+def find_or_create_by_external_identity(external_id: str, email: str) -> tuple[User, bool]:
+    """Returns (user, is_new) -- is_new is True only for the request whose
+    own insert actually committed, never for the losing side of the race
+    below, so a concurrent double sign-in can't double-fire a "new signup"
+    conversion event for what's really one account."""
     user = User.query.filter_by(external_auth_id=external_id).first()
     if user is not None:
         if user.email != email:
             user.email = email
             db.session.commit()
-        return user
+        return user, False
 
     user = User(external_auth_id=external_id, email=email)
     db.session.add(user)
@@ -36,8 +40,8 @@ def find_or_create_by_external_identity(external_id: str, email: str) -> User:
         # different external_id already holding this email is a real one.
         existing = User.query.filter_by(external_auth_id=external_id).first()
         if existing is not None:
-            return existing
+            return existing, False
         raise IdentityConflict(
             f"{email} is already linked to a different sign-in method"
         ) from exc
-    return user
+    return user, True
