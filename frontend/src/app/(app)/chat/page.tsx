@@ -27,6 +27,46 @@ interface DisplayMessage extends ChatMessageDTO {
   imagePreviewUrl?: string;
 }
 
+// "New Conversation" (and a fresh login) only clear liveMessages in memory
+// -- there's nothing server-side marking a restart boundary, since /restart
+// just appends one more message to the same day's history. Navigating away
+// (a real route change, not just client-side view state) and back remounts
+// this component fresh, losing that in-memory clear entirely: /open then
+// returns the *whole* day's history again, same as browsing today's date
+// in the sidebar. Persisting which message the last restart started from
+// lets a remount re-apply the same cut client-side. Keyed by exam only (not
+// date) since only today's restart is ever relevant -- yesterday's marker
+// just won't match anything in today's fetched messages and is harmlessly
+// overwritten by the next restart.
+function restartMarkerKey(examCode: string): string {
+  return `actuarial_tutor_restart_marker_${examCode}`;
+}
+
+function saveRestartMarker(examCode: string, content: string) {
+  const today = new Date().toISOString().slice(0, 10); // UTC, matches the backend's "today"
+  window.localStorage.setItem(restartMarkerKey(examCode), JSON.stringify({ date: today, content }));
+}
+
+// Cuts today's full message list down to just what's after the last
+// restart, if one happened today -- falls back to the full list (no cut)
+// whenever there's no marker, it's from a previous day, or the marked
+// message isn't found (e.g. history pruning) so this never hides real
+// messages by mistake.
+function applyRestartMarker(examCode: string, messages: ChatMessageDTO[]): ChatMessageDTO[] {
+  const raw = window.localStorage.getItem(restartMarkerKey(examCode));
+  if (!raw) return messages;
+  let marker: { date: string; content: string };
+  try {
+    marker = JSON.parse(raw);
+  } catch {
+    return messages;
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  if (marker.date !== today) return messages;
+  const cutIndex = messages.findLastIndex((m) => m.role === "assistant" && m.content === marker.content);
+  return cutIndex === -1 ? messages : messages.slice(cutIndex);
+}
+
 // Reads the ?checkout=success&session_id=... query set by Stripe Checkout's
 // success_url, syncs the subscription once, then strips the params. Split
 // out from ChatPage since useSearchParams requires a Suspense boundary.
@@ -178,9 +218,10 @@ export default function ChatPage() {
             if (!cancelled) setBlocked(true);
             return null;
           }
+          if (r.message) saveRestartMarker(examCode, r.message.content);
           return r.message ? [r.message] : [];
         })
-      : api.openChat(token, examCode).then((r) => r.messages);
+      : api.openChat(token, examCode).then((r) => applyRestartMarker(examCode, r.messages));
 
     load
       .then((msgs) => {
