@@ -401,6 +401,11 @@ export default function ChatPage() {
     } finally {
       setSending(false);
       setAwaitingFirstToken(false);
+      // The textarea is `disabled` while sending, which the browser force-
+      // blurs -- refocus once React re-enables it (after this render
+      // commits, hence requestAnimationFrame) so the student can keep
+      // typing the next question without reaching for the mouse.
+      requestAnimationFrame(() => textareaRef.current?.focus());
     }
   };
 
