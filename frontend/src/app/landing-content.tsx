@@ -262,13 +262,6 @@ export default function LandingContent() {
 
       <div className="landing-hero-band">
         <div className="hero-bg" aria-hidden="true">
-          <svg
-            className="hero-curve"
-            viewBox="0 0 800 300"
-            preserveAspectRatio="none"
-          >
-            <path d="M0,280 C150,270 300,220 450,140 C550,90 650,40 800,10" />
-          </svg>
           {HERO_SYMBOLS.map((s, i) => (
             <span
               key={i}
