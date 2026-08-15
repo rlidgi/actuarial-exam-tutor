@@ -117,10 +117,10 @@ body > * {
 }
 
 .landing {
+  --landing-pad: clamp(1.5rem, 4vw, 4rem);
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
-  padding: 0 1.5rem 4rem;
+  padding: 0 var(--landing-pad) 4rem;
   color: var(--ink);
 }
 .wordmark-group {
@@ -158,17 +158,31 @@ body > * {
   align-items: center;
   flex-wrap: wrap;
 }
-.landing-hero {
+.landing-hero-band {
   position: relative;
   overflow: hidden;
-  text-align: center;
-  padding: 3rem 1rem 2.5rem;
   background: linear-gradient(160deg, var(--ink), var(--ledger) 75%);
-  border-radius: 12px;
+  border-radius: 0;
+  /* Full-bleed: cancels .landing's own side padding so this band reaches
+     the true viewport edges, then re-adds the same padding internally so
+     the nav/hero content still aligns with the rest of the page. */
+  margin: 0 calc(-1 * var(--landing-pad));
+  padding: 0 var(--landing-pad);
 }
-.landing-hero > *:not(.hero-bg) {
+.landing-hero-band > *:not(.hero-bg) {
   position: relative;
   z-index: 1;
+}
+.landing-hero-band .wordmark-mark,
+.landing-hero-band .wordmark-text {
+  filter: brightness(0) invert(1);
+}
+.landing-hero-band .wordmark-divider {
+  background: rgba(237, 239, 232, 0.35);
+}
+.landing-hero {
+  text-align: center;
+  padding: 2rem 1rem 2.5rem;
 }
 .hero-bg {
   position: absolute;
@@ -190,7 +204,7 @@ body > * {
       transparent 34px
     );
   animation: hero-grid-drift 40s linear infinite;
-  border-radius: 12px;
+  border-radius: 0;
 }
 @keyframes hero-grid-drift {
   from {
@@ -275,11 +289,69 @@ body > * {
     font-size: 1.35rem;
   }
 }
+.landing-hero-tagline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin: 0 0 1.6rem;
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--gold);
+}
+.tagline-line {
+  width: 42px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.6;
+}
+.landing-hero-feature {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 560px;
+  min-width: 0;
+  margin: 0 auto 1.8rem;
+  text-align: left;
+}
+.landing-hero-feature-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--ledger-bright);
+}
+.landing-hero-feature-title {
+  font-weight: 600;
+  color: var(--paper);
+  margin-bottom: 0.3rem;
+}
+.landing-hero-feature-text {
+  min-width: 0;
+}
+.landing-hero-feature-text p {
+  margin: 0;
+  color: rgba(237, 239, 232, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+@media (max-width: 560px) {
+  .landing-hero-feature {
+    flex-direction: column;
+    text-align: center;
+  }
+}
 .landing-features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
-  margin: 2.5rem 0;
+  max-width: 1200px;
+  margin: 2.5rem auto;
 }
 .feature-card {
   background: var(--paper-raised);
@@ -329,11 +401,14 @@ body > * {
 }
 .landing-free-banner-text {
   flex: 1 1 380px;
+  min-width: 0;
+  text-align: left;
+}
+.landing-free-banner-text p {
   margin: 0;
   color: rgba(237, 239, 232, 0.82);
   font-size: 0.92rem;
   line-height: 1.55;
-  text-align: left;
 }
 .landing-free-banner-btn {
   flex: 0 0 auto;
@@ -341,6 +416,14 @@ body > * {
   font-size: 0.9rem;
   font-weight: 700;
   white-space: nowrap;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+.landing-free-banner-btn:hover {
+  background: #cc9a3d;
+  border-color: #cc9a3d;
+  color: var(--ink);
 }
 .exam-card {
   display: flex;
@@ -373,7 +456,7 @@ body > * {
   line-height: 1.35;
 }
 .landing-faq {
-  max-width: 640px;
+  max-width: 760px;
   margin: 3rem auto 0;
 }
 .landing-faq h2 {
@@ -403,7 +486,7 @@ body > * {
   margin: 0;
 }
 .preview-window {
-  max-width: 640px;
+  max-width: 760px;
   margin: 1rem auto 0;
   border: 1px solid var(--rule);
   border-radius: 10px;

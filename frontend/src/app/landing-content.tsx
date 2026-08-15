@@ -24,7 +24,13 @@ B. No—use combinations
 
 Reply **A or B** and briefly say why.`;
 
-const HERO_SYMBOLS: { text: string; left: string; top: string; fontSize: string; delay: string }[] = [
+const HERO_SYMBOLS: {
+  text: string;
+  left: string;
+  top: string;
+  fontSize: string;
+  delay: string;
+}[] = [
   { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
   { text: "∫", left: "90%", top: "18%", fontSize: "2.3rem", delay: "1.5s" },
   { text: "(1+i)ⁿ", left: "13%", top: "58%", fontSize: "1.25rem", delay: "3s" },
@@ -51,8 +57,160 @@ const HERO_SYMBOLS: { text: string; left: string; top: string; fontSize: string;
 const EXAMS = [
   { code: "P", name: "Probability", color: "var(--sky)" },
   { code: "FM", name: "Financial Mathematics", color: "var(--gold)" },
-  { code: "FAM", name: "Fundamentals of Actuarial Mathematics", color: undefined },
+  {
+    code: "FAM",
+    name: "Fundamentals of Actuarial Mathematics",
+    color: undefined,
+  },
 ];
+
+// P/FM/FAM icons on the exam-picker cards, in each exam's own accent color
+// (matching EXAMS above) -- undefined falls back to the default ink color,
+// same as exam-card-code already does for FAM.
+const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
+  P: (color) => (
+    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+      <line
+        x1="6"
+        y1="32"
+        x2="34"
+        y2="32"
+        stroke="var(--rule)"
+        strokeWidth="1.6"
+      />
+      <rect
+        x="10"
+        y="22"
+        width="6"
+        height="10"
+        rx="1"
+        fill={color}
+        fillOpacity="0.75"
+      />
+      <rect
+        x="19"
+        y="15"
+        width="6"
+        height="17"
+        rx="1"
+        fill={color}
+        fillOpacity="0.9"
+      />
+      <rect x="28" y="9" width="6" height="23" rx="1" fill={color} />
+    </svg>
+  ),
+  FM: (color) => (
+    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+      <path
+        d="M6 28 L15 19 L21 24 L34 10"
+        fill="none"
+        stroke={color}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M26 10 H34 V18"
+        fill="none"
+        stroke={color}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  FAM: (color) => (
+    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+      <path
+        d="M20 12 C17 9 11 8 6 9 V27 C11 26 17 27 20 30 C23 27 29 26 34 27 V9 C29 8 23 9 20 12 Z"
+        fill="none"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <line x1="20" y1="12" x2="20" y2="30" stroke={color} strokeWidth="1.8" />
+    </svg>
+  ),
+};
+
+function BrainIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+      <path
+        d="M17 9 C12 9 9 12.5 9 16.5 C6.8 17.4 5.5 19.6 6 22 C6.4 24 8 25.4 10 25.8 C10.2 28.8 12.7 31 15.8 31 C17 31 18.1 30.6 19 29.9 V11 C18.4 9.9 17.7 9.2 17 9 Z"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M23 9 C28 9 31 12.5 31 16.5 C33.2 17.4 34.5 19.6 34 22 C33.6 24 32 25.4 30 25.8 C29.8 28.8 27.3 31 24.2 31 C23 31 21.9 30.6 21 29.9 V11 C21.6 9.9 22.3 9.2 23 9 Z"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <line
+        x1="20"
+        y1="11"
+        x2="20"
+        y2="30"
+        stroke="var(--paper)"
+        strokeWidth="1.4"
+        strokeOpacity="0.6"
+      />
+    </svg>
+  );
+}
+
+function GiftIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+      <rect
+        x="8"
+        y="17"
+        width="24"
+        height="15"
+        rx="1.5"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.8"
+      />
+      <rect
+        x="6"
+        y="12"
+        width="28"
+        height="6"
+        rx="1.5"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.8"
+      />
+      <line
+        x1="20"
+        y1="12"
+        x2="20"
+        y2="32"
+        stroke="var(--paper)"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M20 12 C16 12 13 9.5 13 7.5 C13 6 14.3 5 15.8 5 C18 5 20 8 20 12 Z"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M20 12 C24 12 27 9.5 27 7.5 C27 6 25.7 5 24.2 5 C22 5 20 8 20 12 Z"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function SignInErrorBanner() {
   const searchParams = useSearchParams();
@@ -79,74 +237,118 @@ export default function LandingContent() {
 
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
 
-      <MarketingHeader>
-        <Link className="btn" href="/about">
-          About
-        </Link>
-        <Link className="btn" href="/pricing">
-          Pricing
-        </Link>
-        {token ? (
-          <>
-            <button type="button" className="btn" onClick={() => logout()}>
-              Sign out
-            </button>
-            <Link className="btn btn-primary" href="/chat">
-              Go to Tutor
-            </Link>
-          </>
-        ) : (
-          <button type="button" className="btn btn-primary" onClick={() => setShowSignIn(true)}>
-            Sign in
-          </button>
-        )}
-      </MarketingHeader>
-
-      <div className="landing-hero">
+      <div className="landing-hero-band">
         <div className="hero-bg" aria-hidden="true">
-          <svg className="hero-curve" viewBox="0 0 800 300" preserveAspectRatio="none">
+          <svg
+            className="hero-curve"
+            viewBox="0 0 800 300"
+            preserveAspectRatio="none"
+          >
             <path d="M0,280 C150,270 300,220 450,140 C550,90 650,40 800,10" />
           </svg>
           {HERO_SYMBOLS.map((s, i) => (
             <span
               key={i}
               className="hero-symbol"
-              style={{ left: s.left, top: s.top, fontSize: s.fontSize, animationDelay: s.delay }}
+              style={{
+                left: s.left,
+                top: s.top,
+                fontSize: s.fontSize,
+                animationDelay: s.delay,
+              }}
             >
               {s.text}
             </span>
           ))}
         </div>
-        <h1>Your personal tutor for actuarial exams</h1>
-        <p
-          className="landing-hero-sub"
-          style={{ fontStyle: "italic", fontSize: "20px", color: "rgba(237, 239, 232, 0.78)" }}
-        >
-          Study smarter for P, FM, and FAM with an AI tutor that explains concepts, works through
-          problems, and helps when you get stuck.
-        </p>
-        <div className="exam-picker">
-          {EXAMS.map((e) => (
-            <Link key={e.code} className="exam-card" href={`/pricing?exam=${e.code}`}>
-              <span className="exam-card-code" style={e.color ? { color: e.color } : undefined}>
-                {e.code}
-              </span>
-              <span className="exam-card-name">{e.name}</span>
-            </Link>
-          ))}
-        </div>
-        <div className="landing-free-banner">
-          <p className="landing-free-banner-text">
-            Register or log in for free access to the full study manual for each exam and 6 free
-            messages to try out the AI tutor.
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary landing-free-banner-btn"
-            onClick={() => setShowSignIn(true)}
-          >
-            Get free access
-          </button>
+        <MarketingHeader>
+          <Link className="btn" href="/about">
+            About
+          </Link>
+          <Link className="btn" href="/pricing">
+            Pricing
+          </Link>
+          {token ? (
+            <>
+              <button type="button" className="btn" onClick={() => logout()}>
+                Sign out
+              </button>
+              <Link className="btn btn-primary" href="/chat">
+                Go to Tutor
+              </Link>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setShowSignIn(true)}
+            >
+              Sign in
+            </button>
+          )}
+        </MarketingHeader>
+
+        <div className="landing-hero">
+          <h1>Your personal tutor for actuarial exams</h1>
+          <div className="landing-hero-tagline">
+            <span className="tagline-line" aria-hidden="true" />
+            <span>You don&apos;t have to go it alone.</span>
+            <span className="tagline-line" aria-hidden="true" />
+          </div>
+          <div className="landing-hero-feature">
+            <span className="landing-hero-feature-icon">
+              <BrainIcon />
+            </span>
+            <div className="landing-hero-feature-text">
+              <div className="landing-hero-feature-title">
+                Personalized guidance that adapts as you learn.
+              </div>
+              <p>
+                Your tutor tracks what you&apos;ve mastered, identifies gaps in
+                your foundational knowledge, and guides you step by step toward
+                exam mastery.
+              </p>
+            </div>
+          </div>
+          <div className="exam-picker">
+            {EXAMS.map((e) => (
+              <Link
+                key={e.code}
+                className="exam-card"
+                href={`/pricing?exam=${e.code}`}
+              >
+                <span
+                  className="exam-card-code"
+                  style={e.color ? { color: e.color } : undefined}
+                >
+                  {e.code}
+                </span>
+                <span className="exam-card-name">{e.name}</span>
+                {EXAM_ICONS[e.code]?.(e.color ?? "var(--ink)")}
+              </Link>
+            ))}
+          </div>
+          <div className="landing-free-banner">
+            <span className="landing-hero-feature-icon">
+              <GiftIcon />
+            </span>
+            <div className="landing-free-banner-text">
+              <div className="landing-hero-feature-title">
+                Experience a tutor that adapts to you.
+              </div>
+              <p>
+                Register or log in for free access to the full study manual for each exam and 6
+                free messages to try out the AI tutor.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn landing-free-banner-btn"
+              onClick={() => setShowSignIn(true)}
+            >
+              Get free access &rarr;
+            </button>
+          </div>
         </div>
       </div>
 
@@ -176,9 +378,9 @@ export default function LandingContent() {
           />
           <div className="feature-title">Grounded in your textbooks</div>
           <p>
-            Every response is grounded in the exact SOA/CAS specified textbooks for that exam.
-            When appropriate, cites text directly and provides page number and textbook name for
-            further study.
+            Every response is grounded in the exact SOA/CAS specified textbooks
+            for that exam. When appropriate, cites text directly and provides
+            page number and textbook name for further study.
           </p>
         </div>
         <div className="feature-card reveal">
@@ -191,9 +393,9 @@ export default function LandingContent() {
           />
           <div className="feature-title">Help with a problem</div>
           <p>
-            Attach an image or paste a screenshot of a problem. Instead of simply giving you the
-            answer, the tutor works through the problem with you step by step, helping you
-            understand how to solve it.
+            Attach an image or paste a screenshot of a problem. Instead of
+            simply giving you the answer, the tutor works through the problem
+            with you step by step, helping you understand how to solve it.
           </p>
         </div>
         <div className="feature-card reveal">
@@ -206,9 +408,10 @@ export default function LandingContent() {
           />
           <div className="feature-title">Personalized learning that adapts</div>
           <p>
-            The actuarial tutor adapts to each student&apos;s unique needs, much like a human
-            tutor. It continuously tracks proficiency, strengthens foundational knowledge where
-            needed, and guides students step by step toward mastery.
+            The actuarial tutor adapts to each student&apos;s unique needs, much
+            like a human tutor. It continuously tracks proficiency, strengthens
+            foundational knowledge where needed, and guides students step by
+            step toward mastery.
           </p>
         </div>
       </div>
