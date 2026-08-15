@@ -1,5 +1,6 @@
 import time
 import uuid
+from unittest.mock import patch
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -106,3 +107,21 @@ def test_exchange_conflicting_email_returns_409(client, supabase_tokens):
 def test_exchange_requires_token(client):
     resp = client.post("/api/auth/exchange", json={})
     assert resp.status_code == 400
+
+
+def test_exchange_sends_welcome_email_only_for_new_users(client, supabase_tokens):
+    sub = str(uuid.uuid4())
+
+    with patch("app.api.auth.email_service") as mock_email_service:
+        client.post(
+            "/api/auth/exchange",
+            json={"supabase_access_token": supabase_tokens(sub=sub, email="welcome@example.com")},
+        )
+        assert mock_email_service.send_welcome_email.call_count == 1
+
+        client.post(
+            "/api/auth/exchange",
+            json={"supabase_access_token": supabase_tokens(sub=sub, email="welcome@example.com")},
+        )
+        # Returning sign-in -- must not fire a second welcome email.
+        assert mock_email_service.send_welcome_email.call_count == 1

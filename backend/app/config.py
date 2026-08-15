@@ -59,6 +59,15 @@ class Config:
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    # Transactional email (see app/services/email_service.py) via Namecheap
+    # Private Email's SMTP relay. SMTP_PASSWORD unset means email sending is
+    # silently disabled (logged, not raised) -- same "optional, no-ops when
+    # unconfigured" pattern as LANGFUSE_* above, so the app runs fine without
+    # mailbox credentials in dev.
+    SMTP_HOST = os.environ.get("SMTP_HOST", "mail.privateemail.com")
+    SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+    SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "admin@actuarialexamstutor.com")
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
     # Comma-separated list of origins allowed to call this API cross-origin.
     # Defaults to just the frontend's own URL -- set explicitly (e.g. to add
     # a temporary staging hostname during a rollout) via the env var.

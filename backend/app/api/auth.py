@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
 
-from app.services import supabase_auth_service, user_service
+from app.services import email_service, supabase_auth_service, user_service
 
 bp = Blueprint("auth", __name__)
 
@@ -29,6 +29,9 @@ def exchange():
         )
     except user_service.IdentityConflict as exc:
         return jsonify(error=str(exc)), 409
+
+    if is_new_user:
+        email_service.send_welcome_email(user)
 
     token = create_access_token(identity=str(user.id))
     return (
