@@ -93,7 +93,7 @@ def _html(frontend_url: str, referral_url: str) -> str:
 <div style="background:#edefe8;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #d8dacd;">
     <div style="padding:28px 32px 4px;text-align:center;">
-      <img src="{frontend_url}/logo.png" alt="Actuarial Exams Tutor" height="36" style="height:36px;width:auto;">
+      <img src="{frontend_url}/logo.png" alt="Actuarial Exams Tutor" height="80" style="height:80px;width:auto;">
     </div>
     <div style="padding:12px 32px 32px;color:#172227;font-size:15px;line-height:1.6;">
       <p>Hi there,</p>
