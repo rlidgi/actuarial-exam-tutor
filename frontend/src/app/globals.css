@@ -258,15 +258,16 @@ body > * {
 @media (prefers-reduced-motion: reduce) {
   .hero-bg,
   .hero-curve path,
-  .hero-symbol {
+  .hero-symbol,
+  .landing-hero-tagline {
     animation: none;
   }
 }
 .landing-hero h1 {
   font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 2.1rem;
-  line-height: 1.25;
-  margin: 0 0 1rem;
+  font-size: 3.4rem;
+  line-height: 1.15;
+  margin: 0 0 1.1rem;
   color: var(--paper);
 }
 .landing-sub {
@@ -289,20 +290,32 @@ body > * {
     font-size: 1.35rem;
   }
 }
+@keyframes tagline-slide-in {
+  from {
+    transform: translateX(-320px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 .landing-hero-tagline {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.9rem;
-  margin: 0 0 1.6rem;
+  gap: 1.3rem;
+  margin: 0 0 2.2rem;
   font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   font-style: italic;
-  font-size: 1.25rem;
+  font-size: 1.9rem;
   color: var(--gold);
+  will-change: transform, opacity;
+  animation: tagline-slide-in 4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 .tagline-line {
-  width: 42px;
+  width: 68px;
   height: 1px;
   background: var(--gold);
   opacity: 0.6;
@@ -310,10 +323,10 @@ body > * {
 .landing-hero-feature {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  max-width: 560px;
+  gap: 1.5rem;
+  max-width: 900px;
   min-width: 0;
-  margin: 0 auto 1.8rem;
+  margin: 0 auto 2.4rem;
   text-align: left;
 }
 .landing-hero-feature-icon {
@@ -321,15 +334,16 @@ body > * {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   background: var(--ledger-bright);
 }
 .landing-hero-feature-title {
   font-weight: 600;
+  font-size: 1.5rem;
   color: var(--paper);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
 }
 .landing-hero-feature-text {
   min-width: 0;
@@ -337,7 +351,7 @@ body > * {
 .landing-hero-feature-text p {
   margin: 0;
   color: rgba(237, 239, 232, 0.78);
-  font-size: 0.9rem;
+  font-size: 1.25rem;
   line-height: 1.5;
 }
 @media (max-width: 560px) {
@@ -382,19 +396,19 @@ body > * {
 .exam-picker {
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr));
-  gap: 0.9rem;
-  max-width: 620px;
-  margin: 0 auto 1.8rem;
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto 2.4rem;
 }
 .landing-free-banner {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.2rem;
+  gap: 1.7rem;
   flex-wrap: wrap;
-  max-width: 720px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 1rem 1.4rem;
+  padding: 1.7rem 2.2rem;
   background: rgba(237, 239, 232, 0.06);
   border: 1px solid rgba(237, 239, 232, 0.2);
   border-radius: 10px;
@@ -407,13 +421,13 @@ body > * {
 .landing-free-banner-text p {
   margin: 0;
   color: rgba(237, 239, 232, 0.82);
-  font-size: 0.92rem;
+  font-size: 1.2rem;
   line-height: 1.55;
 }
 .landing-free-banner-btn {
   flex: 0 0 auto;
-  padding: 0.65rem 1.3rem;
-  font-size: 0.9rem;
+  padding: 1.05rem 2rem;
+  font-size: 1.2rem;
   font-weight: 700;
   white-space: nowrap;
   background: var(--gold);
@@ -448,6 +462,15 @@ body > * {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--ledger);
+}
+.landing-hero .exam-card {
+  padding: 2rem 1.2rem;
+}
+.landing-hero .exam-card-code {
+  font-size: 2.5rem;
+}
+.landing-hero .exam-card-name {
+  font-size: 1.1rem;
 }
 .exam-card-name {
   font-size: 0.78rem;
@@ -811,7 +834,7 @@ body > * {
     grid-template-columns: 1fr;
   }
   .landing-hero h1 {
-    font-size: 1.7rem;
+    font-size: 2.3rem;
   }
 }
 
@@ -838,6 +861,7 @@ body > * {
 }
 .dashboard-exam-picker {
   max-width: 480px;
+  gap: 0.9rem;
   margin: 1.3rem auto 0;
 }
 .dashboard-exam-picker .exam-card {

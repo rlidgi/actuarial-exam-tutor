@@ -69,7 +69,7 @@ const EXAMS = [
 // same as exam-card-code already does for FAM.
 const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   P: (color) => (
-    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
       <line
         x1="6"
         y1="32"
@@ -100,7 +100,7 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
     </svg>
   ),
   FM: (color) => (
-    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
       <path
         d="M6 28 L15 19 L21 24 L34 10"
         fill="none"
@@ -120,7 +120,7 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
     </svg>
   ),
   FAM: (color) => (
-    <svg viewBox="0 0 40 40" width="28" height="28" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
       <path
         d="M20 12 C17 9 11 8 6 9 V27 C11 26 17 27 20 30 C23 27 29 26 34 27 V9 C29 8 23 9 20 12 Z"
         fill="none"
@@ -141,7 +141,7 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
 function BrainIcon() {
   const hemiId = useId();
   return (
-    <svg viewBox="0 0 40 40" width="42" height="42" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
       <defs>
         <g id={hemiId}>
           <path
@@ -188,7 +188,7 @@ function BrainIcon() {
 
 function GiftIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
       <rect
         x="8"
         y="17"
