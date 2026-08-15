@@ -43,6 +43,16 @@ class Config:
         "FAM": os.environ.get("STRIPE_PRICE_ID_FAM", ""),
     }
     FREE_TRIAL_TURNS = int(os.environ.get("FREE_TRIAL_TURNS", "6"))
+    # Referral program (see app/services/referral_service.py). Each coupon
+    # must be created in the Stripe dashboard with duration=once -- a
+    # referrer's/referred user's reward applies to exactly one invoice, not
+    # every future one.
+    STRIPE_COUPON_REFERRED_25_OFF = os.environ.get("STRIPE_COUPON_REFERRED_25_OFF", "")
+    STRIPE_COUPON_REFERRER_25_OFF = os.environ.get("STRIPE_COUPON_REFERRER_25_OFF", "")
+    STRIPE_COUPON_REFERRER_FREE_MONTH = os.environ.get("STRIPE_COUPON_REFERRER_FREE_MONTH", "")
+    # Every Nth completed referral grants a free month instead of the usual
+    # percent-off (milestone replaces that referral's discount, not stacks).
+    REFERRAL_MILESTONE_INTERVAL = int(os.environ.get("REFERRAL_MILESTONE_INTERVAL", "3"))
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")

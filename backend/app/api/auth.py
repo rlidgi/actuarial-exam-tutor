@@ -22,9 +22,10 @@ def exchange():
     except supabase_auth_service.InvalidSupabaseToken:
         return jsonify(error="invalid or expired session"), 401
 
+    referral_code = (data.get("referral_code") or "").strip() or None
     try:
         user, is_new_user = user_service.find_or_create_by_external_identity(
-            claims["sub"], claims["email"]
+            claims["sub"], claims["email"], referral_code=referral_code
         )
     except user_service.IdentityConflict as exc:
         return jsonify(error=str(exc)), 409

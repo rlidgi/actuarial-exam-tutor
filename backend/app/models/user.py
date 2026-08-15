@@ -20,6 +20,20 @@ class User(db.Model):
     # different, unsubscribed one (see entitlement_service.chat_access_status).
     free_turns_used = db.Column(db.Integer, nullable=False, default=0)
 
+    # Referrals (see app/services/referral_service.py). referral_code is
+    # generated lazily on first access, not eagerly at signup, so a user who
+    # never shares never burns random-code space. referred_by_id is set
+    # exactly once, only when this row is first created (never retroactively
+    # on a returning user) -- see referral_service.attach_referrer.
+    referral_code = db.Column(db.String(16), unique=True, nullable=True, index=True)
+    referred_by_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    # True forever, from the moment any subscription of this user's first
+    # ever goes active -- deliberately not inferred from current Subscription
+    # rows (which get overwritten/canceled), so "was this user's referral
+    # ever completed" stays correct even after a later cancellation.
+    has_ever_subscribed = db.Column(db.Boolean, nullable=False, default=False)
+
     student_profiles = db.relationship(
         "StudentProfile", back_populates="user", cascade="all, delete-orphan"
     )
+    referred_by = db.relationship("User", remote_side=[id])

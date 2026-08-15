@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.user import User
+from app.services import referral_service
 
 
 class IdentityConflict(Exception):
@@ -15,11 +16,17 @@ class IdentityConflict(Exception):
     """
 
 
-def find_or_create_by_external_identity(external_id: str, email: str) -> tuple[User, bool]:
+def find_or_create_by_external_identity(
+    external_id: str, email: str, referral_code: str | None = None
+) -> tuple[User, bool]:
     """Returns (user, is_new) -- is_new is True only for the request whose
     own insert actually committed, never for the losing side of the race
     below, so a concurrent double sign-in can't double-fire a "new signup"
-    conversion event for what's really one account."""
+    conversion event for what's really one account.
+
+    referral_code is only ever attached on the genuinely-new-user branch --
+    never retroactively on a returning identity, which would let someone
+    stack a referral code onto an account that already exists."""
     user = User.query.filter_by(external_auth_id=external_id).first()
     if user is not None:
         if user.email != email:
@@ -44,4 +51,6 @@ def find_or_create_by_external_identity(external_id: str, email: str) -> tuple[U
         raise IdentityConflict(
             f"{email} is already linked to a different sign-in method"
         ) from exc
+
+    referral_service.attach_referrer(user, referral_code)
     return user, True

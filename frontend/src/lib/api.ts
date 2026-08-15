@@ -183,11 +183,28 @@ export interface SessionSummary {
   summary: string | null;
 }
 
+export interface ReferralRewardDTO {
+  reward_type: "referred_percent_off" | "referrer_percent_off" | "referrer_free_month";
+  status: "pending" | "applied" | "failed";
+  created_at: string | null;
+  applied_at: string | null;
+}
+
+export interface ReferralSummary {
+  referral_code: string;
+  referral_url: string;
+  completed_referral_count: number;
+  rewards: ReferralRewardDTO[];
+}
+
 export const api = {
-  exchangeSupabaseToken: (supabaseAccessToken: string) =>
+  exchangeSupabaseToken: (supabaseAccessToken: string, referralCode?: string | null) =>
     request<AuthResponse>("/api/auth/exchange", {
       method: "POST",
-      body: JSON.stringify({ supabase_access_token: supabaseAccessToken }),
+      body: JSON.stringify({
+        supabase_access_token: supabaseAccessToken,
+        ...(referralCode ? { referral_code: referralCode } : {}),
+      }),
     }),
   ensureProfile: (token: string, examCode: string) =>
     request<{ id: number; exam: string }>(
@@ -259,6 +276,8 @@ export const api = {
       { method: "POST", body: JSON.stringify({ session_id: sessionId }) },
       token
     ),
+  getReferralSummary: (token: string) =>
+    request<ReferralSummary>("/api/referrals", {}, token),
   // Bypasses request() -- the manual is served as raw text/html, not JSON,
   // so there's no body to parse as an ApiError-shaped object on failure.
   getCourseHtml: async (token: string, examCode: string): Promise<string> => {

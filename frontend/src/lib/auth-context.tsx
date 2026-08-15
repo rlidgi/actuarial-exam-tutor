@@ -23,6 +23,11 @@ const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
 // reads and clears this on its next mount to start a fresh conversation,
 // same as clicking "New Conversation".
 export const FRESH_LOGIN_STORAGE_KEY = "actuarial_tutor_fresh_login";
+// Captured from a `?ref=<code>` URL on any page (not session-only, since an
+// OAuth redirect can span a real gap) and consumed exactly once, the moment
+// a sign-in actually completes -- see completeSupabaseSignIn. Never applied
+// retroactively to an already-signed-in user.
+const REFERRAL_CODE_STORAGE_KEY = "actuarial_tutor_referral_code";
 
 interface AuthState {
   token: string | null;
@@ -58,6 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(stored);
+    }
+    const refCode = new URLSearchParams(window.location.search).get("ref");
+    if (refCode) {
+      window.localStorage.setItem(REFERRAL_CODE_STORAGE_KEY, refCode);
     }
     setLoading(false);
   }, []);
@@ -108,11 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!session) return; // INITIAL_SESSION with nothing yet -- keep waiting
         clearTimeout(timeout);
         subscription.unsubscribe();
+        const referralCode = window.localStorage.getItem(REFERRAL_CODE_STORAGE_KEY);
         api
-          .exchangeSupabaseToken(session.access_token)
+          .exchangeSupabaseToken(session.access_token, referralCode)
           .then(async (response) => {
             await afterAuth(response);
             window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+            window.localStorage.removeItem(REFERRAL_CODE_STORAGE_KEY);
             window.sessionStorage.setItem(FRESH_LOGIN_STORAGE_KEY, "1");
             setToken(response.access_token);
             setEmail(response.user.email);

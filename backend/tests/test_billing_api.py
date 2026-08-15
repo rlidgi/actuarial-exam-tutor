@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from app.models import Exam, StudentProfile, Subscription, User
+from app.models import Exam, ReferralReward, StudentProfile, Subscription, User
+from app.services import referral_service
 
 
 def _register_with_profile(client, db, register_user, email):
@@ -46,6 +47,30 @@ def test_checkout_returns_stripe_url(client, db, app, register_user):
     create_kwargs = mock_stripe.checkout.Session.create.call_args.kwargs
     assert create_kwargs["line_items"] == [{"price": "price_test123", "quantity": 1}]
     assert create_kwargs["mode"] == "subscription"
+    assert "discounts" not in create_kwargs
+
+
+def test_checkout_includes_referral_discount_for_referred_user(client, db, app, register_user):
+    _register_with_profile(client, db, register_user, "checkoutreferrer@example.com")
+    referrer = User.query.filter_by(email="checkoutreferrer@example.com").first()
+    code = referral_service.get_or_create_referral_code(referrer)
+
+    resp_json = register_user("checkoutreferred@example.com", referral_code=code)
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
+    client.post("/api/students/profiles", json={"exam_code": "P"}, headers=headers)
+
+    app.config["STRIPE_PRICE_IDS"]["P"] = "price_test123"
+    app.config["STRIPE_COUPON_REFERRED_25_OFF"] = "coupon_referred25"
+
+    with patch("app.services.billing_service.stripe") as mock_stripe:
+        mock_stripe.checkout.Session.create.return_value = MagicMock(
+            url="https://checkout.stripe.com/test-session"
+        )
+        resp = client.post("/api/billing/checkout", json={"exam_code": "P"}, headers=headers)
+
+    assert resp.status_code == 200
+    create_kwargs = mock_stripe.checkout.Session.create.call_args.kwargs
+    assert create_kwargs["discounts"] == [{"coupon": "coupon_referred25"}]
 
 
 def test_portal_without_existing_customer_returns_400(client, db, register_user):
@@ -120,6 +145,109 @@ def test_sync_upserts_subscription_from_checkout_session(client, db, register_us
     assert sub.status == "active"
     assert sub.stripe_customer_id == "cus_test123"
     assert sub.stripe_subscription_id == "sub_test123"
+
+
+def _register_referred_pair(client, db, app, register_user, *, referrer_email, referred_email):
+    """Registers a referrer with an active subscription (so their reward can
+    apply immediately) plus a referred user with a profile, ready for a
+    checkout sync/webhook to activate."""
+    _register_with_profile(client, db, register_user, referrer_email)
+    referrer = User.query.filter_by(email=referrer_email).first()
+    referrer_profile = StudentProfile.query.filter_by(user_id=referrer.id).first()
+    db.session.add(
+        Subscription(
+            student_profile_id=referrer_profile.id,
+            status="active",
+            stripe_subscription_id="sub_referrer_active",
+        )
+    )
+    db.session.commit()
+    code = referral_service.get_or_create_referral_code(referrer)
+
+    resp_json = register_user(referred_email, referral_code=code)
+    headers = {"Authorization": f"Bearer {resp_json['access_token']}"}
+    client.post("/api/students/profiles", json={"exam_code": "P"}, headers=headers)
+    referred_user = User.query.filter_by(email=referred_email).first()
+    referred_profile = StudentProfile.query.filter_by(user_id=referred_user.id).first()
+    return headers, referred_user, referred_profile
+
+
+def test_sync_activation_grants_and_applies_referrer_reward(client, db, app, register_user):
+    headers, referred_user, referred_profile = _register_referred_pair(
+        client, db, app, register_user,
+        referrer_email="syncreferrer@example.com", referred_email="syncreferred@example.com",
+    )
+    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_referrer25"
+
+    fake_checkout_session = MagicMock(
+        metadata=MagicMock(student_profile_id=str(referred_profile.id)),
+        subscription="sub_referred1",
+        customer="cus_referred1",
+    )
+    fake_subscription = MagicMock()
+    fake_subscription.__getitem__.side_effect = lambda k: {"status": "active"}[k]
+    fake_subscription.items.data = []
+
+    with patch("app.services.billing_service.stripe") as mock_stripe, \
+         patch("app.services.referral_service.stripe") as mock_referral_stripe:
+        mock_stripe.checkout.Session.retrieve.return_value = fake_checkout_session
+        mock_stripe.Subscription.retrieve.return_value = fake_subscription
+        resp = client.post(
+            "/api/billing/sync", json={"session_id": "cs_referred1"}, headers=headers
+        )
+
+    assert resp.status_code == 200
+    db.session.refresh(referred_user)
+    assert referred_user.has_ever_subscribed is True
+    reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
+    assert reward is not None
+    assert reward.status == "applied"
+    mock_referral_stripe.Subscription.modify.assert_called_once_with(
+        "sub_referrer_active", discounts=[{"coupon": "coupon_referrer25"}]
+    )
+
+
+def test_webhook_and_sync_race_produces_one_referrer_reward(client, db, app, register_user):
+    headers, referred_user, referred_profile = _register_referred_pair(
+        client, db, app, register_user,
+        referrer_email="racereferrer@example.com", referred_email="racereferred@example.com",
+    )
+    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_referrer25"
+
+    fake_checkout_session = MagicMock(
+        metadata=MagicMock(student_profile_id=str(referred_profile.id)),
+        subscription="sub_referred_race",
+        customer="cus_referred_race",
+    )
+    fake_subscription = MagicMock()
+    fake_subscription.__getitem__.side_effect = lambda k: {"status": "active"}[k]
+    fake_subscription.items.data = []
+
+    with patch("app.services.billing_service.stripe") as mock_stripe, \
+         patch("app.services.referral_service.stripe") as mock_referral_stripe:
+        mock_stripe.checkout.Session.retrieve.return_value = fake_checkout_session
+        mock_stripe.Subscription.retrieve.return_value = fake_subscription
+
+        # The success-page sync lands first...
+        sync_resp = client.post(
+            "/api/billing/sync", json={"session_id": "cs_referred_race"}, headers=headers
+        )
+
+        # ...and the webhook for the same checkout arrives shortly after.
+        mock_stripe.Webhook.construct_event.return_value = {
+            "type": "checkout.session.completed",
+            "data": {"object": fake_checkout_session},
+        }
+        webhook_resp = client.post(
+            "/api/billing/webhook",
+            data=b"{}",
+            headers={"Stripe-Signature": "sig", "Content-Type": "application/json"},
+        )
+
+    assert sync_resp.status_code == 200
+    assert webhook_resp.status_code == 200
+    assert ReferralReward.query.filter_by(referred_user_id=referred_user.id).count() == 1
+    mock_referral_stripe.Subscription.modify.assert_called_once()
 
 
 def test_webhook_invalid_signature_returns_400(client):

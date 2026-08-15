@@ -180,6 +180,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             Proficiency Dashboard
           </Link>
           <Link
+            href="/account"
+            onClick={() => setSidebarOpen(false)}
+            className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
+          >
+            Referrals
+          </Link>
+          <Link
             href="/manual"
             className="rounded-md border border-white/20 px-3 py-2 text-center text-sm text-paper/80 hover:border-ledger-bright hover:text-ledger-bright"
           >

@@ -74,9 +74,12 @@ def register_user(client, supabase_tokens):
     old direct /api/auth/register calls from the password-auth flow.
     Returns the exchange endpoint's JSON response.
     """
-    def _register(email, external_id=None):
+    def _register(email, external_id=None, referral_code=None):
         token = supabase_tokens(sub=external_id or str(uuid.uuid4()), email=email)
-        resp = client.post("/api/auth/exchange", json={"supabase_access_token": token})
+        payload = {"supabase_access_token": token}
+        if referral_code:
+            payload["referral_code"] = referral_code
+        resp = client.post("/api/auth/exchange", json=payload)
         return resp.get_json()
 
     return _register

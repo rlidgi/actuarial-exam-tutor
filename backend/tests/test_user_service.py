@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User
-from app.services import user_service
+from app.services import referral_service, user_service
 
 
 def test_find_or_create_recovers_from_concurrent_insert_race(db):
@@ -67,3 +67,43 @@ def test_find_or_create_still_rejects_a_real_email_conflict(db):
 
     with pytest.raises(user_service.IdentityConflict):
         user_service.find_or_create_by_external_identity(str(uuid.uuid4()), "taken@example.com")
+
+
+def test_find_or_create_attaches_referrer_only_for_a_brand_new_identity(db):
+    referrer = User(external_auth_id=str(uuid.uuid4()), email="referrersvc@example.com")
+    db.session.add(referrer)
+    db.session.commit()
+    code = referral_service.get_or_create_referral_code(referrer)
+
+    user, is_new = user_service.find_or_create_by_external_identity(
+        str(uuid.uuid4()), "newreferred@example.com", referral_code=code
+    )
+
+    assert is_new is True
+    assert user.referred_by_id == referrer.id
+
+
+def test_find_or_create_does_not_retroactively_attach_referrer_for_a_returning_identity(db):
+    referrer = User(external_auth_id=str(uuid.uuid4()), email="referrersvc2@example.com")
+    db.session.add(referrer)
+    db.session.commit()
+    code = referral_service.get_or_create_referral_code(referrer)
+
+    external_id = str(uuid.uuid4())
+    user_service.find_or_create_by_external_identity(external_id, "returningreferred@example.com")
+
+    user, is_new = user_service.find_or_create_by_external_identity(
+        external_id, "returningreferred@example.com", referral_code=code
+    )
+
+    assert is_new is False
+    assert user.referred_by_id is None
+
+
+def test_find_or_create_noops_on_an_invalid_referral_code(db):
+    user, is_new = user_service.find_or_create_by_external_identity(
+        str(uuid.uuid4()), "badcodeuser@example.com", referral_code="NOTAREALCODE"
+    )
+
+    assert is_new is True
+    assert user.referred_by_id is None
