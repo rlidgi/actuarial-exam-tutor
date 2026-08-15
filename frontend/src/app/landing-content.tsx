@@ -141,47 +141,47 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
 function BrainIcon() {
   const hemiId = useId();
   return (
-    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+    <svg viewBox="0 0 40 40" width="42" height="42" aria-hidden="true">
       <defs>
         <g id={hemiId}>
           <path
-            d="M20 11
-               C20.5 9 22.3 7.8 24 8.5 C24.6 7 26.7 6.5 28 7.6
-               C29.6 7.3 31.2 8.6 31 10.3 C33 10.7 34.2 12.8 33.3 14.6
-               C34.8 15.7 34.8 18.2 33.1 19.2 C34.3 20.6 33.9 23 32.1 23.8
-               C32.7 25.5 31.4 27.3 29.6 27.2 C29.3 28.9 27.3 30 25.7 29.2
-               C25 30.6 22.9 30.8 22 29.5 C20.9 29.7 20 28.8 20 27.6 Z"
+            d="M20 9
+               C22 7.3 24.5 7.3 26 9 C28 8 30.5 9.3 30.5 11.5
+               C33 12 34.3 14.7 33 17 C34.5 18.6 34 21.3 32 22.3
+               C32.8 23.6 32.5 25.3 31 26
+               C31.3 28 29.7 29.8 27.6 29.8 C26.3 29.8 25.2 29.1 24.6 28.1
+               C23.5 28.7 22.1 28.4 21.3 27.4 C20.6 27.7 20 27.3 20 26.5 Z"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="1.2"
+            strokeWidth="1.3"
             strokeLinejoin="round"
           />
           <path
-            d="M23 10 C24.5 11.5 24.5 13.5 23 15 C24.8 16 25 18.3 23.3 19.8"
+            d="M23 9.5 C25 10.8 25 13 23.3 14.5 C25.3 15.3 25.7 17.8 24 19.3"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="0.9"
+            strokeWidth="1"
             strokeLinecap="round"
           />
           <path
-            d="M27.5 10.5 C29 12 29 14.5 27.3 16 C29.2 17 29.3 19.6 27.4 21"
+            d="M29 12.5 C30.7 13.8 30.7 16 29 17.3 C30.7 18.3 30.8 20.7 29.2 21.8"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="0.9"
+            strokeWidth="1"
             strokeLinecap="round"
           />
           <path
-            d="M28.5 22 C30 23 30 25 28.3 26.2"
+            d="M27.8 23 C29 24 29 25.7 27.7 26.6"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="0.9"
+            strokeWidth="1"
             strokeLinecap="round"
           />
         </g>
       </defs>
       <use href={`#${hemiId}`} />
       <use href={`#${hemiId}`} transform="scale(-1,1) translate(-40,0)" />
-      <line x1="20" y1="10" x2="20" y2="29" stroke="var(--paper)" strokeWidth="1.2" strokeOpacity="0.7" />
+      <line x1="20" y1="8.5" x2="20" y2="27.5" stroke="var(--paper)" strokeWidth="1.3" strokeOpacity="0.75" />
     </svg>
   );
 }
@@ -324,10 +324,10 @@ export default function LandingContent() {
             </span>
             <div className="landing-hero-feature-text">
               <div className="landing-hero-feature-title">
-                Personalized guidance that adapts as you learn.
+                Personalized guidance from an AI tutor that adapts as you learn.
               </div>
               <p>
-                Your AI tutor tracks what you&apos;ve mastered, identifies gaps in
+                Your tutor tracks what you&apos;ve mastered, identifies gaps in
                 your foundational knowledge, and guides you step by step toward
                 exam mastery.
               </p>
