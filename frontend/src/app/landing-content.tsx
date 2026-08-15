@@ -31,28 +31,28 @@ const HERO_SYMBOLS: {
   fontSize: string;
   delay: string;
 }[] = [
-  { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
-  { text: "∫", left: "90%", top: "18%", fontSize: "2.3rem", delay: "1.5s" },
-  { text: "(1+i)ⁿ", left: "13%", top: "58%", fontSize: "1.25rem", delay: "3s" },
-  { text: "δ", left: "85%", top: "60%", fontSize: "2rem", delay: "0.8s" },
-  { text: "vⁿ", left: "4%", top: "78%", fontSize: "1.3rem", delay: "2.2s" },
-  { text: "μ", left: "92%", top: "80%", fontSize: "1.7rem", delay: "4s" },
-  { text: "σ²", left: "8%", top: "36%", fontSize: "1.4rem", delay: "5s" },
-  { text: "∞", left: "93%", top: "42%", fontSize: "1.9rem", delay: "2.8s" },
-  { text: "E[X]", left: "3%", top: "92%", fontSize: "1.15rem", delay: "1.2s" },
-  { text: "λ", left: "88%", top: "6%", fontSize: "1.5rem", delay: "3.6s" },
-  { text: "P(A∩B)", left: "16%", top: "4%", fontSize: "1.1rem", delay: "4.5s" },
-  { text: "1−p", left: "80%", top: "92%", fontSize: "1.25rem", delay: "0.4s" },
-  { text: "ₓpₓ", left: "20%", top: "8%", fontSize: "1.3rem", delay: "2s" },
-  { text: "qₓ", left: "7%", top: "50%", fontSize: "1.2rem", delay: "3.3s" },
-  { text: "Aₓ", left: "95%", top: "30%", fontSize: "1.6rem", delay: "1s" },
-  { text: "äₓ", left: "22%", top: "88%", fontSize: "1.4rem", delay: "4.2s" },
-  { text: "lₓ", left: "2%", top: "22%", fontSize: "1.15rem", delay: "0.6s" },
-  { text: "eₓ", left: "78%", top: "14%", fontSize: "1.3rem", delay: "5.5s" },
-  { text: "ₛEₓ", left: "83%", top: "70%", fontSize: "1.15rem", delay: "1.8s" },
-  { text: "ω", left: "97%", top: "52%", fontSize: "1.8rem", delay: "3.8s" },
-  { text: "ₛVₓ", left: "12%", top: "70%", fontSize: "1.1rem", delay: "2.6s" },
-];
+    { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
+    { text: "∫", left: "90%", top: "18%", fontSize: "2.3rem", delay: "1.5s" },
+    { text: "(1+i)ⁿ", left: "13%", top: "58%", fontSize: "1.25rem", delay: "3s" },
+    { text: "δ", left: "85%", top: "60%", fontSize: "2rem", delay: "0.8s" },
+    { text: "vⁿ", left: "4%", top: "78%", fontSize: "1.3rem", delay: "2.2s" },
+    { text: "μ", left: "92%", top: "80%", fontSize: "1.7rem", delay: "4s" },
+    { text: "σ²", left: "8%", top: "36%", fontSize: "1.4rem", delay: "5s" },
+    { text: "∞", left: "93%", top: "42%", fontSize: "1.9rem", delay: "2.8s" },
+    { text: "E[X]", left: "3%", top: "92%", fontSize: "1.15rem", delay: "1.2s" },
+    { text: "λ", left: "88%", top: "6%", fontSize: "1.5rem", delay: "3.6s" },
+    { text: "P(A∩B)", left: "16%", top: "4%", fontSize: "1.1rem", delay: "4.5s" },
+    { text: "1−p", left: "80%", top: "92%", fontSize: "1.25rem", delay: "0.4s" },
+    { text: "ₓpₓ", left: "20%", top: "8%", fontSize: "1.3rem", delay: "2s" },
+    { text: "qₓ", left: "7%", top: "50%", fontSize: "1.2rem", delay: "3.3s" },
+    { text: "Aₓ", left: "95%", top: "30%", fontSize: "1.6rem", delay: "1s" },
+    { text: "äₓ", left: "22%", top: "88%", fontSize: "1.4rem", delay: "4.2s" },
+    { text: "lₓ", left: "2%", top: "22%", fontSize: "1.15rem", delay: "0.6s" },
+    { text: "eₓ", left: "78%", top: "14%", fontSize: "1.3rem", delay: "5.5s" },
+    { text: "ₛEₓ", left: "83%", top: "70%", fontSize: "1.15rem", delay: "1.8s" },
+    { text: "ω", left: "97%", top: "52%", fontSize: "1.8rem", delay: "3.8s" },
+    { text: "ₛVₓ", left: "12%", top: "70%", fontSize: "1.1rem", delay: "2.6s" },
+  ];
 
 const EXAMS = [
   { code: "P", name: "Probability", color: "var(--sky)" },
@@ -145,34 +145,36 @@ function BrainIcon() {
       <defs>
         <g id={hemiId}>
           <path
-            d="M20 12 C21 9 24 7.5 27 8.5 C29 9.2 29.5 11 29 12.5
-               C31.5 12.8 33.5 15 33 17.5 C32.7 19 31.5 20 30.5 20.3
-               C32 21.5 32.3 24 30.5 25.8 C29.3 27 27.5 27 26.3 26.3
-               C26.5 28.3 25 30 22.8 30 C21.5 30 20.5 29.3 20 28.3 Z"
+            d="M20 11
+               C20.5 9 22.3 7.8 24 8.5 C24.6 7 26.7 6.5 28 7.6
+               C29.6 7.3 31.2 8.6 31 10.3 C33 10.7 34.2 12.8 33.3 14.6
+               C34.8 15.7 34.8 18.2 33.1 19.2 C34.3 20.6 33.9 23 32.1 23.8
+               C32.7 25.5 31.4 27.3 29.6 27.2 C29.3 28.9 27.3 30 25.7 29.2
+               C25 30.6 22.9 30.8 22 29.5 C20.9 29.7 20 28.8 20 27.6 Z"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="1.3"
+            strokeWidth="1.2"
             strokeLinejoin="round"
           />
           <path
-            d="M23 11.5 C25 12.5 25.5 15 24 17"
+            d="M23 10 C24.5 11.5 24.5 13.5 23 15 C24.8 16 25 18.3 23.3 19.8"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="1"
+            strokeWidth="0.9"
             strokeLinecap="round"
           />
           <path
-            d="M27 13.5 C29.3 14.8 29.5 17.5 27.5 19.5"
+            d="M27.5 10.5 C29 12 29 14.5 27.3 16 C29.2 17 29.3 19.6 27.4 21"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="1"
+            strokeWidth="0.9"
             strokeLinecap="round"
           />
           <path
-            d="M27 21.5 C29 22.8 28.7 25 26.7 26"
+            d="M28.5 22 C30 23 30 25 28.3 26.2"
             fill="none"
             stroke="var(--paper)"
-            strokeWidth="1"
+            strokeWidth="0.9"
             strokeLinecap="round"
           />
         </g>
@@ -325,7 +327,7 @@ export default function LandingContent() {
                 Personalized guidance that adapts as you learn.
               </div>
               <p>
-                Your tutor tracks what you&apos;ve mastered, identifies gaps in
+                Your AI tutor tracks what you&apos;ve mastered, identifies gaps in
                 your foundational knowledge, and guides you step by step toward
                 exam mastery.
               </p>
