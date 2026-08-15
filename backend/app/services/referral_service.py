@@ -16,11 +16,8 @@ from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.models.referral_reward import ReferralReward
-from app.models.student import StudentProfile
-from app.models.subscription import Subscription
 from app.models.user import User
-from app.services import entitlement_service
-from app.services.stripe_utils import use_api_key
+from app.services.stripe_utils import any_stripe_customer_id, use_api_key
 
 # No 0/O/1/I/L -- avoids codes that are ambiguous when read aloud or typed
 # from memory (this is a code students will actually share with classmates).
@@ -88,32 +85,6 @@ def reward_history(user: User) -> list[ReferralReward]:
     )
 
 
-def _reward_type_for_position(position: int, interval: int) -> str:
-    """position is this referral's 1-indexed rank among the referrer's
-    completed referrals. Every interval-th one (3rd, 6th, 9th...) is a free
-    month instead of the usual percent-off -- the milestone replaces that
-    referral's discount, it doesn't stack on top of it."""
-    return "referrer_free_month" if position % interval == 0 else "referrer_percent_off"
-
-
-def _target_subscription_for_reward(user: User) -> Subscription | None:
-    """Reward scope is a general account credit, not tied to a specific
-    exam -- but Stripe can only attach a coupon to one specific subscription,
-    so if this user has more than one active exam subscription, the
-    most-recently-started one is the deterministic default. Isolated here so
-    it's a one-line change later if the business wants different behavior
-    (e.g. letting the user pick)."""
-    return (
-        Subscription.query.join(StudentProfile)
-        .filter(
-            StudentProfile.user_id == user.id,
-            Subscription.status.in_(entitlement_service.ACTIVE_SUBSCRIPTION_STATUSES),
-        )
-        .order_by(Subscription.created_at.desc())
-        .first()
-    )
-
-
 def pending_reward_for_checkout(user: User) -> ReferralReward | None:
     """Which reward (if any) should be attached to this user's next Stripe
     Checkout session. Their own one-time "you were referred" discount takes
@@ -162,26 +133,25 @@ def record_referred_user_pending_reward(user: User) -> None:
 def grant_referrer_reward(referrer: User, referred_user: User) -> None:
     """Called once a referred user's conversion is confirmed (referred_user
     must already have has_ever_subscribed=True by this point -- see
-    handle_first_ever_activation). Applies immediately if the referrer has
-    an active subscription to attach the coupon to; otherwise the reward
-    stays pending and is consumed at the referrer's next checkout (see
+    handle_first_ever_activation). Every completed referral earns the same
+    flat account credit, no tiers.
+
+    Applied immediately as a Stripe customer balance credit if the referrer
+    already has a Stripe customer id -- balance credits are additive and
+    customer-scoped (not tied to one subscription), so multiple rewards
+    earned close together just accumulate correctly instead of one
+    overwriting another the way stacking discounts on a single subscription
+    would. If the referrer has never subscribed themselves yet (no Stripe
+    customer id exists), the reward stays pending and is redeemed as a
+    coupon on their own first-ever checkout instead (see
     pending_reward_for_checkout) -- there's no background retry/notification
     job for this in v1."""
-    position = completed_referral_count(referrer.id)
-    interval = current_app.config["REFERRAL_MILESTONE_INTERVAL"]
-    reward_type = _reward_type_for_position(position, interval)
-    coupon_id = (
-        current_app.config["STRIPE_COUPON_REFERRER_FREE_MONTH"]
-        if reward_type == "referrer_free_month"
-        else current_app.config["STRIPE_COUPON_REFERRER_25_OFF"]
-    )
-
     reward = ReferralReward(
         user_id=referrer.id,
         referred_user_id=referred_user.id,
-        reward_type=reward_type,
+        reward_type="referrer_credit",
         status="pending",
-        stripe_coupon_id=coupon_id,
+        stripe_coupon_id=current_app.config["STRIPE_COUPON_REFERRER_10_OFF"],
     )
     db.session.add(reward)
     try:
@@ -193,12 +163,17 @@ def grant_referrer_reward(referrer: User, referred_user: User) -> None:
         # granted this referrer their reward for this referral.
         return
 
-    target_sub = _target_subscription_for_reward(referrer)
-    if target_sub is None or not target_sub.stripe_subscription_id:
-        return  # stays pending
+    customer_id = any_stripe_customer_id(referrer.id)
+    if customer_id is None:
+        return  # stays pending, redeemed at the referrer's own first checkout
 
     use_api_key()
-    stripe.Subscription.modify(target_sub.stripe_subscription_id, discounts=[{"coupon": coupon_id}])
+    stripe.Customer.create_balance_transaction(
+        customer_id,
+        amount=-current_app.config["REFERRAL_CREDIT_CENTS"],
+        currency="usd",
+        description="Referral reward",
+    )
     reward.status = "applied"
     reward.applied_at = datetime.now(timezone.utc)
     db.session.commit()

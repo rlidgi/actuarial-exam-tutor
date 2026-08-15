@@ -1,13 +1,11 @@
 import uuid
 from unittest.mock import patch
 
-import pytest
-
-from app.models import Exam, ReferralReward, StudentProfile, Subscription, User
+from app.models import ReferralReward, User
 from app.services import referral_service
 
 
-def _make_user(db, email, *, referred_by_id=None, has_ever_subscribed=False):
+def _make_user(db, email, *, referred_by_id=None, has_ever_subscribed=False, stripe_customer_id=None):
     user = User(
         external_auth_id=str(uuid.uuid4()),
         email=email,
@@ -16,10 +14,17 @@ def _make_user(db, email, *, referred_by_id=None, has_ever_subscribed=False):
     )
     db.session.add(user)
     db.session.commit()
+    if stripe_customer_id:
+        _give_stripe_customer(db, user, stripe_customer_id)
     return user
 
 
-def _make_active_subscription(db, user, *, stripe_subscription_id):
+def _give_stripe_customer(db, user, stripe_customer_id):
+    """any_stripe_customer_id looks for any Subscription row of this user's
+    that recorded a Stripe customer id -- status doesn't matter, only that
+    the id was captured at some point (see stripe_utils.any_stripe_customer_id)."""
+    from app.models import Exam, StudentProfile, Subscription
+
     exam = Exam.query.filter_by(code="P").first()
     if exam is None:
         exam = Exam(code="P", name="Exam P")
@@ -30,13 +35,10 @@ def _make_active_subscription(db, user, *, stripe_subscription_id):
     db.session.commit()
     db.session.add(
         Subscription(
-            student_profile_id=profile.id,
-            status="active",
-            stripe_subscription_id=stripe_subscription_id,
+            student_profile_id=profile.id, status="active", stripe_customer_id=stripe_customer_id
         )
     )
     db.session.commit()
-    return profile
 
 
 def test_get_or_create_referral_code_is_idempotent(db):
@@ -86,31 +88,12 @@ def test_completed_referral_count_only_counts_converted_referrals(db):
     assert referral_service.completed_referral_count(referrer.id) == 2
 
 
-@pytest.mark.parametrize(
-    "position,expected",
-    [
-        (1, "referrer_percent_off"),
-        (2, "referrer_percent_off"),
-        (3, "referrer_free_month"),
-        (4, "referrer_percent_off"),
-        (5, "referrer_percent_off"),
-        (6, "referrer_free_month"),
-        (7, "referrer_percent_off"),
-        (8, "referrer_percent_off"),
-        (9, "referrer_free_month"),
-    ],
-)
-def test_reward_type_for_position(position, expected):
-    assert referral_service._reward_type_for_position(position, interval=3) == expected
-
-
-def test_grant_referrer_reward_applies_immediately_with_an_active_subscription(app, db):
-    referrer = _make_user(db, "activereferrer@example.com")
-    _make_active_subscription(db, referrer, stripe_subscription_id="sub_ref123")
+def test_grant_referrer_reward_applies_immediately_as_a_balance_credit(app, db):
+    referrer = _make_user(db, "activereferrer@example.com", stripe_customer_id="cus_ref123")
     referred_user = _make_user(
         db, "referred1@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
     )
-    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_25off"
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
 
     with patch("app.services.referral_service.stripe") as mock_stripe:
         referral_service.grant_referrer_reward(referrer, referred_user)
@@ -118,33 +101,34 @@ def test_grant_referrer_reward_applies_immediately_with_an_active_subscription(a
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
     assert reward.status == "applied"
-    assert reward.reward_type == "referrer_percent_off"
+    assert reward.reward_type == "referrer_credit"
     assert reward.applied_at is not None
-    mock_stripe.Subscription.modify.assert_called_once_with(
-        "sub_ref123", discounts=[{"coupon": "coupon_25off"}]
+    mock_stripe.Customer.create_balance_transaction.assert_called_once_with(
+        "cus_ref123", amount=-1000, currency="usd", description="Referral reward"
     )
 
 
-def test_grant_referrer_reward_hits_the_free_month_milestone(app, db):
-    referrer = _make_user(db, "milestonereferrer@example.com")
-    _make_active_subscription(db, referrer, stripe_subscription_id="sub_ref456")
-    # Two already-converted referrals -- the third makes this the milestone.
-    _make_user(db, "already1@example.com", referred_by_id=referrer.id, has_ever_subscribed=True)
-    _make_user(db, "already2@example.com", referred_by_id=referrer.id, has_ever_subscribed=True)
-    referred_user = _make_user(
-        db, "referred3rd@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+def test_grant_referrer_reward_gives_the_same_flat_credit_on_every_referral(app, db):
+    referrer = _make_user(db, "repeatreferrer@example.com", stripe_customer_id="cus_ref999")
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
+
+    with patch("app.services.referral_service.stripe") as mock_stripe:
+        for i in range(3):
+            referred = _make_user(
+                db, f"repeat{i}@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+            )
+            referral_service.grant_referrer_reward(referrer, referred)
+
+    assert mock_stripe.Customer.create_balance_transaction.call_count == 3
+    for call in mock_stripe.Customer.create_balance_transaction.call_args_list:
+        assert call.kwargs["amount"] == -1000
+    assert (
+        ReferralReward.query.filter_by(user_id=referrer.id, reward_type="referrer_credit").count()
+        == 3
     )
-    app.config["STRIPE_COUPON_REFERRER_FREE_MONTH"] = "coupon_freemonth"
-
-    with patch("app.services.referral_service.stripe"):
-        referral_service.grant_referrer_reward(referrer, referred_user)
-
-    reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
-    assert reward.reward_type == "referrer_free_month"
-    assert reward.stripe_coupon_id == "coupon_freemonth"
 
 
-def test_grant_referrer_reward_stays_pending_without_an_active_subscription(db):
+def test_grant_referrer_reward_stays_pending_without_a_stripe_customer(db):
     referrer = _make_user(db, "noactivesub@example.com")
     referred_user = _make_user(
         db, "referred2@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
@@ -156,7 +140,7 @@ def test_grant_referrer_reward_stays_pending_without_an_active_subscription(db):
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
     assert reward.status == "pending"
-    mock_stripe.Subscription.modify.assert_not_called()
+    mock_stripe.Customer.create_balance_transaction.assert_not_called()
 
 
 def test_grant_referrer_reward_is_idempotent_for_the_same_referred_user(db):
@@ -212,7 +196,7 @@ def test_pending_reward_for_checkout_prioritizes_referred_discount(db):
     user = _make_user(db, "prioritizeuser@example.com")
     db.session.add(
         ReferralReward(
-            user_id=user.id, reward_type="referrer_percent_off", status="pending", stripe_coupon_id="c1"
+            user_id=user.id, reward_type="referrer_credit", status="pending", stripe_coupon_id="c1"
         )
     )
     db.session.commit()
@@ -233,7 +217,7 @@ def test_handle_first_ever_activation_flips_flag_and_grants_reward_once(app, db)
     referred_user = _make_user(
         db, "firstactivationreferred@example.com", referred_by_id=referrer.id
     )
-    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_x"
+    app.config["STRIPE_COUPON_REFERRER_10_OFF"] = "coupon_x"
 
     with patch("app.services.referral_service.stripe"):
         referral_service.handle_first_ever_activation(referred_user.id)
@@ -247,7 +231,7 @@ def test_handle_first_ever_activation_flips_flag_and_grants_reward_once(app, db)
         referral_service.handle_first_ever_activation(referred_user.id)
 
     assert ReferralReward.query.filter_by(referred_user_id=referred_user.id).count() == 1
-    mock_stripe_second.Subscription.modify.assert_not_called()
+    mock_stripe_second.Customer.create_balance_transaction.assert_not_called()
 
 
 def test_handle_first_ever_activation_marks_referred_user_reward_applied(db):

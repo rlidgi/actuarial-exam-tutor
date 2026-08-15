@@ -43,16 +43,19 @@ class Config:
         "FAM": os.environ.get("STRIPE_PRICE_ID_FAM", ""),
     }
     FREE_TRIAL_TURNS = int(os.environ.get("FREE_TRIAL_TURNS", "6"))
-    # Referral program (see app/services/referral_service.py). Each coupon
-    # must be created in the Stripe dashboard with duration=once -- a
-    # referrer's/referred user's reward applies to exactly one invoice, not
-    # every future one.
+    # Referral program (see app/services/referral_service.py). A referred
+    # user's own first-month discount must be created in the Stripe
+    # dashboard with duration=once. Referrer rewards are a flat account
+    # credit (REFERRAL_CREDIT_CENTS) applied via a Stripe customer balance
+    # transaction once the referrer has a Stripe customer id -- credits are
+    # additive, so multiple simultaneous rewards can't clobber each other the
+    # way stacking discounts on one subscription would. STRIPE_COUPON_
+    # REFERRER_10_OFF (also duration=once, same fixed amount) only covers the
+    # one-time case where the referrer earns a reward before ever
+    # subscribing themselves -- see grant_referrer_reward.
     STRIPE_COUPON_REFERRED_25_OFF = os.environ.get("STRIPE_COUPON_REFERRED_25_OFF", "")
-    STRIPE_COUPON_REFERRER_25_OFF = os.environ.get("STRIPE_COUPON_REFERRER_25_OFF", "")
-    STRIPE_COUPON_REFERRER_FREE_MONTH = os.environ.get("STRIPE_COUPON_REFERRER_FREE_MONTH", "")
-    # Every Nth completed referral grants a free month instead of the usual
-    # percent-off (milestone replaces that referral's discount, not stacks).
-    REFERRAL_MILESTONE_INTERVAL = int(os.environ.get("REFERRAL_MILESTONE_INTERVAL", "3"))
+    STRIPE_COUPON_REFERRER_10_OFF = os.environ.get("STRIPE_COUPON_REFERRER_10_OFF", "")
+    REFERRAL_CREDIT_CENTS = int(os.environ.get("REFERRAL_CREDIT_CENTS", "1000"))
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")

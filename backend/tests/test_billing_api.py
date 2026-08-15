@@ -148,9 +148,9 @@ def test_sync_upserts_subscription_from_checkout_session(client, db, register_us
 
 
 def _register_referred_pair(client, db, app, register_user, *, referrer_email, referred_email):
-    """Registers a referrer with an active subscription (so their reward can
-    apply immediately) plus a referred user with a profile, ready for a
-    checkout sync/webhook to activate."""
+    """Registers a referrer who already has a Stripe customer id (so their
+    reward can apply immediately as a balance credit) plus a referred user
+    with a profile, ready for a checkout sync/webhook to activate."""
     _register_with_profile(client, db, register_user, referrer_email)
     referrer = User.query.filter_by(email=referrer_email).first()
     referrer_profile = StudentProfile.query.filter_by(user_id=referrer.id).first()
@@ -158,7 +158,7 @@ def _register_referred_pair(client, db, app, register_user, *, referrer_email, r
         Subscription(
             student_profile_id=referrer_profile.id,
             status="active",
-            stripe_subscription_id="sub_referrer_active",
+            stripe_customer_id="cus_referrer_active",
         )
     )
     db.session.commit()
@@ -177,7 +177,7 @@ def test_sync_activation_grants_and_applies_referrer_reward(client, db, app, reg
         client, db, app, register_user,
         referrer_email="syncreferrer@example.com", referred_email="syncreferred@example.com",
     )
-    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_referrer25"
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
 
     fake_checkout_session = MagicMock(
         metadata=MagicMock(student_profile_id=str(referred_profile.id)),
@@ -202,8 +202,8 @@ def test_sync_activation_grants_and_applies_referrer_reward(client, db, app, reg
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
     assert reward.status == "applied"
-    mock_referral_stripe.Subscription.modify.assert_called_once_with(
-        "sub_referrer_active", discounts=[{"coupon": "coupon_referrer25"}]
+    mock_referral_stripe.Customer.create_balance_transaction.assert_called_once_with(
+        "cus_referrer_active", amount=-1000, currency="usd", description="Referral reward"
     )
 
 
@@ -212,7 +212,7 @@ def test_webhook_and_sync_race_produces_one_referrer_reward(client, db, app, reg
         client, db, app, register_user,
         referrer_email="racereferrer@example.com", referred_email="racereferred@example.com",
     )
-    app.config["STRIPE_COUPON_REFERRER_25_OFF"] = "coupon_referrer25"
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
 
     fake_checkout_session = MagicMock(
         metadata=MagicMock(student_profile_id=str(referred_profile.id)),
@@ -247,7 +247,7 @@ def test_webhook_and_sync_race_produces_one_referrer_reward(client, db, app, reg
     assert sync_resp.status_code == 200
     assert webhook_resp.status_code == 200
     assert ReferralReward.query.filter_by(referred_user_id=referred_user.id).count() == 1
-    mock_referral_stripe.Subscription.modify.assert_called_once()
+    mock_referral_stripe.Customer.create_balance_transaction.assert_called_once()
 
 
 def test_webhook_invalid_signature_returns_400(client):

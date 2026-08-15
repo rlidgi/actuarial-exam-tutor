@@ -7,8 +7,7 @@ import { api, ApiError, isAuthError, type ReferralSummary } from "@/lib/api";
 
 const REWARD_LABELS: Record<ReferralSummary["rewards"][number]["reward_type"], string> = {
   referred_percent_off: "25% off your first month",
-  referrer_percent_off: "25% off your next month",
-  referrer_free_month: "One free month",
+  referrer_credit: "$10 account credit",
 };
 
 const STATUS_LABELS: Record<ReferralSummary["rewards"][number]["status"], string> = {
@@ -58,8 +57,7 @@ export default function AccountPage() {
           <h1>Referrals</h1>
           <p>
             Share your link. When someone you refer subscribes, they get 25% off their first
-            month, and you get 25% off your next month -- every 3rd referral earns you a full
-            free month instead.
+            month, and you get $10 credit toward any exam&apos;s subscription fees.
           </p>
         </div>
 

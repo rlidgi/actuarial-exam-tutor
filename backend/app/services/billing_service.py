@@ -17,21 +17,7 @@ from app.extensions import db
 from app.models.student import StudentProfile
 from app.models.subscription import Subscription
 from app.services import entitlement_service, referral_service
-from app.services.stripe_utils import use_api_key
-
-
-def any_stripe_customer_id(user_id: int) -> str | None:
-    """A user should map to exactly one Stripe customer even though they
-    can hold up to three subscriptions (one per exam) -- reusing whichever
-    customer id any prior subscription already recorded means Checkout
-    attaches new exam subscriptions to that same customer instead of
-    Stripe minting a new customer per exam."""
-    sub = (
-        Subscription.query.join(StudentProfile)
-        .filter(StudentProfile.user_id == user_id, Subscription.stripe_customer_id.isnot(None))
-        .first()
-    )
-    return sub.stripe_customer_id if sub else None
+from app.services.stripe_utils import any_stripe_customer_id, use_api_key
 
 
 def create_checkout_session(
@@ -48,8 +34,10 @@ def create_checkout_session(
 
     # Referral discount, if this checkout is eligible for one -- either this
     # user's own one-time "referred" discount on their first-ever
-    # subscription, or a reward they earned referring others that's been
-    # waiting for a subscription to attach to. See referral_service for why
+    # subscription, or a reward they earned referring others before ever
+    # subscribing themselves (once they have a Stripe customer id, later
+    # referrer rewards apply as an account credit instead -- see
+    # referral_service.grant_referrer_reward). See referral_service for why
     # this is a single lookup rather than two separate checks.
     referral_service.record_referred_user_pending_reward(student_profile.user)
     reward = referral_service.pending_reward_for_checkout(student_profile.user)

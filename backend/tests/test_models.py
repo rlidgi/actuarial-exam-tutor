@@ -40,7 +40,7 @@ def test_referral_reward_referred_user_id_is_unique(app, db):
         ReferralReward(
             user_id=referrer.id,
             referred_user_id=referred.id,
-            reward_type="referrer_percent_off",
+            reward_type="referrer_credit",
             status="pending",
         )
     )
@@ -50,7 +50,7 @@ def test_referral_reward_referred_user_id_is_unique(app, db):
         ReferralReward(
             user_id=referrer.id,
             referred_user_id=referred.id,
-            reward_type="referrer_percent_off",
+            reward_type="referrer_credit",
             status="pending",
         )
     )

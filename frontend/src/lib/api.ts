@@ -184,7 +184,7 @@ export interface SessionSummary {
 }
 
 export interface ReferralRewardDTO {
-  reward_type: "referred_percent_off" | "referrer_percent_off" | "referrer_free_month";
+  reward_type: "referred_percent_off" | "referrer_credit";
   status: "pending" | "applied" | "failed";
   created_at: string | null;
   applied_at: string | null;

@@ -37,8 +37,8 @@ def test_summary_includes_reward_history(client, db, register_user):
 
     db.session.add(
         ReferralReward(
-            user_id=user.id, reward_type="referrer_percent_off", status="applied",
-            stripe_coupon_id="coupon_25off",
+            user_id=user.id, reward_type="referrer_credit", status="applied",
+            stripe_coupon_id="coupon_10off",
         )
     )
     db.session.commit()
@@ -47,5 +47,5 @@ def test_summary_includes_reward_history(client, db, register_user):
 
     body = resp.get_json()
     assert len(body["rewards"]) == 1
-    assert body["rewards"][0]["reward_type"] == "referrer_percent_off"
+    assert body["rewards"][0]["reward_type"] == "referrer_credit"
     assert body["rewards"][0]["status"] == "applied"
