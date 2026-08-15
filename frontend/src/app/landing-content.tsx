@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -133,32 +133,53 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   ),
 };
 
+// A more anatomically-detailed brain (outer lobe bumps + inner fold lines)
+// than a plain silhouette would give -- drawn as one hemisphere, mirrored
+// with a scale(-1,1) transform so both sides are guaranteed symmetric.
+// useId keeps the <defs> id collision-safe if this ever renders more than
+// once on a page.
 function BrainIcon() {
+  const hemiId = useId();
   return (
     <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
-      <path
-        d="M17 9 C12 9 9 12.5 9 16.5 C6.8 17.4 5.5 19.6 6 22 C6.4 24 8 25.4 10 25.8 C10.2 28.8 12.7 31 15.8 31 C17 31 18.1 30.6 19 29.9 V11 C18.4 9.9 17.7 9.2 17 9 Z"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M23 9 C28 9 31 12.5 31 16.5 C33.2 17.4 34.5 19.6 34 22 C33.6 24 32 25.4 30 25.8 C29.8 28.8 27.3 31 24.2 31 C23 31 21.9 30.6 21 29.9 V11 C21.6 9.9 22.3 9.2 23 9 Z"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <line
-        x1="20"
-        y1="11"
-        x2="20"
-        y2="30"
-        stroke="var(--paper)"
-        strokeWidth="1.4"
-        strokeOpacity="0.6"
-      />
+      <defs>
+        <g id={hemiId}>
+          <path
+            d="M20 12 C21 9 24 7.5 27 8.5 C29 9.2 29.5 11 29 12.5
+               C31.5 12.8 33.5 15 33 17.5 C32.7 19 31.5 20 30.5 20.3
+               C32 21.5 32.3 24 30.5 25.8 C29.3 27 27.5 27 26.3 26.3
+               C26.5 28.3 25 30 22.8 30 C21.5 30 20.5 29.3 20 28.3 Z"
+            fill="none"
+            stroke="var(--paper)"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M23 11.5 C25 12.5 25.5 15 24 17"
+            fill="none"
+            stroke="var(--paper)"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
+          <path
+            d="M27 13.5 C29.3 14.8 29.5 17.5 27.5 19.5"
+            fill="none"
+            stroke="var(--paper)"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
+          <path
+            d="M27 21.5 C29 22.8 28.7 25 26.7 26"
+            fill="none"
+            stroke="var(--paper)"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
+        </g>
+      </defs>
+      <use href={`#${hemiId}`} />
+      <use href={`#${hemiId}`} transform="scale(-1,1) translate(-40,0)" />
+      <line x1="20" y1="10" x2="20" y2="29" stroke="var(--paper)" strokeWidth="1.2" strokeOpacity="0.7" />
     </svg>
   );
 }
