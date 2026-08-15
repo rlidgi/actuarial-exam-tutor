@@ -118,7 +118,13 @@ export default function LandingContent() {
           ))}
         </div>
         <h1>Your personal tutor for actuarial exams</h1>
-        <p className="landing-hero-sub" style={{ fontStyle: "italic", fontSize: "20px" }}>Study smarter for P, FM, and FAM with an AI tutor that explains concepts, works through problems, and helps when you get stuck.</p>
+        <p
+          className="landing-hero-sub"
+          style={{ fontStyle: "italic", fontSize: "20px", color: "rgba(237, 239, 232, 0.78)" }}
+        >
+          Study smarter for P, FM, and FAM with an AI tutor that explains concepts, works through
+          problems, and helps when you get stuck.
+        </p>
         <div className="exam-picker">
           {EXAMS.map((e) => (
             <Link key={e.code} className="exam-card" href={`/pricing?exam=${e.code}`}>
