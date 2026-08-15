@@ -313,7 +313,18 @@ export default function LandingContent() {
 
         <div className="landing-hero">
           <h1>Your personal tutor for actuarial exams</h1>
-          <div className="landing-hero-tagline">
+          <div
+            className="landing-hero-tagline"
+            // will-change stays in the CSS for the animation itself, but
+            // leaving it on indefinitely keeps this promoted to its own
+            // compositing layer forever -- releasing it once the one-shot
+            // entrance animation finishes avoids that ongoing overhead
+            // (was showing up as sluggish hover transitions elsewhere on
+            // the page, e.g. the exam-picker cards).
+            onAnimationEnd={(e) => {
+              e.currentTarget.style.willChange = "auto";
+            }}
+          >
             <span className="tagline-line" aria-hidden="true" />
             <span>You don&apos;t have to go it alone.</span>
             <span className="tagline-line" aria-hidden="true" />

@@ -465,6 +465,11 @@ body > * {
 }
 .landing-hero .exam-card {
   padding: 2rem 1.2rem;
+  /* Color/background snap instantly on hover instead of the base rule's
+     0.15s -- the lift (transform/shadow) keeps a short transition since an
+     instant jump there looks like a glitch, but the color change lagging
+     behind the cursor read as sluggish. */
+  transition: transform 0.1s, box-shadow 0.1s, border-color 0s, background 0s;
 }
 .landing-hero .exam-card-code {
   font-size: 2.5rem;
