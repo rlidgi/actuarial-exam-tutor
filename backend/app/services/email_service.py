@@ -61,7 +61,7 @@ Welcome to Actuarial Exams Tutor! Your account is ready, and you can start study
 As a registered user, you now have access to:
 
 - Full study manuals for free -- Access the complete study manual for each supported actuarial exam.
-- 6 free AI Tutor messages -- Ask questions about difficult concepts, formulas, practice problems, or anything else you need help understanding.
+- 6 free AI Tutor messages -- Chance to try out the tutor. Ask questions about difficult concepts, formulas, practice problems, or anything else you need help understanding.
 - Study at your own pace -- Use the study manuals whenever you need them throughout your exam preparation.
 
 Get Started
@@ -93,7 +93,7 @@ def _html(frontend_url: str, referral_url: str) -> str:
 <div style="background:#edefe8;padding:32px 16px;font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #d8dacd;">
     <div style="padding:28px 32px 4px;text-align:center;">
-      <img src="{frontend_url}/logo-text.png" alt="Actuarial Exams Tutor" height="26" style="height:26px;width:auto;">
+      <img src="{frontend_url}/logo.png" alt="Actuarial Exams Tutor" height="36" style="height:36px;width:auto;">
     </div>
     <div style="padding:12px 32px 32px;color:#172227;font-size:15px;line-height:1.6;">
       <p>Hi there,</p>
