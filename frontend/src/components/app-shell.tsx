@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Open menu"
         aria-expanded={sidebarOpen}
         onClick={() => setSidebarOpen(true)}
-        className="fixed left-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-md border border-rule bg-paper-raised text-lg shadow-md md:hidden"
+        className="fixed right-3 top-3 z-40 flex h-9 w-9 items-center justify-center rounded-md border border-rule bg-paper-raised text-lg shadow-md md:hidden"
       >
         &#9776;
       </button>
