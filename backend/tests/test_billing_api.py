@@ -73,6 +73,64 @@ def test_checkout_includes_referral_discount_for_referred_user(client, db, app, 
     assert create_kwargs["discounts"] == [{"coupon": "coupon_referred25"}]
 
 
+def test_checkout_grants_free_trial_for_an_eligible_email(client, db, app, register_user):
+    headers = _register_with_profile(client, db, register_user, "president@university.edu")
+    app.config["STRIPE_PRICE_IDS"]["P"] = "price_test123"
+    app.config["TRIAL_ELIGIBLE_EMAILS"] = {"president@university.edu"}
+    app.config["TRIAL_PERIOD_DAYS"] = 14
+
+    with patch("app.services.billing_service.stripe") as mock_stripe:
+        mock_stripe.checkout.Session.create.return_value = MagicMock(
+            url="https://checkout.stripe.com/test-session"
+        )
+        resp = client.post("/api/billing/checkout", json={"exam_code": "P"}, headers=headers)
+
+    assert resp.status_code == 200
+    create_kwargs = mock_stripe.checkout.Session.create.call_args.kwargs
+    assert create_kwargs["subscription_data"]["trial_period_days"] == 14
+    assert create_kwargs["payment_method_collection"] == "if_required"
+
+
+def test_checkout_ignores_trial_eligibility_for_a_different_email(client, db, app, register_user):
+    headers = _register_with_profile(client, db, register_user, "notpresident@example.com")
+    app.config["STRIPE_PRICE_IDS"]["P"] = "price_test123"
+    app.config["TRIAL_ELIGIBLE_EMAILS"] = {"president@university.edu"}
+
+    with patch("app.services.billing_service.stripe") as mock_stripe:
+        mock_stripe.checkout.Session.create.return_value = MagicMock(
+            url="https://checkout.stripe.com/test-session"
+        )
+        resp = client.post("/api/billing/checkout", json={"exam_code": "P"}, headers=headers)
+
+    assert resp.status_code == 200
+    create_kwargs = mock_stripe.checkout.Session.create.call_args.kwargs
+    assert "trial_period_days" not in create_kwargs["subscription_data"]
+    assert "payment_method_collection" not in create_kwargs
+
+
+def test_checkout_does_not_grant_a_second_trial_after_has_ever_subscribed(
+    client, db, app, register_user
+):
+    headers = _register_with_profile(client, db, register_user, "president2@university.edu")
+    user = User.query.filter_by(email="president2@university.edu").first()
+    user.has_ever_subscribed = True
+    db.session.commit()
+
+    app.config["STRIPE_PRICE_IDS"]["P"] = "price_test123"
+    app.config["TRIAL_ELIGIBLE_EMAILS"] = {"president2@university.edu"}
+
+    with patch("app.services.billing_service.stripe") as mock_stripe:
+        mock_stripe.checkout.Session.create.return_value = MagicMock(
+            url="https://checkout.stripe.com/test-session"
+        )
+        resp = client.post("/api/billing/checkout", json={"exam_code": "P"}, headers=headers)
+
+    assert resp.status_code == 200
+    create_kwargs = mock_stripe.checkout.Session.create.call_args.kwargs
+    assert "trial_period_days" not in create_kwargs["subscription_data"]
+    assert "payment_method_collection" not in create_kwargs
+
+
 def test_portal_without_existing_customer_returns_400(client, db, register_user):
     headers = _register_with_profile(client, db, register_user, "portalnocustomer@example.com")
 

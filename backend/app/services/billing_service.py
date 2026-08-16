@@ -31,6 +31,7 @@ def create_checkout_session(
     existing_customer_id = any_stripe_customer_id(student_profile.user_id)
     metadata = {"student_profile_id": str(student_profile.id)}
     kwargs = {"customer": existing_customer_id} if existing_customer_id else {"customer_email": email}
+    subscription_data = {"metadata": metadata}
 
     # Referral discount, if this checkout is eligible for one -- either this
     # user's own one-time "referred" discount on their first-ever
@@ -44,11 +45,24 @@ def create_checkout_session(
     if reward is not None:
         kwargs["discounts"] = [{"coupon": reward.stripe_coupon_id}]
 
+    # Promotional free trial (see config.TRIAL_ELIGIBLE_EMAILS) -- one-time,
+    # only for a user who's never had a subscription before (including a
+    # prior trial), so re-checking out after a lapsed trial doesn't grant a
+    # second one. payment_method_collection="if_required" means no card is
+    # needed to start the trial; Stripe just lets the subscription lapse at
+    # the end of the trial if one was never added.
+    if (
+        not student_profile.user.has_ever_subscribed
+        and email.strip().lower() in current_app.config["TRIAL_ELIGIBLE_EMAILS"]
+    ):
+        subscription_data["trial_period_days"] = current_app.config["TRIAL_PERIOD_DAYS"]
+        kwargs["payment_method_collection"] = "if_required"
+
     session = stripe.checkout.Session.create(
         mode="subscription",
         line_items=[{"price": price_id, "quantity": 1}],
         metadata=metadata,
-        subscription_data={"metadata": metadata},
+        subscription_data=subscription_data,
         success_url=success_url,
         cancel_url=cancel_url,
         **kwargs,

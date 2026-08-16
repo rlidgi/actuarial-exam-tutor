@@ -56,6 +56,18 @@ class Config:
     STRIPE_COUPON_REFERRED_25_OFF = os.environ.get("STRIPE_COUPON_REFERRED_25_OFF", "")
     STRIPE_COUPON_REFERRER_10_OFF = os.environ.get("STRIPE_COUPON_REFERRER_10_OFF", "")
     REFERRAL_CREDIT_CENTS = int(os.environ.get("REFERRAL_CREDIT_CENTS", "1000"))
+    # Promotional free trial for a short, hand-picked outreach list (e.g.
+    # university actuarial club presidents) -- see
+    # billing_service.create_checkout_session. Tied to the signed-in user's
+    # own verified account email (never client-supplied), not a shareable
+    # link or code, so forwarding the offer to someone else doesn't extend
+    # it to them.
+    TRIAL_ELIGIBLE_EMAILS = {
+        e.strip().lower()
+        for e in os.environ.get("TRIAL_ELIGIBLE_EMAILS", "").split(",")
+        if e.strip()
+    }
+    TRIAL_PERIOD_DAYS = int(os.environ.get("TRIAL_PERIOD_DAYS", "14"))
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
