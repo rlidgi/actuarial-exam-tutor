@@ -96,12 +96,12 @@ export function SignInModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-sm">
+      <div className="my-auto w-full max-w-sm">
         <div
           role="dialog"
           aria-modal="true"
@@ -194,14 +194,17 @@ export function SignInModal({
 
         {/* Static self-contained HTML files (frontend/public/), not React
             routes -- plain <a> tags, same reasoning as site-footer.tsx's
-            Terms/Privacy links. */}
-        <p className="mt-4 text-center text-xs text-pencil-soft">
+            Terms/Privacy links. text-paper/80 (not text-pencil-soft) since
+            this sits outside the card, directly on the dark bg-black/40
+            backdrop -- pencil-soft is a light-background color and was
+            nearly invisible there. */}
+        <p className="mt-4 text-center text-xs text-paper/80">
           By continuing, you agree to our{" "}
-          <a href="/terms.html" className="text-ledger underline hover:text-ledger-bright">
+          <a href="/terms.html" className="text-paper underline hover:text-gold">
             Terms &amp; Conditions
           </a>{" "}
           and{" "}
-          <a href="/privacy.html" className="text-ledger underline hover:text-ledger-bright">
+          <a href="/privacy.html" className="text-paper underline hover:text-gold">
             Privacy Policy
           </a>
           .
