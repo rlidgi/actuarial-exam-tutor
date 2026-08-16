@@ -197,6 +197,20 @@ export interface ReferralSummary {
   rewards: ReferralRewardDTO[];
 }
 
+// Must match backend/app/models/feedback.py's CATEGORIES tuple.
+export type FeedbackCategory = "bug" | "feature_request" | "ui_ux" | "performance" | "other";
+
+// Every field optional -- see api/feedback.py, a submission with just one
+// rating (or just a message) is still valid.
+export interface FeedbackSubmission {
+  overall_rating?: number | null;
+  tutor_quality_rating?: number | null;
+  ease_of_use_rating?: number | null;
+  value_rating?: number | null;
+  category?: FeedbackCategory | null;
+  message?: string | null;
+}
+
 export const api = {
   exchangeSupabaseToken: (supabaseAccessToken: string, referralCode?: string | null) =>
     request<AuthResponse>("/api/auth/exchange", {
@@ -278,6 +292,19 @@ export const api = {
     ),
   getReferralSummary: (token: string) =>
     request<ReferralSummary>("/api/referrals", {}, token),
+  // `website` is a honeypot field -- always sent empty by the real form,
+  // see contact-content.tsx. Never surfaced to the visitor.
+  submitContact: (name: string, email: string, message: string, website: string = "") =>
+    request<{ ok: boolean }>("/api/contact", {
+      method: "POST",
+      body: JSON.stringify({ name, email, message, website }),
+    }),
+  submitFeedback: (token: string, submission: FeedbackSubmission) =>
+    request<{ ok: boolean }>(
+      "/api/feedback",
+      { method: "POST", body: JSON.stringify(submission) },
+      token
+    ),
   // Bypasses request() -- the manual is served as raw text/html, not JSON,
   // so there's no body to parse as an ApiError-shaped object on failure.
   getCourseHtml: async (token: string, examCode: string): Promise<string> => {

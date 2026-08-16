@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -7,6 +9,8 @@ export function SiteFooter() {
             routes -- a plain reload is correct here, not client-side nav. */}
         <a href="/terms.html">Terms of Service</a>
         <a href="/privacy.html">Privacy Policy</a>
+        {/* A real Next.js route, unlike the two above -- client-side nav. */}
+        <Link href="/contact">Contact Us</Link>
       </div>
       <a
         href="https://www.facebook.com/profile.php?id=61592801835167"

@@ -53,6 +53,82 @@ def _send_welcome_email(user: User) -> None:
         server.send_message(message)
 
 
+def send_contact_email(name: str, from_email: str, message: str) -> None:
+    """Fired from the public /contact page -- same best-effort, silently
+    disabled when unconfigured pattern as send_welcome_email. Reply-To is
+    set to the submitter's own address so admin@ can just hit reply."""
+    if not current_app.config["SMTP_PASSWORD"]:
+        logger.info("SMTP not configured -- skipping contact email from %s", from_email)
+        return
+
+    try:
+        _send_admin_notification(
+            subject=f"Contact form: {name}",
+            reply_to=from_email,
+            body=f"From: {name} <{from_email}>\n\n{message}",
+        )
+    except Exception:
+        logger.exception("failed to send contact email from %s", from_email)
+
+
+_RATING_LABELS = {
+    "overall_rating": "Overall experience",
+    "tutor_quality_rating": "Tutor answer quality",
+    "ease_of_use_rating": "Ease of use",
+    "value_rating": "Value for price",
+}
+
+
+def send_feedback_email(user: User, ratings: dict, category: str | None, message: str | None) -> None:
+    """Fired from the /feedback page (logged-in users only) -- immediate
+    visibility for a single submission. The Feedback row (see
+    api/feedback.py) is the source of truth for aggregate analysis; this is
+    best-effort and never blocks the request, same pattern as
+    send_welcome_email. `ratings` is a dict of the four *_rating fields,
+    any of which may be None (every field on the form is optional)."""
+    if not current_app.config["SMTP_PASSWORD"]:
+        logger.info("SMTP not configured -- skipping feedback email from %s", user.email)
+        return
+
+    try:
+        lines = [f"From: {user.email} (user id {user.id})"]
+        for field, label in _RATING_LABELS.items():
+            value = ratings.get(field)
+            if value is not None:
+                lines.append(f"{label}: {value}/5")
+        if category:
+            lines.append(f"Category: {category}")
+        body = "\n".join(lines)
+        if message:
+            body += f"\n\n{message}"
+
+        overall = ratings.get("overall_rating")
+        subject_bits = [f"{overall}/5" if overall is not None else "no rating"]
+        if category:
+            subject_bits.append(category)
+        _send_admin_notification(
+            subject=f"App feedback from {user.email} ({', '.join(subject_bits)})",
+            reply_to=user.email,
+            body=body,
+        )
+    except Exception:
+        logger.exception("failed to send feedback email from %s", user.email)
+
+
+def _send_admin_notification(subject: str, reply_to: str, body: str) -> None:
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = current_app.config["SMTP_USERNAME"]
+    message["To"] = "admin@actuarialexamstutor.com"
+    message["Reply-To"] = reply_to
+    message.set_content(body)
+
+    with smtplib.SMTP(current_app.config["SMTP_HOST"], current_app.config["SMTP_PORT"]) as server:
+        server.starttls()
+        server.login(current_app.config["SMTP_USERNAME"], current_app.config["SMTP_PASSWORD"])
+        server.send_message(message)
+
+
 def _plain_text(frontend_url: str, referral_url: str) -> str:
     return f"""Hi there,
 

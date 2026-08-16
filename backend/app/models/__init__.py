@@ -7,6 +7,7 @@ from app.models.session import Session, Message
 from app.models.textbook_chunk import TextbookChunk
 from app.models.subscription import Subscription
 from app.models.referral_reward import ReferralReward
+from app.models.feedback import Feedback
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "TextbookChunk",
     "Subscription",
     "ReferralReward",
+    "Feedback",
 ]
