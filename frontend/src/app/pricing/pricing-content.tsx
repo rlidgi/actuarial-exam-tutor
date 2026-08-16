@@ -108,9 +108,11 @@ export default function PricingContent() {
               <li key={f}>{f}</li>
             ))}
           </ul>
-          <Link href={token ? "/chat" : "/register"} className="pricing-card-btn">
-            {token ? "Go to Tutor" : "Get started free"}
-          </Link>
+          {!token && (
+            <Link href="/register" className="pricing-card-btn">
+              Get started free
+            </Link>
+          )}
         </div>
         {EXAMS.map((e) => {
           const isP = e.code === DEFAULT_EXAM_CODE;
@@ -136,7 +138,7 @@ export default function PricingContent() {
                 </Link>
               ) : !token ? (
                 <Link href="/register" className="pricing-card-btn">
-                  Sign in to subscribe
+                  Subscribe
                 </Link>
               ) : (
                 <button
