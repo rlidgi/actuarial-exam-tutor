@@ -15,6 +15,7 @@ import {
 import { useExam } from "@/lib/exam-context";
 import { averageMastery, proficiencyTier, type ProficiencyTier } from "@/lib/proficiency";
 import { TopicIcon } from "@/components/topic-icon";
+import { DashboardSkeleton } from "@/components/skeleton";
 
 export default function ProgressPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
@@ -74,7 +75,7 @@ export default function ProgressPage() {
   }, [token, exams]);
 
   if (loading || !token) {
-    return null;
+    return <DashboardSkeleton />;
   }
 
   return (

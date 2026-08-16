@@ -22,6 +22,7 @@ import { MessageContent } from "@/components/message-content";
 import { NotationPicker } from "@/components/notation-picker";
 import { CameraCaptureModal } from "@/components/camera-capture-modal";
 import { TrialBanner } from "@/components/trial-banner";
+import { ChatSkeleton } from "@/components/skeleton";
 
 interface DisplayMessage extends ChatMessageDTO {
   imagePreviewUrl?: string;
@@ -468,7 +469,7 @@ export default function ChatPage() {
   };
 
   if (loading || !token) {
-    return null;
+    return <ChatSkeleton />;
   }
 
   return (

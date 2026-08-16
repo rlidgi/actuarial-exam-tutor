@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, ApiError, isAuthError, type ReferralSummary } from "@/lib/api";
+import { DashboardSkeleton } from "@/components/skeleton";
 
 const REWARD_LABELS: Record<ReferralSummary["rewards"][number]["reward_type"], string> = {
   referred_percent_off: "25% off your first month",
@@ -44,7 +45,7 @@ export default function AccountPage() {
   };
 
   if (loading || !token) {
-    return null;
+    return <DashboardSkeleton />;
   }
 
   return (

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, ApiError, isAuthError } from "@/lib/api";
 import { useExam } from "@/lib/exam-context";
+import { CardSkeleton } from "@/components/skeleton";
 
 function SubscribeContent() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
@@ -32,7 +33,7 @@ function SubscribeContent() {
   };
 
   if (loading || !token) {
-    return null;
+    return <CardSkeleton />;
   }
 
   return (

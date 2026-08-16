@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, ApiError, isAuthError } from "@/lib/api";
 import { useExam } from "@/lib/exam-context";
+import { DocumentSkeleton } from "@/components/skeleton";
 
 export default function FormulasPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
@@ -65,10 +66,12 @@ export default function FormulasPage() {
         </Link>
       </div>
 
-      {loading || !token ? null : error ? (
+      {loading || !token ? (
+        <DocumentSkeleton />
+      ) : error ? (
         <p className="p-6 text-sm text-redink">{error}</p>
       ) : !html ? (
-        <p className="p-6 text-sm text-pencil">Loading...</p>
+        <DocumentSkeleton />
       ) : (
         // The formula sheet is a complete standalone document (its own
         // <html>/<head>/CSS) -- an iframe keeps its styles and script
