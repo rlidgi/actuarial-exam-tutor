@@ -190,25 +190,22 @@ export function SignInModal({
               </p>
             </form>
           )}
-        </div>
 
-        {/* Static self-contained HTML files (frontend/public/), not React
-            routes -- plain <a> tags, same reasoning as site-footer.tsx's
-            Terms/Privacy links. text-paper/80 (not text-pencil-soft) since
-            this sits outside the card, directly on the dark bg-black/40
-            backdrop -- pencil-soft is a light-background color and was
-            nearly invisible there. */}
-        <p className="mt-4 text-center text-xs text-paper/80">
-          By continuing, you agree to our{" "}
-          <a href="/terms.html" className="text-paper underline hover:text-gold">
-            Terms &amp; Conditions
-          </a>{" "}
-          and{" "}
-          <a href="/privacy.html" className="text-paper underline hover:text-gold">
-            Privacy Policy
-          </a>
-          .
-        </p>
+          {/* Static self-contained HTML files (frontend/public/), not
+              React routes -- plain <a> tags, same reasoning as
+              site-footer.tsx's Terms/Privacy links. */}
+          <p className="mt-5 text-center text-xs text-pencil-soft">
+            By continuing, you agree to our{" "}
+            <a href="/terms.html" className="text-ledger underline hover:text-ledger-bright">
+              Terms &amp; Conditions
+            </a>{" "}
+            and{" "}
+            <a href="/privacy.html" className="text-ledger underline hover:text-ledger-bright">
+              Privacy Policy
+            </a>
+            .
+          </p>
+        </div>
       </div>
     </div>
   );
