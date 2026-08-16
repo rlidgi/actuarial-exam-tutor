@@ -176,7 +176,7 @@ export function SignInModal({
               disabled={submitting}
               className="rounded-md bg-ledger px-3 py-2 text-sm font-semibold text-paper hover:bg-ledger-bright disabled:opacity-50"
             >
-              {submitting ? "Sending..." : "Send magic link"}
+              {submitting ? "Sending..." : "Submit"}
             </button>
           </form>
         )}
