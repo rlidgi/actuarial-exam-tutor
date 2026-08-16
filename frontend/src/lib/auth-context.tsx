@@ -16,6 +16,11 @@ import { supabaseClient } from "./supabase-client";
 import { reportAdsConversion, SIGNUP_CONVERSION_LABEL } from "./gtag";
 
 const TOKEN_STORAGE_KEY = "actuarial_tutor_token";
+// Persisted alongside the token so a page refresh (not just a fresh sign-in)
+// can restore it too -- see the bootstrap effect below. Without this, email
+// stayed null on every visit except the one right after signing in, since
+// completeSupabaseSignIn was the only place that ever set it.
+const EMAIL_STORAGE_KEY = "actuarial_tutor_email";
 // Same key exam-context.tsx persists the selected exam under -- read
 // directly (not imported) to avoid a circular import, since ExamProvider
 // itself depends on useAuth().
@@ -76,6 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setToken(stored);
+      const storedEmail = window.localStorage.getItem(EMAIL_STORAGE_KEY);
+      if (storedEmail) {
+        setEmail(storedEmail);
+      }
     }
     const refCode = new URLSearchParams(window.location.search).get("ref");
     if (refCode) {
@@ -136,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .then(async (response) => {
             await afterAuth(response);
             window.localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+            window.localStorage.setItem(EMAIL_STORAGE_KEY, response.user.email);
             window.localStorage.removeItem(REFERRAL_CODE_STORAGE_KEY);
             window.sessionStorage.setItem(FRESH_LOGIN_STORAGE_KEY, "1");
             setToken(response.access_token);
@@ -157,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (redirectTo: string = "/") => {
       loggingOutRef.current = true;
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
       setToken(null);
       setEmail(null);
       // Otherwise a lingering Supabase-side session could silently
