@@ -101,85 +101,111 @@ export function SignInModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sign-in-title"
-        className="w-full max-w-sm rounded-lg bg-paper-raised p-6 shadow-lg"
-      >
-        <div className="mb-4 flex items-center justify-between">
-          <h2 id="sign-in-title" className="font-semibold text-ink">Sign in</h2>
+      <div className="w-full max-w-sm">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sign-in-title"
+          className="relative rounded-2xl bg-paper-raised p-8 shadow-lg"
+        >
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="-m-1.5 rounded-md p-1.5 text-lg leading-none text-pencil hover:text-redink"
+            className="absolute right-4 top-4 -m-1.5 rounded-md p-1.5 text-lg leading-none text-pencil hover:text-redink"
           >
             &times;
           </button>
-        </div>
 
-        {banner}
-
-        <button
-          type="button"
-          ref={googleButtonRef}
-          onClick={handleGoogle}
-          disabled={googleLoading}
-          className="mb-4 flex w-full items-center justify-center gap-2 rounded-md border border-rule px-3 py-2 text-sm font-medium text-ink hover:border-ledger-bright disabled:opacity-50"
-        >
-          <GoogleIcon />
-          {googleLoading ? "Redirecting..." : "Continue with Google"}
-        </button>
-
-        {error && <p className="mb-4 text-sm text-redink">{error}</p>}
-
-        <div className="mb-4 flex items-center gap-3 text-xs text-pencil-soft">
-          <span className="h-px flex-1 bg-rule" />
-          or
-          <span className="h-px flex-1 bg-rule" />
-        </div>
-
-        {sent ? (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-pencil">
-              Check <strong className="text-ink">{email}</strong> for a sign-in link.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSent(false);
-                setError(null);
-                setTimeout(() => emailInputRef.current?.focus(), 0);
-              }}
-              className="self-start text-sm text-pencil underline hover:text-ledger-bright"
-            >
-              Use a different email
-            </button>
+          <div className="mb-6 text-center">
+            <h2 id="sign-in-title" className="text-2xl font-bold text-ink">
+              Sign in
+            </h2>
+            <p className="mt-1 text-sm text-pencil">Sign in or create an account to continue.</p>
           </div>
-        ) : (
-          <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
-            <label className="flex flex-col gap-1 text-sm text-pencil">
-              Email
-              <input
-                ref={emailInputRef}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="rounded-md border border-rule bg-transparent px-3 py-2 text-ink"
-              />
-            </label>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-md bg-ledger px-3 py-2 text-sm font-semibold text-paper hover:bg-ledger-bright disabled:opacity-50"
-            >
-              {submitting ? "Sending..." : "Submit"}
-            </button>
-          </form>
-        )}
+          {banner}
+
+          <button
+            type="button"
+            ref={googleButtonRef}
+            onClick={handleGoogle}
+            disabled={googleLoading}
+            className="mb-5 flex w-full items-center justify-center gap-2 rounded-full border border-rule px-3 py-2.5 text-sm font-medium text-ink hover:border-ledger-bright disabled:opacity-50"
+          >
+            <GoogleIcon />
+            {googleLoading ? "Redirecting..." : "Continue with Google"}
+          </button>
+
+          {error && <p className="mb-4 text-sm text-redink">{error}</p>}
+
+          <div className="mb-5 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-pencil-soft">
+            <span className="h-px flex-1 bg-rule" />
+            OR
+            <span className="h-px flex-1 bg-rule" />
+          </div>
+
+          {sent ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-pencil">
+                Check <strong className="text-ink">{email}</strong> for a sign-in link.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSent(false);
+                  setError(null);
+                  setTimeout(() => emailInputRef.current?.focus(), 0);
+                }}
+                className="self-start text-sm text-pencil underline hover:text-ledger-bright"
+              >
+                Use a different email
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
+              <label className="flex flex-col gap-1 text-sm text-pencil">
+                E-mail
+                <input
+                  ref={emailInputRef}
+                  type="email"
+                  required
+                  placeholder="email@domain.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="rounded-full border border-rule bg-transparent px-4 py-2.5 text-ink placeholder:text-pencil-soft"
+                />
+              </label>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded-full bg-ledger px-3 py-2.5 text-sm font-semibold text-paper hover:bg-ledger-bright disabled:opacity-50"
+              >
+                {submitting ? "Sending..." : "E-mail me a sign-in link"}
+              </button>
+
+              <p className="text-center text-xs text-pencil-soft">
+                No password needed. We send a one-time link that signs you in.
+              </p>
+            </form>
+          )}
+        </div>
+
+        {/* Static self-contained HTML files (frontend/public/), not React
+            routes -- plain <a> tags, same reasoning as site-footer.tsx's
+            Terms/Privacy links. */}
+        <p className="mt-4 text-center text-xs text-pencil-soft">
+          By continuing, you agree to our{" "}
+          <a href="/terms.html" className="text-ledger underline hover:text-ledger-bright">
+            Terms &amp; Conditions
+          </a>{" "}
+          and{" "}
+          <a href="/privacy.html" className="text-ledger underline hover:text-ledger-bright">
+            Privacy Policy
+          </a>
+          .
+        </p>
       </div>
     </div>
   );
