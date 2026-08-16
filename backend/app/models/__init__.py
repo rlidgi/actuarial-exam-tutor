@@ -8,6 +8,7 @@ from app.models.textbook_chunk import TextbookChunk
 from app.models.subscription import Subscription
 from app.models.referral_reward import ReferralReward
 from app.models.feedback import Feedback
+from app.models.user_auth_event import UserAuthEvent
 
 __all__ = [
     "User",
@@ -23,4 +24,5 @@ __all__ = [
     "Subscription",
     "ReferralReward",
     "Feedback",
+    "UserAuthEvent",
 ]

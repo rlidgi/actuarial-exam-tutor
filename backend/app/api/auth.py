@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
-from app.services import email_service, supabase_auth_service, user_service
+from app.extensions import db
+from app.models.user import User
+from app.services import admin_service, email_service, supabase_auth_service, user_service
 
 bp = Blueprint("auth", __name__)
 
@@ -33,6 +35,8 @@ def exchange():
     if is_new_user:
         email_service.send_welcome_email(user)
 
+    admin_service.record_login(user)
+
     token = create_access_token(identity=str(user.id))
     return (
         jsonify(
@@ -42,3 +46,16 @@ def exchange():
         ),
         200,
     )
+
+
+@bp.post("/logout")
+@jwt_required()
+def logout():
+    """Records a logout event for the admin activity dashboard (see
+    admin_service.record_logout) -- called from auth-context.tsx's
+    logout(). Purely observability: the actual sign-out already happens
+    client-side (clearing the token) regardless of this call's outcome."""
+    user = db.session.get(User, int(get_jwt_identity()))
+    if user is not None:
+        admin_service.record_logout(user)
+    return jsonify(ok=True), 200

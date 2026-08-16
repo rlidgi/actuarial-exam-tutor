@@ -68,6 +68,15 @@ class Config:
         if e.strip()
     }
     TRIAL_PERIOD_DAYS = int(os.environ.get("TRIAL_PERIOD_DAYS", "14"))
+    # Gates the /admin dashboard (see api/admin.py, api/helpers.py's
+    # require_admin) -- same env-var-driven set pattern as
+    # TRIAL_ELIGIBLE_EMAILS above, checked against the signed-in user's own
+    # verified account email.
+    ADMIN_EMAILS = {
+        e.strip().lower()
+        for e in os.environ.get("ADMIN_EMAILS", "").split(",")
+        if e.strip()
+    }
     # Where Stripe Checkout/portal redirect back to -- the Next.js app, not
     # this API.
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")

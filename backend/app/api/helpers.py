@@ -1,7 +1,19 @@
-from flask import jsonify
+from flask import current_app, jsonify
 from flask_jwt_extended import get_jwt_identity
 
+from app.extensions import db
+from app.models.user import User
 from app.services import student_service
+
+
+def require_admin():
+    """Resolves the current JWT user and confirms they're listed in
+    ADMIN_EMAILS (see config.py) -- same (value, None) / (None, (response,
+    status)) contract as resolve_profile below, for admin-only routes."""
+    user = db.session.get(User, int(get_jwt_identity()))
+    if user is None or user.email not in current_app.config["ADMIN_EMAILS"]:
+        return None, (jsonify(error="forbidden"), 403)
+    return user, None
 
 
 def resolve_profile(exam_code: str, *, missing_message: str = "exam_code is required"):

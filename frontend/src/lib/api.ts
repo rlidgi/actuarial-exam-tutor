@@ -211,6 +211,14 @@ export interface FeedbackSubmission {
   message?: string | null;
 }
 
+export interface AdminUserDTO {
+  id: number;
+  email: string;
+  created_at: string | null;
+  last_login_at: string | null;
+  last_logout_at: string | null;
+}
+
 export const api = {
   exchangeSupabaseToken: (supabaseAccessToken: string, referralCode?: string | null) =>
     request<AuthResponse>("/api/auth/exchange", {
@@ -305,6 +313,12 @@ export const api = {
       { method: "POST", body: JSON.stringify(submission) },
       token
     ),
+  // Records a logout event for the admin dashboard -- see auth-context.tsx's
+  // logout(), the only caller. Purely observability; callers don't need to
+  // treat a failure here as blocking the actual sign-out.
+  logout: (token: string) => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }, token),
+  adminListUsers: (token: string) =>
+    request<{ users: AdminUserDTO[] }>("/api/admin/users", {}, token),
   // Bypasses request() -- the manual is served as raw text/html, not JSON,
   // so there's no body to parse as an ApiError-shaped object on failure.
   getCourseHtml: async (token: string, examCode: string): Promise<string> => {

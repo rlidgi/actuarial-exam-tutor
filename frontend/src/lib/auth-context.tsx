@@ -166,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(
     (redirectTo: string = "/") => {
       loggingOutRef.current = true;
+      // Fire-and-forget, using the token before it's cleared below -- purely
+      // for the admin activity dashboard (see api.ts's logout), never
+      // something the actual sign-out should wait on or fail because of.
+      if (token) void api.logout(token).catch(() => {});
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
       window.localStorage.removeItem(EMAIL_STORAGE_KEY);
       setToken(null);
@@ -175,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void supabaseClient.auth.signOut();
       router.push(redirectTo);
     },
-    [router]
+    [router, token]
   );
 
   return (
