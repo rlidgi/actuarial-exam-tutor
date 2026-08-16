@@ -5,9 +5,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
+  type MutableRefObject,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { api, DEFAULT_EXAM_CODE, type AuthResponse } from "./api";
 import { supabaseClient } from "./supabase-client";
 import { reportAdsConversion, SIGNUP_CONVERSION_LABEL } from "./gtag";
@@ -36,7 +39,15 @@ interface AuthState {
   signInWithGoogle: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<void>;
   completeSupabaseSignIn: () => Promise<void>;
-  logout: () => void;
+  // redirectTo defaults to "/" -- callers on a protected page that want a
+  // different destination (e.g. useRequireAuth's expired-session bailout)
+  // pass their own.
+  logout: (redirectTo?: string) => void;
+  // Set synchronously the instant logout() is called, before the token
+  // actually clears -- see useRequireAuth, which checks this to avoid its
+  // own generic "no token -> /login" redirect racing (and winning over)
+  // whatever destination logout() itself just navigated to.
+  loggingOutRef: MutableRefObject<boolean>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -49,9 +60,11 @@ async function afterAuth(response: AuthResponse) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const loggingOutRef = useRef(false);
 
   useEffect(() => {
     // A one-time synchronous read from localStorage, deliberately done in
@@ -140,18 +153,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const logout = useCallback(() => {
-    window.localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setToken(null);
-    setEmail(null);
-    // Otherwise a lingering Supabase-side session could silently
-    // re-authenticate the next time this user lands on /auth/callback.
-    void supabaseClient.auth.signOut();
-  }, []);
+  const logout = useCallback(
+    (redirectTo: string = "/") => {
+      loggingOutRef.current = true;
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      setToken(null);
+      setEmail(null);
+      // Otherwise a lingering Supabase-side session could silently
+      // re-authenticate the next time this user lands on /auth/callback.
+      void supabaseClient.auth.signOut();
+      router.push(redirectTo);
+    },
+    [router]
+  );
 
   return (
     <AuthContext.Provider
-      value={{ token, email, loading, signInWithGoogle, sendMagicLink, completeSupabaseSignIn, logout }}
+      value={{
+        token,
+        email,
+        loading,
+        signInWithGoogle,
+        sendMagicLink,
+        completeSupabaseSignIn,
+        logout,
+        loggingOutRef,
+      }}
     >
       {children}
     </AuthContext.Provider>
