@@ -386,7 +386,7 @@ export default function LandingContent() {
                 Experience a tutor that adapts to you.
               </div>
               <p>
-                Register or log in for free access to the full study manual for each exam and 6
+                Register or log in for free access to the comprehensive study manual for each exam and 6
                 free messages to try out the AI tutor.
               </p>
             </div>

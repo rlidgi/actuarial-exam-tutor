@@ -11,7 +11,7 @@ export const FAQ_ITEMS = [
   {
     question: "Is there anything free before I subscribe?",
     answer:
-      "Yes -- once you register, the full study manual for each exam and 6 messages with the " +
+      "Yes -- once you register, the comprehensive study manual for each exam and 6 messages with the " +
       "AI tutor are free, no subscription required.",
   },
   {
