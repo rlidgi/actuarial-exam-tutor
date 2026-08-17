@@ -17,6 +17,7 @@ const GENERAL_MATH: NotationItem[] = [
   { label: "a/b", title: "Fraction", snippet: "\\frac{a}{b}" },
   { label: "\u221A", title: "Square root", snippet: "\\sqrt{a}" },
   { label: "\u221E", title: "Infinity", snippet: "\\infty" },
+  { label: "x\u207F", title: "Exponent / power", snippet: "x^{n}" },
 ];
 
 const ACTUARIAL_NOTATION: NotationItem[] = [
@@ -25,6 +26,7 @@ const ACTUARIAL_NOTATION: NotationItem[] = [
   { label: "A", title: "Insurance", snippet: "A_{x:\\overline{n}|}" },
   { label: "\u03B4", title: "Force of interest", snippet: "\\delta" },
   { label: "\u03BC", title: "Force of mortality", snippet: "\\mu_{x}" },
+  { label: "\u209CV", title: "Reserve", snippet: "{}_{t}V_{x}" },
 ];
 
 function NotationGroup({
