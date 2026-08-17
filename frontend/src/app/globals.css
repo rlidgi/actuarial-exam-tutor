@@ -343,7 +343,12 @@ body > * {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
-  max-width: 1200px;
+  /* Fixed max-width alone left a growing dead margin on wide screens (the
+     background/nav fill the viewport, but this content stalled at 1200px
+     no matter how wide the window got) -- clamp() lets it keep growing
+     past the old cap on large screens while staying at ~1200px on typical
+     ones, same idiom as --landing-pad above. */
+  max-width: clamp(1200px, 62vw, 1550px);
   margin: 2.5rem auto;
 }
 .feature-card {
@@ -376,7 +381,9 @@ body > * {
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr));
   gap: 2rem;
-  max-width: 1000px;
+  /* See .landing-features -- same fixed-cap-leaves-dead-margin issue on
+     wide screens. */
+  max-width: clamp(1000px, 52vw, 1300px);
   margin: 0 auto 2.4rem;
 }
 .landing-free-banner {
@@ -385,7 +392,9 @@ body > * {
   justify-content: center;
   gap: 1.7rem;
   flex-wrap: wrap;
-  max-width: 1100px;
+  /* See .landing-features -- same fixed-cap-leaves-dead-margin issue on
+     wide screens. */
+  max-width: clamp(1100px, 58vw, 1450px);
   margin: 0 auto;
   padding: 1.7rem 2.2rem;
   background: rgba(237, 239, 232, 0.06);
