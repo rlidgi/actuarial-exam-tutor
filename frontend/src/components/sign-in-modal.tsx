@@ -122,6 +122,10 @@ export function SignInModal({
               Sign in
             </h2>
             <p className="mt-1 text-sm text-pencil">Sign in or create an account to continue.</p>
+            <p className="mt-2 text-xs text-pencil-soft">
+              Free accounts get full study manual and formula sheet access, plus 6 tutor
+              messages to try -- no card required.
+            </p>
           </div>
 
           {banner}
