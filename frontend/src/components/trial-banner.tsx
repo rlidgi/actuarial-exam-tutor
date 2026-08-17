@@ -14,7 +14,7 @@ export function TrialBanner({
 
   return (
     <div
-      className={`mx-auto w-full max-w-3xl px-1 pb-2 text-sm ${
+      className={`chat-column mx-auto w-full px-1 pb-2 text-sm ${
         exhausted ? "text-redink" : "text-pencil"
       }`}
     >

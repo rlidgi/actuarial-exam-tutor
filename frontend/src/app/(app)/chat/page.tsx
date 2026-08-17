@@ -479,7 +479,7 @@ export default function ChatPage() {
       </Suspense>
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
         <TrialBanner status={billingStatus} examCode={examCode} />
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-3">
+        <div className="chat-column mx-auto flex w-full flex-1 flex-col gap-3">
           {viewingPastDay && messages.length === 0 && !dayLoading && (
             <p className="text-sm text-pencil">No messages on this day.</p>
           )}
@@ -570,7 +570,7 @@ export default function ChatPage() {
         onSubmit={handleSubmit}
         className="border-t border-rule bg-paper px-4 py-3 md:px-6"
       >
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
+        <div className="chat-column mx-auto flex w-full flex-col gap-2">
           {attachedPreviewUrl && (
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}

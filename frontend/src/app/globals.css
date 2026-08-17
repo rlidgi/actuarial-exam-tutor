@@ -835,12 +835,23 @@ body > * {
   }
 }
 
-/* ---- Proficiency dashboard ---- */
+/* ---- Proficiency dashboard / Referrals ---- */
 .dashboard-page {
-  max-width: 860px;
+  /* Fixed cap alone stalled well short of the available width on wide
+     screens, same issue as the landing sections above -- see those for
+     the full explanation. */
+  max-width: clamp(860px, 55vw, 1100px);
   margin: 0 auto;
   padding: 1.5rem 1.5rem 3rem;
   color: var(--ink);
+}
+
+/* ---- Chat (tutor conversation + its input bar) ----
+   Deliberately capped well short of the dashboard/landing widths above --
+   a wide reading column hurts conversational text more than it helps, so
+   this only grows a little on very wide screens instead of filling them. */
+.chat-column {
+  max-width: clamp(48rem, 55vw, 60rem);
 }
 .dashboard-header {
   text-align: center;
