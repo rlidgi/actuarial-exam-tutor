@@ -732,7 +732,11 @@ body > * {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.2rem;
-  margin-top: 1.5rem;
+  /* No cap here stretched each card (and its button) absurdly wide on
+     large screens, unlike the other landing sections which had the
+     opposite problem -- see .landing-features. */
+  max-width: clamp(1000px, 50vw, 1300px);
+  margin: 1.5rem auto 0;
 }
 .pricing-card {
   background: var(--paper-raised);
