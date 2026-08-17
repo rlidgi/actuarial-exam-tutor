@@ -3,7 +3,7 @@
 import { Suspense, useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { FAQ_ITEMS } from "@/lib/faq-data";
 import { useReveal } from "@/lib/use-reveal";
@@ -247,10 +247,31 @@ function SignInErrorBanner() {
   );
 }
 
+// Same key exam-context.tsx persists the selected exam under, and
+// auth-context.tsx's afterAuth reads at signup -- redefined locally rather
+// than imported to avoid a circular import, same reasoning as
+// auth-context.tsx's own copy of this constant.
+const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
+
 export default function LandingContent() {
   const { token, logout } = useAuth();
+  const router = useRouter();
   const [showSignIn, setShowSignIn] = useState(false);
   useReveal();
+
+  // Signed-in visitors go straight to that exam's pricing card (same as
+  // before); signed-out visitors get the sign-in modal, with the clicked
+  // exam persisted so both account creation (afterAuth) and the exam
+  // selector (ExamProvider, once they land in /chat) pick it up on their
+  // own next read of EXAM_STORAGE_KEY -- no new plumbing needed.
+  const handleExamClick = (code: string) => {
+    if (token) {
+      router.push(`/pricing?exam=${code}`);
+      return;
+    }
+    window.localStorage.setItem(EXAM_STORAGE_KEY, code);
+    setShowSignIn(true);
+  };
 
   return (
     <div className="landing">
@@ -339,10 +360,11 @@ export default function LandingContent() {
           </div>
           <div className="exam-picker">
             {EXAMS.map((e) => (
-              <Link
+              <button
                 key={e.code}
+                type="button"
                 className="exam-card"
-                href={`/pricing?exam=${e.code}`}
+                onClick={() => handleExamClick(e.code)}
               >
                 <span
                   className="exam-card-code"
@@ -352,7 +374,7 @@ export default function LandingContent() {
                 </span>
                 <span className="exam-card-name">{e.name}</span>
                 {EXAM_ICONS[e.code]?.(e.color ?? "var(--ink)")}
-              </Link>
+              </button>
             ))}
           </div>
           <div className="landing-free-banner">
