@@ -43,7 +43,7 @@ function SubscribeContent() {
       <div className="w-full max-w-sm rounded-lg border border-rule bg-paper-raised p-6 text-center">
         <h1 className="mb-2 text-lg font-semibold text-ink">Subscribe to Exam {examCode}</h1>
         <p className="mb-4 text-sm text-pencil">
-          $35/month for unlimited tutoring, practice problems, and proficiency tracking.
+          $25/month for unlimited tutoring, practice problems, and proficiency tracking.
         </p>
         {error && <p className="mb-3 text-sm text-redink">{error}</p>}
         <button

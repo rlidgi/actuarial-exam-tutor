@@ -10,9 +10,9 @@ import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 
 const EXAMS = [
-  { code: "P", name: "Exam P -- Probability", price: 35 },
-  { code: "FM", name: "Exam FM -- Financial Mathematics", price: 35 },
-  { code: "FAM", name: "Exam FAM -- Fundamentals of Actuarial Mathematics", price: 35 },
+  { code: "P", name: "Exam P -- Probability", price: 25 },
+  { code: "FM", name: "Exam FM -- Financial Mathematics", price: 25 },
+  { code: "FAM", name: "Exam FAM -- Fundamentals of Actuarial Mathematics", price: 25 },
 ];
 
 const FEATURES = [
