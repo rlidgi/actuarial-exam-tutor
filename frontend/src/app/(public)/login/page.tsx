@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SignInModal } from "@/components/sign-in-modal";
+import { useDocumentTitle } from "@/lib/use-document-title";
 
 function ExpiredBanner() {
   const searchParams = useSearchParams();
@@ -20,6 +21,7 @@ function ExpiredBanner() {
 // over the landing page destination rather than rendering its own form.
 export default function LoginPage() {
   const router = useRouter();
+  useDocumentTitle("Sign In");
   return (
     <SignInModal
       onClose={() => router.push("/")}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useDocumentTitle } from "@/lib/use-document-title";
 import {
   api,
   ApiError,
@@ -19,6 +20,7 @@ import { DashboardSkeleton } from "@/components/skeleton";
 
 export default function ProgressPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  useDocumentTitle("Proficiency Dashboard");
   const { examCode, exams, setExamCode } = useExam();
   const [progress, setProgress] = useState<ProgressSummary | null>(null);
   const [error, setError] = useState<string | null>(null);

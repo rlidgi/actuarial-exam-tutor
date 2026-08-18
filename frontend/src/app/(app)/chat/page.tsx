@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useDocumentTitle } from "@/lib/use-document-title";
 import { FRESH_LOGIN_STORAGE_KEY, useAuth } from "@/lib/auth-context";
 import { api, ApiError, isAuthError, type ChatMessageDTO } from "@/lib/api";
 import { reportAdsConversion, SUBSCRIBE_CONVERSION_LABEL } from "@/lib/gtag";
@@ -126,6 +127,7 @@ function ThinkingIndicator() {
 
 export default function ChatPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  useDocumentTitle("Tutor");
   const { email } = useAuth();
   const { selectedDate, setSelectedDate, newConversationSignal, refreshHistoryDays } =
     useChatView();

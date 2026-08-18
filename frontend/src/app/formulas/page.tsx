@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useDocumentTitle } from "@/lib/use-document-title";
 import { api, ApiError, isAuthError } from "@/lib/api";
 import { useExam } from "@/lib/exam-context";
 import { DocumentSkeleton } from "@/components/skeleton";
 
 export default function FormulasPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  useDocumentTitle("Formula Sheet");
   const { examCode } = useExam();
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

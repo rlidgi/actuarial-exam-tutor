@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRequireAuth } from "@/lib/use-require-auth";
+import { useDocumentTitle } from "@/lib/use-document-title";
 import { api, ApiError, isAuthError, type ReferralSummary } from "@/lib/api";
 import { DashboardSkeleton } from "@/components/skeleton";
 
@@ -19,6 +20,7 @@ const STATUS_LABELS: Record<ReferralSummary["rewards"][number]["status"], string
 
 export default function AccountPage() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  useDocumentTitle("Referrals");
   const [summary, setSummary] = useState<ReferralSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
