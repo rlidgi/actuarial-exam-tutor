@@ -117,7 +117,7 @@ function ThinkingIndicator() {
   return (
     <div className="self-start rounded bg-paper-raised px-3 py-2.5">
       <span className="thinking-text text-sm text-pencil" role="status">
-        Thinking
+        Thinking...
       </span>
     </div>
   );
