@@ -1086,22 +1086,23 @@ body > * {
 
 /* ---- Chat "thinking" indicator ----
    A moving highlight band clipped to the text shape (background-clip: text),
-   same technique as ChatGPT's shimmer -- the "bright" stop sweeps across a
-   muted base color and loops. */
+   same technique as ChatGPT's shimmer -- on this light background the band
+   sweeps from faint to crisp (rather than a hue shift), which reads clearly
+   against paper-raised. */
 .thinking-text {
   background-image: linear-gradient(
     90deg,
-    var(--pencil) 0%,
-    var(--pencil) 40%,
-    var(--ledger-bright) 50%,
-    var(--pencil) 60%,
-    var(--pencil) 100%
+    var(--pencil-soft) 0%,
+    var(--pencil-soft) 35%,
+    var(--ink) 50%,
+    var(--pencil-soft) 65%,
+    var(--pencil-soft) 100%
   );
-  background-size: 200% 100%;
+  background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: thinking-shimmer 1.8s linear infinite;
+  animation: thinking-shimmer 1.6s linear infinite;
 }
 @keyframes thinking-shimmer {
   0% { background-position: 200% 0; }
