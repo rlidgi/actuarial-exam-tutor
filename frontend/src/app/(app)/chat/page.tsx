@@ -116,14 +116,9 @@ function CheckoutSyncHandler({
 function ThinkingIndicator() {
   return (
     <div className="self-start rounded bg-paper-raised px-3 py-2.5">
-      <div className="flex items-center gap-2" role="status">
-        <span className="text-sm text-pencil">Thinking</span>
-        <span className="thinking-dots">
-          <span />
-          <span />
-          <span />
-        </span>
-      </div>
+      <span className="thinking-text text-sm text-pencil" role="status">
+        Thinking
+      </span>
     </div>
   );
 }
