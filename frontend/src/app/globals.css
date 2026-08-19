@@ -1098,7 +1098,7 @@ body > * {
     var(--pencil-soft) 65%,
     var(--pencil-soft) 100%
   );
-  background-size: 250% 100%;
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
