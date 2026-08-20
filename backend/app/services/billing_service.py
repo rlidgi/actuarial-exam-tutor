@@ -44,6 +44,11 @@ def create_checkout_session(
     reward = referral_service.pending_reward_for_checkout(student_profile.user)
     if reward is not None:
         kwargs["discounts"] = [{"coupon": reward.stripe_coupon_id}]
+    else:
+        # Stripe rejects a session that sets both "discounts" and
+        # "allow_promotion_codes", so only offer the manual promo-code
+        # field when no referral discount is already being applied.
+        kwargs["allow_promotion_codes"] = True
 
     # Promotional free trial (see config.TRIAL_ELIGIBLE_EMAILS) -- one-time,
     # only for a user who's never had a subscription before (including a
