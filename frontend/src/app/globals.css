@@ -705,6 +705,16 @@ body > * {
   padding-left: 1.4rem;
   margin: 0.5rem 0;
 }
+.about-body {
+  max-width: 880px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.about-body p,
+.about-body li {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
 .legal-meta {
   font-size: 0.82rem;
   color: var(--pencil-soft);

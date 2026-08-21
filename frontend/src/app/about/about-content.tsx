@@ -23,7 +23,7 @@ export default function AboutContent() {
         )}
       </MarketingHeader>
 
-      <article className="legal-body">
+      <article className="legal-body about-body">
         <h1>About Actuarial Exams Tutor</h1>
 
         <h2>Our Mission</h2>
