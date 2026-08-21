@@ -20,6 +20,13 @@ const SITE_DESCRIPTION =
   "textbooks. Free study manual and a 6-message free trial for Exam P, " +
   "FM, and FAM.";
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Actuarial Exams Tutor",
+  url: "https://actuarialexamstutor.com",
+};
+
 export const metadata: Metadata = {
   title: {
     default: SITE_TITLE,
@@ -87,6 +94,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             })(window, document, "clarity", "script", "y0l8u4jfgr");
           `}
         </Script>
+        {/* Tells Google what name to show for this site in organic search
+            results (the line next to the favicon) -- without this, Google
+            falls back to displaying the raw domain instead. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
