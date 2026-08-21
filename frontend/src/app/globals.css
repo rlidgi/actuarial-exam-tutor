@@ -472,7 +472,7 @@ body > * {
   line-height: 1.35;
 }
 .landing-faq {
-  max-width: 760px;
+  max-width: 900px;
   margin: 3rem auto 0;
 }
 .landing-faq h2 {
@@ -638,7 +638,7 @@ body > * {
 }
 
 .site-footer {
-  max-width: 640px;
+  max-width: 880px;
   margin: 3rem auto 0;
   padding: 1.2rem 1.5rem 2rem;
   display: flex;
@@ -714,9 +714,6 @@ body > * {
 .about-body li {
   font-size: 1.05rem;
   line-height: 1.7;
-}
-.about-page .site-footer {
-  max-width: 880px;
 }
 .legal-meta {
   font-size: 0.82rem;

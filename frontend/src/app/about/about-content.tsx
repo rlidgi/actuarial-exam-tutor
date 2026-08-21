@@ -10,7 +10,7 @@ export default function AboutContent() {
   const { token } = useAuth();
 
   return (
-    <div className="landing about-page">
+    <div className="landing">
       <MarketingHeader>
         {token ? (
           <Link className="btn" href="/chat">
