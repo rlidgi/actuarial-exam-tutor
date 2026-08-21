@@ -715,6 +715,9 @@ body > * {
   font-size: 1.05rem;
   line-height: 1.7;
 }
+.about-page .site-footer {
+  max-width: 880px;
+}
 .legal-meta {
   font-size: 0.82rem;
   color: var(--pencil-soft);
