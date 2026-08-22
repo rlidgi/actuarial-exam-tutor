@@ -1,0 +1,37 @@
+name: Deploy backend
+
+# The App Service pulls its image from ACR, but nothing rebuilds that image
+# when backend code changes -- ci.yml only runs tests. This closes that gap:
+# build the image in ACR (no local Docker needed) and restart the App
+# Service so it pulls the new :latest, on every push that touches backend/.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and push image to ACR
+        run: |
+          az acr build \
+            --registry actuarialexamstutoracr \
+            --image actuarial-exams-tutor:latest \
+            --image actuarial-exams-tutor:${{ github.sha }} \
+            --file backend/Dockerfile \
+            backend
+
+      - name: Restart App Service to pull the new image
+        run: |
+          az webapp restart \
+            --name actuarial-exams-tutor \
+            --resource-group actuarial-exams-tutor-rg
