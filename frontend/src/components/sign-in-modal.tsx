@@ -123,8 +123,8 @@ export function SignInModal({
             </h2>
             <p className="mt-1 text-sm text-pencil">Sign in or create an account to continue.</p>
             <p className="mt-3 rounded-md border border-ledger-bright/30 bg-ledger-bright/10 px-3 py-2 text-sm font-medium text-ledger">
-              Free accounts get full study manual and formula sheet access, plus 6 tutor
-              messages to try.
+              Sign up free to get 6 messages with the AI tutor. The study manual and
+              formula sheet are free for everyone -- no account needed.
             </p>
           </div>
 

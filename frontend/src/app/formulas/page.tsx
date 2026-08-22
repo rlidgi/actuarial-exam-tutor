@@ -3,16 +3,18 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useAuth } from "@/lib/auth-context";
 import { useDocumentTitle } from "@/lib/use-document-title";
-import { api, ApiError, isAuthError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useExam } from "@/lib/exam-context";
 import { DocumentSkeleton } from "@/components/skeleton";
 
+// Public page -- the formula sheet needs no account, so this only reads
+// useAuth() to decide which link the header CTA shows, never to gate access.
 export default function FormulasPage() {
-  const { token, loading, redirectToExpiredLogin } = useRequireAuth();
+  const { token, loading: authLoading } = useAuth();
   useDocumentTitle("Formula Sheet");
-  const { examCode } = useExam();
+  const { examCode, ready } = useExam();
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Tracks which exam `html` was actually fetched for, so a stale sheet
@@ -27,21 +29,21 @@ export default function FormulasPage() {
   }
 
   useEffect(() => {
-    if (!token) return;
+    // Wait for ExamProvider's one-time localStorage read -- examCode is
+    // just a guessed default (DEFAULT_EXAM_CODE) until `ready`, and firing
+    // a fetch for that guess would flash the wrong exam's sheet before the
+    // render-time guard above discards it and re-fetches correctly.
+    if (!ready) return;
     api
-      .getFormulaSheetHtml(token, examCode)
+      .getFormulaSheetHtml(examCode)
       .then((text) => {
         setHtml(text);
         setLoadedExamCode(examCode);
       })
       .catch((err) => {
-        if (isAuthError(err)) {
-          redirectToExpiredLogin();
-          return;
-        }
         setError(err instanceof ApiError ? err.message : "Failed to load the formula sheet.");
       });
-  }, [token, examCode, redirectToExpiredLogin]);
+  }, [examCode, ready]);
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-paper text-ink">
@@ -60,17 +62,25 @@ export default function FormulasPage() {
         >
           <Image src="/logo-mark.png" alt="" width={18} height={18} className="h-[18px] w-auto" />
         </Link>
-        <Link
-          href="/chat"
-          className="rounded-md border border-rule bg-paper px-3 py-2 text-sm text-ink shadow-sm hover:border-ledger-bright hover:text-ledger-bright"
-        >
-          &larr; Back to Tutor
-        </Link>
+        {!authLoading &&
+          (token ? (
+            <Link
+              href="/chat"
+              className="rounded-md border border-rule bg-paper px-3 py-2 text-sm text-ink shadow-sm hover:border-ledger-bright hover:text-ledger-bright"
+            >
+              &larr; Back to Tutor
+            </Link>
+          ) : (
+            <Link
+              href="/register"
+              className="rounded-md border border-ledger-bright bg-ledger px-3 py-2 text-sm font-medium text-paper shadow-sm hover:bg-ledger-bright"
+            >
+              Try the tutor free &rarr;
+            </Link>
+          ))}
       </div>
 
-      {loading || !token ? (
-        <DocumentSkeleton />
-      ) : error ? (
+      {error ? (
         <p className="p-6 text-sm text-redink">{error}</p>
       ) : !html ? (
         <DocumentSkeleton />

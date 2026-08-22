@@ -15,6 +15,13 @@ const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
 
 interface ExamState {
   examCode: string;
+  // False for the one tick between mount and the localStorage read below --
+  // examCode is only a guessed default (DEFAULT_EXAM_CODE) until this flips
+  // true. Consumers that fetch exam-specific content on mount (manual/
+  // formulas pages) key their fetch effect off this, not just examCode, so
+  // they never fire a request for the wrong exam and then have to discard
+  // it -- see manual/page.tsx and formulas/page.tsx.
+  ready: boolean;
   exams: ExamInfo[];
   loading: boolean;
   setExamCode: (code: string) => Promise<void>;
@@ -25,6 +32,7 @@ const ExamContext = createContext<ExamState | null>(null);
 export function ExamProvider({ children }: { children: ReactNode }) {
   const { token } = useAuth();
   const [examCode, setExamCodeState] = useState(DEFAULT_EXAM_CODE);
+  const [ready, setReady] = useState(false);
   const [exams, setExams] = useState<ExamInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +44,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setExamCodeState(stored);
     }
+    setReady(true);
   }, []);
 
   useEffect(() => {
@@ -62,7 +71,7 @@ export function ExamProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ExamContext.Provider value={{ examCode, exams, loading, setExamCode }}>
+    <ExamContext.Provider value={{ examCode, ready, exams, loading, setExamCode }}>
       {children}
     </ExamContext.Provider>
   );

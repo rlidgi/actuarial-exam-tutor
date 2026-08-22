@@ -1,13 +1,11 @@
 from pathlib import Path
 
 from flask import Blueprint, Response, abort
-from flask_jwt_extended import jwt_required
 
 bp = Blueprint("courses", __name__)
 
 # Free study manuals -- one self-contained HTML document per exam, authored
-# independently of the tutor, available to any registered user regardless
-# of subscription (login-gated only, no entitlement check).
+# independently of the tutor, public with no login or subscription required.
 COURSES_DIR = Path(__file__).resolve().parent.parent / "static_content" / "courses"
 
 # Explicit exam_code -> filename mapping rather than a derived one -- keeps
@@ -17,7 +15,6 @@ _FILENAMES = {"P": "exam_p.html", "FM": "exam_fm.html", "FAM": "exam_fam.html"}
 
 
 @bp.get("/<exam_code>")
-@jwt_required()
 def get_course(exam_code):
     filename = _FILENAMES.get(exam_code.upper())
     if filename is None:

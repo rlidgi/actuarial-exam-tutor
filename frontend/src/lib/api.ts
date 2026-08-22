@@ -321,20 +321,17 @@ export const api = {
     request<{ users: AdminUserDTO[] }>("/api/admin/users", {}, token),
   // Bypasses request() -- the manual is served as raw text/html, not JSON,
   // so there's no body to parse as an ApiError-shaped object on failure.
-  getCourseHtml: async (token: string, examCode: string): Promise<string> => {
-    const res = await fetch(`${API_URL}/api/courses/${examCode}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  // Public: the study manual needs no token, same as the backend route.
+  getCourseHtml: async (examCode: string): Promise<string> => {
+    const res = await fetch(`${API_URL}/api/courses/${examCode}`);
     if (!res.ok) {
       throw new ApiError(res.statusText, res.status);
     }
     return res.text();
   },
-  // Same treatment as getCourseHtml -- raw text/html, not JSON.
-  getFormulaSheetHtml: async (token: string, examCode: string): Promise<string> => {
-    const res = await fetch(`${API_URL}/api/formulas/${examCode}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  // Same treatment as getCourseHtml -- raw text/html, not JSON, and public.
+  getFormulaSheetHtml: async (examCode: string): Promise<string> => {
+    const res = await fetch(`${API_URL}/api/formulas/${examCode}`);
     if (!res.ok) {
       throw new ApiError(res.statusText, res.status);
     }
