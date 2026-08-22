@@ -822,6 +822,120 @@ body > * {
   cursor: not-allowed;
 }
 
+.exam-overview-tagline {
+  max-width: 680px;
+  margin: 0.5rem auto 0;
+  color: var(--pencil);
+  font-size: 1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+.exam-overview-section {
+  max-width: 960px;
+  margin: 2.4rem auto 0;
+  padding: 0 1.5rem;
+}
+.exam-overview-section h2 {
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-size: 1.4rem;
+  color: var(--ink);
+  text-align: center;
+  margin: 0 0 1rem;
+}
+.exam-overview-section p {
+  color: var(--pencil);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+.topic-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.1rem;
+}
+.topic-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.3rem 1.2rem;
+  text-align: left;
+}
+.topic-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--ledger);
+  color: var(--paper);
+  margin-bottom: 0.8rem;
+}
+.topic-card-title {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 0.96rem;
+  line-height: 1.35;
+  margin-bottom: 0.6rem;
+}
+.topic-card-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.topic-card-points li {
+  position: relative;
+  padding-left: 0.95rem;
+  font-size: 0.82rem;
+  color: var(--pencil);
+  line-height: 1.5;
+}
+.topic-card-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ledger-bright);
+}
+.exam-overview-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.5rem;
+}
+.exam-overview-card-note {
+  margin: -0.5rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ledger-bright);
+}
+.exam-overview-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.exam-overview-switch {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 860px) {
+  .exam-overview-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 .banner {
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;

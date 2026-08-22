@@ -247,30 +247,17 @@ function SignInErrorBanner() {
   );
 }
 
-// Same key exam-context.tsx persists the selected exam under, and
-// auth-context.tsx's afterAuth reads at signup -- redefined locally rather
-// than imported to avoid a circular import, same reasoning as
-// auth-context.tsx's own copy of this constant.
-const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
-
 export default function LandingContent() {
   const { token, logout } = useAuth();
   const router = useRouter();
   const [showSignIn, setShowSignIn] = useState(false);
   useReveal();
 
-  // Signed-in visitors go straight to that exam's pricing card (same as
-  // before); signed-out visitors get the sign-in modal, with the clicked
-  // exam persisted so both account creation (afterAuth) and the exam
-  // selector (ExamProvider, once they land in /chat) pick it up on their
-  // own next read of EXAM_STORAGE_KEY -- no new plumbing needed.
+  // Sends visitors to that exam's overview page, which describes the free
+  // and paid resources on offer and links to the free study manual/formula
+  // sheet, instead of dropping them straight into sign-in.
   const handleExamClick = (code: string) => {
-    if (token) {
-      router.push(`/pricing?exam=${code}`);
-      return;
-    }
-    window.localStorage.setItem(EXAM_STORAGE_KEY, code);
-    setShowSignIn(true);
+    router.push(`/exams/${code}`);
   };
 
   return (
@@ -386,8 +373,8 @@ export default function LandingContent() {
                 Experience a tutor that adapts to you.
               </div>
               <p>
-                Register or log in for free access to the comprehensive study manual for each exam and 6
-                free messages to try out the AI tutor.
+                The study manual and formula sheet are free for everyone, no account
+                needed. Sign up free to get 6 messages to try out the AI tutor.
               </p>
             </div>
             <button
@@ -395,7 +382,7 @@ export default function LandingContent() {
               className="btn landing-free-banner-btn"
               onClick={() => setShowSignIn(true)}
             >
-              Get free access &rarr;
+              Sign up free &rarr;
             </button>
           </div>
         </div>
