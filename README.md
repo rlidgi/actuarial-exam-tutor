@@ -25,8 +25,16 @@ Requires a running PostgreSQL instance matching `DATABASE_URL` in `backend/.env`
 cd backend
 set FLASK_APP=wsgi.py
 flask db upgrade
-flask run
+flask run --with-threads
 ```
+
+`--with-threads` matters: the study manual/formula sheet responses are large
+(hundreds of KB), and Next.js dev mode fires each page's data-fetch effect
+twice on mount (React Strict Mode). Werkzeug's dev server can't reliably
+serve two large concurrent requests without it -- one stalls and the
+connection resets, which surfaces in the browser as a generic "Failed to
+fetch". Production is unaffected (see `backend/Dockerfile` -- gunicorn with
+4 workers already handles concurrency correctly).
 
 Run tests (uses in-memory SQLite, no Postgres needed):
 
