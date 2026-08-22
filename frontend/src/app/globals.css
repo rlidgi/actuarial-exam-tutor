@@ -924,12 +924,6 @@ body > * {
   flex-direction: column;
   gap: 0.6rem;
 }
-.exam-overview-switch {
-  display: flex;
-  justify-content: center;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
 @media (max-width: 860px) {
   .exam-overview-cards {
     grid-template-columns: 1fr;

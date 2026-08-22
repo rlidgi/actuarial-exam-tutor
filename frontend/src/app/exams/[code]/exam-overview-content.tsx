@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SignInModal } from "@/components/sign-in-modal";
-import { EXAM_CODES, EXAM_OVERVIEW, type ExamCode } from "./exam-overview-data";
+import { EXAM_OVERVIEW, type ExamCode } from "./exam-overview-data";
 import { TOPIC_ICONS } from "./topic-icons";
 
 const PAID_FEATURES = [
@@ -49,8 +49,6 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
       setShowSignIn(true);
     }
   };
-
-  const otherExams = EXAM_CODES.filter((c) => c !== code);
 
   return (
     <div className="landing">
@@ -171,17 +169,6 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
           >
             See pricing &amp; subscribe
           </button>
-        </div>
-      </div>
-
-      <div className="exam-overview-section">
-        <h2>Also preparing for another exam?</h2>
-        <div className="exam-overview-switch">
-          {otherExams.map((c) => (
-            <Link key={c} className="btn" href={`/exams/${c}`}>
-              {EXAM_OVERVIEW[c].fullName}
-            </Link>
-          ))}
         </div>
       </div>
 
