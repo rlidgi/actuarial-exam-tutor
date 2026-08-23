@@ -235,6 +235,28 @@ function GiftIcon() {
   );
 }
 
+function ShieldCheckIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true">
+      <path
+        d="M20 6 L32 10 V19 C32 27 27 32 20 35 C13 32 8 27 8 19 V10 Z"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14 20 L18 24 L27 14"
+        fill="none"
+        stroke="var(--paper)"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function SignInErrorBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get("signin_error") !== "1") return null;
@@ -444,11 +466,59 @@ export default function LandingContent() {
           />
           <div className="feature-title">Personalized learning that adapts</div>
           <p>
-            The actuarial tutor adapts to each student&apos;s unique needs, much
-            like a human tutor. It continuously tracks proficiency, strengthens
-            foundational knowledge where needed, and guides students step by
-            step toward mastery.
+            Your tutor does more than answer questions. It continuously tracks
+            your proficiency across exam topics, identifies gaps in
+            foundational knowledge, and uses what it learns about your
+            progress to guide what you should study next.
           </p>
+        </div>
+      </div>
+
+      <div className="landing-proficiency">
+        <h2>Proficiency Dashboard that tracks progress</h2>
+        <p>
+          Every conversation with the tutor sharpens your proficiency scores, topic by
+          topic, so you always know what&apos;s strong and what still needs work.
+        </p>
+        <div className="preview-window reveal proficiency-preview">
+          <div className="proficiency-preview-frame">
+            <Image
+              src="/proficiencyscreenshot.png"
+              alt="Proficiency dashboard showing per-topic mastery scores for Exam P, most topics scored Strong"
+              width={1368}
+              height={1150}
+              className="proficiency-preview-img"
+            />
+            <div className="proficiency-preview-fade" aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+
+      <div className="landing-guarantee">
+        <div className="guarantee-card reveal">
+          <span className="guarantee-icon">
+            <ShieldCheckIcon />
+          </span>
+          <div className="guarantee-text">
+            <div className="guarantee-title">Our Pass Guarantee</div>
+            <p>
+              Our goal isn&apos;t just to get you subscribed -- it&apos;s to get you to a
+              passing score. If you take the exam and don&apos;t pass, we&apos;ll
+              automatically extend your subscription by the number of months you
+              originally paid for, so you can keep working toward passing.
+            </p>
+            <ul className="guarantee-points">
+              <li>At no extra cost to you</li>
+              <li>Applies for as many months as you originally paid for</li>
+            </ul>
+            <button
+              type="button"
+              className="btn landing-free-banner-btn guarantee-btn"
+              onClick={() => router.push("/pricing")}
+            >
+              See pricing &amp; subscribe &rarr;
+            </button>
+          </div>
         </div>
       </div>
 

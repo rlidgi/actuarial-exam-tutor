@@ -25,6 +25,12 @@ export const FAQ_ITEMS = [
     answer: "Yes, with one click from your account, no minimum commitment.",
   },
   {
+    question: "How do I apply for the Pass Guarantee?",
+    answer:
+      "To apply the Pass Guarantee, please contact support@actuarialexamstutor.com and include " +
+      "documentation showing you have not passed the exam.",
+  },
+  {
     question: "What if I already have a screenshot of a problem?",
     answer:
       "Paste or attach it directly into the chat. It's transcribed automatically and answered " +
