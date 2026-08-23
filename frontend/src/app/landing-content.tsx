@@ -505,12 +505,10 @@ export default function LandingContent() {
               Our goal isn&apos;t just to get you subscribed -- it&apos;s to get you to a
               passing score. If you take the exam and don&apos;t pass, we&apos;ll
               automatically extend your subscription by the number of months you
-              originally paid for, so you can keep working toward passing.
+              originally paid for, so you can keep working toward passing. And once
+              you&apos;ve paid for 4 months total and still haven&apos;t passed, continued
+              access is free for as long as you need it.
             </p>
-            <ul className="guarantee-points">
-              <li>At no extra cost to you</li>
-              <li>Applies for as many months as you originally paid for</li>
-            </ul>
             <button
               type="button"
               className="btn landing-free-banner-btn guarantee-btn"

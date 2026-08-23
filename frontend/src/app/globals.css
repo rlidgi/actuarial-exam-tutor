@@ -555,29 +555,6 @@ body > * {
   font-size: 1.02rem;
   line-height: 1.6;
 }
-.guarantee-points {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.guarantee-points li {
-  position: relative;
-  padding-left: 1.4rem;
-  font-size: 0.92rem;
-  color: var(--pencil);
-  line-height: 1.5;
-}
-.guarantee-points li::before {
-  content: "\2713";
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--ledger-bright);
-  font-weight: 700;
-}
 .guarantee-btn {
   font-size: 1rem;
 }
@@ -587,9 +564,6 @@ body > * {
     align-items: center;
     text-align: center;
     padding: 1.8rem 1.5rem;
-  }
-  .guarantee-points {
-    text-align: left;
   }
 }
 
