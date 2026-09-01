@@ -29,15 +29,9 @@ export default function ReferralsContent() {
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
 
       <MarketingHeader>
-        {token ? (
-          <Link className="btn" href="/chat">
-            Back to Tutor
-          </Link>
-        ) : (
-          <Link className="btn" href="/">
-            Home
-          </Link>
-        )}
+        <Link className="btn" href="/">
+          Home
+        </Link>
       </MarketingHeader>
 
       <article className="legal-body about-body">
