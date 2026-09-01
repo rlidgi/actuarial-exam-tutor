@@ -11,6 +11,7 @@ export function SiteFooter() {
         <a href="/privacy.html">Privacy Policy</a>
         {/* A real Next.js route, unlike the two above -- client-side nav. */}
         <Link href="/contact">Contact Us</Link>
+        <Link href="/referrals">Referral Program</Link>
       </div>
       <a
         href="https://www.facebook.com/profile.php?id=61594026569737"

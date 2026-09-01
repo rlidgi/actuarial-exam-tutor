@@ -187,7 +187,9 @@ def parse_webhook_event(payload: bytes, sig_header: str):
 
 
 def apply_webhook_event(event) -> None:
-    """Update the Subscription table to match what this Stripe event says."""
+    """Updates the Subscription table to match what this Stripe event says,
+    except invoice.upcoming which instead triggers pending referral-reward
+    credits (see referral_service.apply_pending_rewards_for_customer)."""
     use_api_key()
     event_type = event["type"]
     obj = event["data"]["object"]
@@ -200,3 +202,9 @@ def apply_webhook_event(event) -> None:
 
     elif event_type == "customer.subscription.deleted":
         _upsert_by_subscription_id(obj["id"], status="canceled")
+
+    elif event_type == "invoice.upcoming":
+        # Fires a few days before Stripe generates a customer's next
+        # invoice -- no invoice id exists yet at this point (that's the
+        # whole point: it's a preview), only a customer id.
+        referral_service.apply_pending_rewards_for_customer(obj["customer"])

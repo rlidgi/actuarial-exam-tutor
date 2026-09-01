@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from app.extensions import db
 from app.models.referral_reward import ReferralReward
 from app.models.user import User
-from app.services.stripe_utils import any_stripe_customer_id, use_api_key
+from app.services.stripe_utils import use_api_key, user_id_for_customer
 
 # No 0/O/1/I/L -- avoids codes that are ambiguous when read aloud or typed
 # from memory (this is a code students will actually share with classmates).
@@ -136,16 +136,17 @@ def grant_referrer_reward(referrer: User, referred_user: User) -> None:
     handle_first_ever_activation). Every completed referral earns the same
     flat account credit, no tiers.
 
-    Applied immediately as a Stripe customer balance credit if the referrer
-    already has a Stripe customer id -- balance credits are additive and
-    customer-scoped (not tied to one subscription), so multiple rewards
-    earned close together just accumulate correctly instead of one
-    overwriting another the way stacking discounts on a single subscription
-    would. If the referrer has never subscribed themselves yet (no Stripe
-    customer id exists), the reward stays pending and is redeemed as a
-    coupon on their own first-ever checkout instead (see
-    pending_reward_for_checkout) -- there's no background retry/notification
-    job for this in v1."""
+    Always left pending here, regardless of whether the referrer already has
+    a Stripe customer id -- it's redeemed later, at whichever comes first:
+    a coupon on the referrer's own next Checkout session (see
+    pending_reward_for_checkout), or a Stripe balance credit applied right
+    before their next invoice is generated (see
+    apply_pending_rewards_for_customer, fired from the invoice.upcoming
+    webhook). Deliberately not applied immediately: a customer balance
+    credit only ever offsets a *future* invoice anyway, so applying it the
+    moment the referral converts just commits it earlier than it needs to
+    be, with no way for the referrer to request a cash payout instead
+    before it's used."""
     reward = ReferralReward(
         user_id=referrer.id,
         referred_user_id=referred_user.id,
@@ -163,19 +164,39 @@ def grant_referrer_reward(referrer: User, referred_user: User) -> None:
         # granted this referrer their reward for this referral.
         return
 
-    customer_id = any_stripe_customer_id(referrer.id)
-    if customer_id is None:
-        return  # stays pending, redeemed at the referrer's own first checkout
+
+def apply_pending_rewards_for_customer(customer_id: str) -> None:
+    """Fired from the invoice.upcoming webhook, a few days before Stripe
+    generates a customer's next invoice -- applying the credit here (rather
+    than the moment a referral converts) means it lands on that upcoming
+    invoice specifically, and gives the referrer a real window beforehand to
+    email support and request a Visa/PayPal payout instead (support marks
+    that reward some status other than "pending", e.g. "paid_out", so it's
+    skipped here rather than double-paid).
+
+    Applies every still-pending referrer_credit reward for this customer in
+    one pass -- credits are additive, so this is safe even if several
+    rewards accumulated since their last invoice."""
+    user_id = user_id_for_customer(customer_id)
+    if user_id is None:
+        return
+
+    rewards = ReferralReward.query.filter_by(
+        user_id=user_id, reward_type="referrer_credit", status="pending"
+    ).all()
+    if not rewards:
+        return
 
     use_api_key()
-    stripe.Customer.create_balance_transaction(
-        customer_id,
-        amount=-current_app.config["REFERRAL_CREDIT_CENTS"],
-        currency="usd",
-        description="Referral reward",
-    )
-    reward.status = "applied"
-    reward.applied_at = datetime.now(timezone.utc)
+    for reward in rewards:
+        stripe.Customer.create_balance_transaction(
+            customer_id,
+            amount=-current_app.config["REFERRAL_CREDIT_CENTS"],
+            currency="usd",
+            description="Referral reward",
+        )
+        reward.status = "applied"
+        reward.applied_at = datetime.now(timezone.utc)
     db.session.commit()
 
 

@@ -12,6 +12,11 @@ const REWARD_LABELS: Record<ReferralSummary["rewards"][number]["reward_type"], s
   referrer_credit: "$10 account credit",
 };
 
+// Matches the backend's flat REFERRAL_CREDIT_CENTS default (see
+// app/config.py) -- every referrer_credit reward is worth the same $10,
+// same assumption REWARD_LABELS above already makes.
+const REFERRAL_CREDIT_DOLLARS = 10;
+
 const STATUS_LABELS: Record<ReferralSummary["rewards"][number]["status"], string> = {
   pending: "Pending",
   applied: "Applied",
@@ -60,7 +65,11 @@ export default function AccountPage() {
           <h1>Referrals</h1>
           <p>
             Share your link. When someone you refer subscribes, they get 25% off their first
-            month, and you get $10 credit toward any exam&apos;s subscription fees.
+            month, and you earn $10 toward any exam&apos;s subscription fees -- applied as
+            credit automatically right before your next payment is due. Prefer cash
+            instead? Email{" "}
+            <a href="mailto:support@actuarialexamstutor.com">support@actuarialexamstutor.com</a>{" "}
+            before then and we can arrange a Visa or PayPal payout instead.
           </p>
         </div>
 
@@ -93,6 +102,14 @@ export default function AccountPage() {
               <p className="mt-3 text-sm text-pencil">
                 Completed referrals:{" "}
                 <span className="font-semibold text-ink">{summary.completed_referral_count}</span>
+              </p>
+              <p className="mt-1 text-sm text-pencil">
+                Total earned:{" "}
+                <span className="font-semibold text-ink">
+                  $
+                  {summary.rewards.filter((r) => r.reward_type === "referrer_credit").length *
+                    REFERRAL_CREDIT_DOLLARS}
+                </span>
               </p>
             </div>
 

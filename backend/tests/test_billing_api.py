@@ -206,9 +206,12 @@ def test_sync_upserts_subscription_from_checkout_session(client, db, register_us
 
 
 def _register_referred_pair(client, db, app, register_user, *, referrer_email, referred_email):
-    """Registers a referrer who already has a Stripe customer id (so their
-    reward can apply immediately as a balance credit) plus a referred user
-    with a profile, ready for a checkout sync/webhook to activate."""
+    """Registers a referrer who already has a Stripe customer id, plus a
+    referred user with a profile, ready for a checkout sync/webhook to
+    activate. The referrer's existing customer id doesn't change when their
+    reward gets applied any more (see apply_pending_rewards_for_customer) --
+    it's kept here mainly so tests can distinguish "referrer with a
+    subscription" from "referrer who's never subscribed"."""
     _register_with_profile(client, db, register_user, referrer_email)
     referrer = User.query.filter_by(email=referrer_email).first()
     referrer_profile = StudentProfile.query.filter_by(user_id=referrer.id).first()
@@ -230,7 +233,7 @@ def _register_referred_pair(client, db, app, register_user, *, referrer_email, r
     return headers, referred_user, referred_profile
 
 
-def test_sync_activation_grants_and_applies_referrer_reward(client, db, app, register_user):
+def test_sync_activation_grants_a_pending_referrer_reward(client, db, app, register_user):
     headers, referred_user, referred_profile = _register_referred_pair(
         client, db, app, register_user,
         referrer_email="syncreferrer@example.com", referred_email="syncreferred@example.com",
@@ -259,10 +262,10 @@ def test_sync_activation_grants_and_applies_referrer_reward(client, db, app, reg
     assert referred_user.has_ever_subscribed is True
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
-    assert reward.status == "applied"
-    mock_referral_stripe.Customer.create_balance_transaction.assert_called_once_with(
-        "cus_referrer_active", amount=-1000, currency="usd", description="Referral reward"
-    )
+    assert reward.status == "pending"
+    # Not applied at activation time any more -- see
+    # apply_pending_rewards_for_customer, fired later from invoice.upcoming.
+    mock_referral_stripe.Customer.create_balance_transaction.assert_not_called()
 
 
 def test_webhook_and_sync_race_produces_one_referrer_reward(client, db, app, register_user):
@@ -305,7 +308,7 @@ def test_webhook_and_sync_race_produces_one_referrer_reward(client, db, app, reg
     assert sync_resp.status_code == 200
     assert webhook_resp.status_code == 200
     assert ReferralReward.query.filter_by(referred_user_id=referred_user.id).count() == 1
-    mock_referral_stripe.Customer.create_balance_transaction.assert_called_once()
+    mock_referral_stripe.Customer.create_balance_transaction.assert_not_called()
 
 
 def test_webhook_invalid_signature_returns_400(client):
@@ -342,3 +345,42 @@ def test_webhook_subscription_deleted_marks_canceled(client, db, register_user):
     assert resp.status_code == 200
     sub = Subscription.query.filter_by(stripe_subscription_id="sub_test456").first()
     assert sub.status == "canceled"
+
+
+def test_webhook_invoice_upcoming_applies_pending_referrer_reward(client, db, app, register_user):
+    _register_with_profile(client, db, register_user, "upcomingwebhookuser@example.com")
+    referrer = User.query.filter_by(email="upcomingwebhookuser@example.com").first()
+    profile = StudentProfile.query.filter_by(user_id=referrer.id).first()
+    db.session.add(
+        Subscription(
+            student_profile_id=profile.id, status="active", stripe_customer_id="cus_webhook_up1"
+        )
+    )
+    db.session.add(
+        ReferralReward(
+            user_id=referrer.id, reward_type="referrer_credit", status="pending",
+            stripe_coupon_id="coupon_x",
+        )
+    )
+    db.session.commit()
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
+
+    with patch("app.services.billing_service.stripe") as mock_stripe, \
+         patch("app.services.referral_service.stripe") as mock_referral_stripe:
+        mock_stripe.Webhook.construct_event.return_value = {
+            "type": "invoice.upcoming",
+            "data": {"object": {"customer": "cus_webhook_up1"}},
+        }
+        resp = client.post(
+            "/api/billing/webhook",
+            data=b"{}",
+            headers={"Stripe-Signature": "sig", "Content-Type": "application/json"},
+        )
+
+    assert resp.status_code == 200
+    mock_referral_stripe.Customer.create_balance_transaction.assert_called_once_with(
+        "cus_webhook_up1", amount=-1000, currency="usd", description="Referral reward"
+    )
+    reward = ReferralReward.query.filter_by(user_id=referrer.id).first()
+    assert reward.status == "applied"
+    assert reward.applied_at is not None

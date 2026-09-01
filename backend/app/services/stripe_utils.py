@@ -28,3 +28,16 @@ def any_stripe_customer_id(user_id: int) -> str | None:
         .first()
     )
     return sub.stripe_customer_id if sub else None
+
+
+def user_id_for_customer(customer_id: str) -> int | None:
+    """Reverse of any_stripe_customer_id -- given a Stripe customer id (as
+    carried on an invoice.upcoming webhook payload, which has no other
+    reference back to our own ids), find the local user it belongs to.
+    Same one-customer-per-user assumption as any_stripe_customer_id."""
+    sub = (
+        Subscription.query.join(StudentProfile)
+        .filter(Subscription.stripe_customer_id == customer_id)
+        .first()
+    )
+    return sub.student_profile.user_id if sub else None

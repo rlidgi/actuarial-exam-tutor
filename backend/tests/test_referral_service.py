@@ -88,7 +88,10 @@ def test_completed_referral_count_only_counts_converted_referrals(db):
     assert referral_service.completed_referral_count(referrer.id) == 2
 
 
-def test_grant_referrer_reward_applies_immediately_as_a_balance_credit(app, db):
+def test_grant_referrer_reward_always_stays_pending(app, db):
+    """Never applied immediately, even when the referrer already has a
+    Stripe customer -- see apply_pending_rewards_for_customer, which is the
+    only thing that ever actually calls Stripe for this reward type now."""
     referrer = _make_user(db, "activereferrer@example.com", stripe_customer_id="cus_ref123")
     referred_user = _make_user(
         db, "referred1@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
@@ -100,17 +103,14 @@ def test_grant_referrer_reward_applies_immediately_as_a_balance_credit(app, db):
 
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
-    assert reward.status == "applied"
+    assert reward.status == "pending"
     assert reward.reward_type == "referrer_credit"
-    assert reward.applied_at is not None
-    mock_stripe.Customer.create_balance_transaction.assert_called_once_with(
-        "cus_ref123", amount=-1000, currency="usd", description="Referral reward"
-    )
+    assert reward.applied_at is None
+    mock_stripe.Customer.create_balance_transaction.assert_not_called()
 
 
-def test_grant_referrer_reward_gives_the_same_flat_credit_on_every_referral(app, db):
+def test_grant_referrer_reward_creates_one_pending_row_per_referral(db):
     referrer = _make_user(db, "repeatreferrer@example.com", stripe_customer_id="cus_ref999")
-    app.config["REFERRAL_CREDIT_CENTS"] = 1000
 
     with patch("app.services.referral_service.stripe") as mock_stripe:
         for i in range(3):
@@ -119,13 +119,12 @@ def test_grant_referrer_reward_gives_the_same_flat_credit_on_every_referral(app,
             )
             referral_service.grant_referrer_reward(referrer, referred)
 
-    assert mock_stripe.Customer.create_balance_transaction.call_count == 3
-    for call in mock_stripe.Customer.create_balance_transaction.call_args_list:
-        assert call.kwargs["amount"] == -1000
-    assert (
-        ReferralReward.query.filter_by(user_id=referrer.id, reward_type="referrer_credit").count()
-        == 3
-    )
+    mock_stripe.Customer.create_balance_transaction.assert_not_called()
+    rewards = ReferralReward.query.filter_by(
+        user_id=referrer.id, reward_type="referrer_credit"
+    ).all()
+    assert len(rewards) == 3
+    assert all(r.status == "pending" for r in rewards)
 
 
 def test_grant_referrer_reward_stays_pending_without_a_stripe_customer(db):
@@ -140,6 +139,58 @@ def test_grant_referrer_reward_stays_pending_without_a_stripe_customer(db):
     reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
     assert reward is not None
     assert reward.status == "pending"
+    mock_stripe.Customer.create_balance_transaction.assert_not_called()
+
+
+def test_apply_pending_rewards_applies_every_pending_reward_for_the_customer(app, db):
+    referrer = _make_user(db, "upcominginvoice@example.com", stripe_customer_id="cus_upcoming1")
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000
+    for i in range(2):
+        referred = _make_user(
+            db, f"upcoming{i}@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+        )
+        with patch("app.services.referral_service.stripe"):
+            referral_service.grant_referrer_reward(referrer, referred)
+
+    with patch("app.services.referral_service.stripe") as mock_stripe:
+        referral_service.apply_pending_rewards_for_customer("cus_upcoming1")
+
+    assert mock_stripe.Customer.create_balance_transaction.call_count == 2
+    for call in mock_stripe.Customer.create_balance_transaction.call_args_list:
+        assert call.args[0] == "cus_upcoming1"
+        assert call.kwargs["amount"] == -1000
+    rewards = ReferralReward.query.filter_by(
+        user_id=referrer.id, reward_type="referrer_credit"
+    ).all()
+    assert all(r.status == "applied" and r.applied_at is not None for r in rewards)
+
+
+def test_apply_pending_rewards_skips_rewards_not_still_pending(app, db):
+    """Covers the manual Visa/PayPal payout path -- support marks a reward
+    something other than "pending" (e.g. "paid_out") to keep this from
+    double-paying it once the next invoice.upcoming fires."""
+    referrer = _make_user(db, "paidoutreferrer@example.com", stripe_customer_id="cus_paidout1")
+    referred = _make_user(
+        db, "paidoutreferred@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+    )
+    with patch("app.services.referral_service.stripe"):
+        referral_service.grant_referrer_reward(referrer, referred)
+    reward = ReferralReward.query.filter_by(referred_user_id=referred.id).first()
+    reward.status = "paid_out"
+    db.session.commit()
+
+    with patch("app.services.referral_service.stripe") as mock_stripe:
+        referral_service.apply_pending_rewards_for_customer("cus_paidout1")
+
+    mock_stripe.Customer.create_balance_transaction.assert_not_called()
+    db.session.refresh(reward)
+    assert reward.status == "paid_out"
+
+
+def test_apply_pending_rewards_noops_for_an_unknown_customer(db):
+    with patch("app.services.referral_service.stripe") as mock_stripe:
+        referral_service.apply_pending_rewards_for_customer("cus_doesnotexist")
+
     mock_stripe.Customer.create_balance_transaction.assert_not_called()
 
 
