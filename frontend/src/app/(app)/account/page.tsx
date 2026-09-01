@@ -69,7 +69,7 @@ export default function AccountPage() {
             credit automatically right before your next payment is due. Prefer cash
             instead? Email{" "}
             <a href="mailto:support@actuarialexamstutor.com">support@actuarialexamstutor.com</a>{" "}
-            before then and we can arrange a Visa or PayPal payout instead.
+            before then and we can arrange a payout by check or PayPal instead.
           </p>
         </div>
 

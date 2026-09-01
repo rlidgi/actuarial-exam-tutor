@@ -72,8 +72,8 @@ export default function ReferralsContent() {
           subscription right before your next payment comes due. If you&apos;d rather
           receive a reward as cash, email{" "}
           <a href="mailto:support@actuarialexamstutor.com">support@actuarialexamstutor.com</a>{" "}
-          <em>before</em> your next payment date and we can arrange a Visa or PayPal
-          payout instead. Once a reward has been applied as credit, it can&apos;t be
+          <em>before</em> your next payment date and we can arrange a payout by check
+          or PayPal instead. Once a reward has been applied as credit, it can&apos;t be
           switched to cash after the fact.
         </p>
 
