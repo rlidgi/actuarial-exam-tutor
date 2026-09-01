@@ -13,7 +13,7 @@ export function SiteFooter() {
         <Link href="/contact">Contact Us</Link>
       </div>
       <a
-        href="https://www.facebook.com/profile.php?id=61592801835167"
+        href="https://www.facebook.com/profile.php?id=61594026569737"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Facebook"
