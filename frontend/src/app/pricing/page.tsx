@@ -5,7 +5,7 @@ import PricingContent from "./pricing-content";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "$25/month per exam, unlimited use. Subscribe only to the exams you're studying for -- " +
+    "From $25/month per exam, unlimited use. Subscribe only to the exams you're studying for -- " +
     "cancel anytime, no commitment.",
 };
 

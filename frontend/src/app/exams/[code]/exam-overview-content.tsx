@@ -154,7 +154,7 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
         <div className="pricing-card">
           <div className="pricing-card-name">{exam.fullName}</div>
           <div className="pricing-card-price">
-            $25
+            ${exam.price}
             <span>/month</span>
           </div>
           <ul className="pricing-card-features">

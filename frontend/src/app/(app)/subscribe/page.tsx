@@ -8,6 +8,12 @@ import { api, ApiError, isAuthError } from "@/lib/api";
 import { useExam } from "@/lib/exam-context";
 import { CardSkeleton } from "@/components/skeleton";
 
+// Matches pricing-content.tsx's own EXAMS array -- duplicated locally
+// rather than imported, same reasoning as that file's own comment on
+// landing-content.tsx's EXAMS list. Purely display; the actual charge is
+// whatever STRIPE_PRICE_ID_* resolves to server-side.
+const EXAM_PRICES: Record<string, number> = { P: 25, FM: 25, FAM: 35 };
+
 function SubscribeContent() {
   const { token, loading, redirectToExpiredLogin } = useRequireAuth();
   useDocumentTitle("Subscribe");
@@ -43,7 +49,8 @@ function SubscribeContent() {
       <div className="w-full max-w-sm rounded-lg border border-rule bg-paper-raised p-6 text-center">
         <h1 className="mb-2 text-lg font-semibold text-ink">Subscribe to Exam {examCode}</h1>
         <p className="mb-4 text-sm text-pencil">
-          $25/month for unlimited tutoring, practice problems, and proficiency tracking.
+          ${EXAM_PRICES[examCode] ?? 25}/month for unlimited tutoring, practice problems,
+          and proficiency tracking.
         </p>
         {error && <p className="mb-3 text-sm text-redink">{error}</p>}
         <button

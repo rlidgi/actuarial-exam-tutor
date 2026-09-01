@@ -20,6 +20,12 @@ interface ExamOverview {
   // this same exam's hero card -- undefined falls back to the default ink
   // color there and to --ledger here, same reasoning.
   accent?: string;
+  // Monthly subscription price -- must match pricing-content.tsx's own
+  // EXAMS array (kept as a separate literal there, not imported, same
+  // reasoning as landing-content.tsx's own duplicated EXAMS list) and the
+  // actual Stripe Price the checkout session uses (STRIPE_PRICE_ID_* in
+  // backend/.env) -- this is purely display, so it doesn't drive billing.
+  price: number;
   topics: ExamTopic[];
 }
 
@@ -30,6 +36,7 @@ export const EXAM_OVERVIEW: Record<ExamCode, ExamOverview> = {
     tagline:
       "Build the probability foundation the rest of the actuarial exam track depends on, from combinatorics through joint distributions.",
     accent: "var(--sky)",
+    price: 25,
     topics: [
       {
         icon: "sets",
@@ -66,6 +73,7 @@ export const EXAM_OVERVIEW: Record<ExamCode, ExamOverview> = {
     tagline:
       "Develop fluency in the time-value-of-money and interest theory concepts that underpin every later actuarial exam.",
     accent: "var(--gold)",
+    price: 25,
     topics: [
       {
         icon: "clock",
@@ -102,6 +110,7 @@ export const EXAM_OVERVIEW: Record<ExamCode, ExamOverview> = {
     tagline:
       "Connect life contingencies with financial economics through structured, textbook-grounded practice.",
     accent: "var(--ledger-bright)",
+    price: 35,
     topics: [
       {
         icon: "survivalCurve",
