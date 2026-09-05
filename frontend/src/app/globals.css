@@ -1303,25 +1303,34 @@ body > * {
    same technique as ChatGPT's shimmer -- on this light background the band
    sweeps from faint to crisp (rather than a hue shift), which reads clearly
    against paper-raised. */
-/* Two prior attempts (a compositing hint, then a properly-typed @property
-   custom value) both failed to animate on real mobile devices even though
-   the underlying technique -- animating a background-clip:text gradient --
-   worked fine on desktop. That points at the mobile engine not reliably
-   repainting an animated background-clip:text at all, not at how the
-   position value was declared. Dropping that whole approach for something
-   that has no such history of mobile quirks: a plain opacity pulse on
-   solid-colored text, no gradient/clip/background-position involved. */
+/* TEMPORARY: restored to the exact pre-investigation version to test
+   whether reduce-motion was the sole cause all along, now that it's
+   confirmed off on the test device -- see the opacity-pulse version this
+   replaced (still in git history at commit 528d4ac) for what ships if
+   this turns out not to animate either. */
 .thinking-text {
-  color: var(--pencil);
-  animation: thinking-pulse 1.4s ease-in-out infinite;
+  background-image: linear-gradient(
+    90deg,
+    var(--pencil-soft) 0%,
+    var(--pencil-soft) 35%,
+    var(--ink) 50%,
+    var(--pencil-soft) 65%,
+    var(--pencil-soft) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: thinking-shimmer 2.6s linear infinite;
 }
-@keyframes thinking-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+@keyframes thinking-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .thinking-text {
     animation: none;
-    opacity: 1;
+    background-image: none;
+    color: var(--pencil);
   }
 }
