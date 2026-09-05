@@ -1303,7 +1303,21 @@ body > * {
    same technique as ChatGPT's shimmer -- on this light background the band
    sweeps from faint to crisp (rather than a hue shift), which reads clearly
    against paper-raised. */
+/* Registers the shimmer's horizontal offset as a real animatable type
+   (a plain custom property is just an opaque string to most engines, which
+   several mobile WebKit/Chrome builds then fail to smoothly interpolate --
+   this is what left the gradient-clipped text static there even with a
+   compositing hint). Falls back gracefully: browsers without @property
+   support just treat --thinking-shimmer-x as an unregistered custom
+   property, so worst case is the old (desktop-working) behavior, not
+   breakage. */
+@property --thinking-shimmer-x {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 200%;
+}
 .thinking-text {
+  --thinking-shimmer-x: 200%;
   background-image: linear-gradient(
     90deg,
     var(--pencil-soft) 0%,
@@ -1313,21 +1327,17 @@ body > * {
     var(--pencil-soft) 100%
   );
   background-size: 200% 100%;
+  background-position: var(--thinking-shimmer-x) 0;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   animation: thinking-shimmer 2.6s linear infinite;
-  /* Some mobile WebKit/Chrome builds paint the gradient-clipped text once
-     and don't reliably repaint it as background-position ticks -- these
-     hints promote the element to its own compositing layer so the browser
-     treats it as something that's actively animating, same idiom as
-     .landing-hero-tagline's own will-change. */
   will-change: background-position;
   transform: translateZ(0);
 }
 @keyframes thinking-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% { --thinking-shimmer-x: 200%; }
+  100% { --thinking-shimmer-x: -200%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .thinking-text {
