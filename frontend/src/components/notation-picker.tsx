@@ -21,12 +21,28 @@ const GENERAL_MATH: NotationItem[] = [
 ];
 
 const ACTUARIAL_NOTATION: NotationItem[] = [
-  { label: "\u00E4", title: "Annuity-due", snippet: "\\ddot{a}_{x:\\overline{n}|}" },
-  { label: "a\u2099", title: "Annuity-immediate", snippet: "a_{x:\\overline{n}|}" },
-  { label: "A", title: "Insurance", snippet: "A_{x:\\overline{n}|}" },
   { label: "\u03B4", title: "Force of interest", snippet: "\\delta" },
   { label: "\u03BC", title: "Force of mortality", snippet: "\\mu_{x}" },
   { label: "\u209CV", title: "Reserve", snippet: "{}_{t}V_{x}" },
+  { label: "A\u00B9", title: "n-year term insurance", snippet: "A_{x:\\overline{n}\\mid}^{1}" },
+  {
+    label: "A\u2081",
+    title: "n-year pure endowment \u2014 alternative notation",
+    snippet: "A_{x:\\overline{n}\\mid}^{\\ \\ 1}",
+  },
+  { label: "A", title: "n-year endowment insurance", snippet: "A_{x:\\overline{n}\\mid}" },
+  {
+    label: "\u00E4\u2099",
+    title: "n-year temporary annuity-due",
+    snippet: "\\ddot{a}_{x:\\overline{n}\\mid}",
+  },
+  { label: "\u2099p", title: "Survive n years", snippet: "{}_n p_x" },
+  { label: "\u2099q", title: "Die within n years", snippet: "{}_n q_x" },
+  {
+    label: "\u2099|\u2098q",
+    title: "Survive n years, then die within next m years",
+    snippet: "{}_{n\\mid m}q_x",
+  },
 ];
 
 function NotationGroup({
