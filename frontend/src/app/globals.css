@@ -1317,6 +1317,13 @@ body > * {
   background-clip: text;
   color: transparent;
   animation: thinking-shimmer 2.6s linear infinite;
+  /* Some mobile WebKit/Chrome builds paint the gradient-clipped text once
+     and don't reliably repaint it as background-position ticks -- these
+     hints promote the element to its own compositing layer so the browser
+     treats it as something that's actively animating, same idiom as
+     .landing-hero-tagline's own will-change. */
+  will-change: background-position;
+  transform: translateZ(0);
 }
 @keyframes thinking-shimmer {
   0% { background-position: 200% 0; }
