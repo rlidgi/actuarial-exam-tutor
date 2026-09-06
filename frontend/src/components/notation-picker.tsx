@@ -27,10 +27,10 @@ const ACTUARIAL_NOTATION: NotationItem[] = [
   { label: "A\u00B9", title: "n-year term insurance", snippet: "A_{x:\\overline{n}\\mid}^{1}" },
   {
     label: "A\u2081",
-    title: "n-year pure endowment \u2014 alternative notation",
+    title: "n-year pure endowment",
     snippet: "A_{x:\\overline{n}\\mid}^{\\ \\ 1}",
   },
-  { label: "A", title: "n-year endowment insurance", snippet: "A_{x:\\overline{n}\\mid}" },
+  { label: "A", title: "Life insurance for a person aged x", snippet: "A_{x}" },
   {
     label: "\u00E4\u2099",
     title: "n-year temporary annuity-due",

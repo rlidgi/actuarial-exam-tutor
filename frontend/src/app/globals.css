@@ -1,23 +1,5 @@
 @import "tailwindcss";
 
-/* KaTeX draws its overline/underline/fraction bars with an actual CSS
-   border (e.g. .katex-overline .overline-line { border-bottom-style:
-   solid }), but its own stylesheet never sets a border-bottom-*width* --
-   it relies on the browser's default. Tailwind's Preflight resets every
-   element's border-width to 0 first (`*, ::before, ::after { border: 0
-   solid }`), and nothing in KaTeX's CSS ever sets it back, so those bars
-   render as a zero-width "solid" border: technically styled, invisible in
-   practice. Re-asserting a real width here fixes every affected construct
-   in one place (\overline, \underline, \frac) rather than per snippet --
-   0.04em matches KaTeX's own convention for its other border-based
-   elements (.fbox, .angl) elsewhere in katex.min.css. */
-.katex .katex-overline .overline-line,
-.katex .katex-underline .underline-line,
-.katex .mfrac .frac-line,
-.katex .katex-hline {
-  border-bottom-width: 0.04em;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #171717;

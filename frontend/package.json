@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.2",
-    "katex": "^0.18.1",
+    "katex": "0.16.47",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
