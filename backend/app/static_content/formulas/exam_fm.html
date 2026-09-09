@@ -111,6 +111,10 @@
       filter: brightness(0) invert(1);
     }
 
+    .topbar-url {
+      display: none;
+    }
+
     .topbar-title h1 {
       font-family: "Iowan Old Style", "Sitka Text", Georgia, "Cambria", serif;
       font-size: 1.25rem;
@@ -281,6 +285,8 @@
       padding: 0.7rem 0.9rem;
       margin: 1rem 0;
       font-size: 0.86rem;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
 
     .callout.tip {
@@ -321,6 +327,26 @@
         color: #000;
       }
 
+      .topbar-logo {
+        filter: none;
+        margin-bottom: -14px;
+      }
+
+      .topbar-title p.topbar-url {
+        display: block;
+        color: #444;
+        font-size: 1.1rem;
+        margin: 0 0 0.6rem 0;
+      }
+
+      .topbar-title h1 {
+        color: #000;
+      }
+
+      .topbar-title p {
+        color: #444;
+      }
+
       .topbar-actions,
       nav.jumpnav {
         display: none;
@@ -334,6 +360,15 @@
       .formula-box {
         background: #fafafa;
         border-color: #ccc;
+      }
+
+      th {
+        background: #e8e8e8;
+      }
+
+      code,
+      .code {
+        background: #f0f0f0;
       }
 
       .fgrid {
@@ -358,6 +393,7 @@
   <header class="topbar">
     <div class="topbar-title">
       <img class="topbar-logo" src="/logo_no_background.png" alt="Actuarial Exams Tutor">
+      <p class="topbar-url">ActuarialExamsTutor.com</p>
       <h1>Exam FM Formula Sheet</h1>
       <p>Updated July 2026</p>
     </div>
@@ -369,7 +405,7 @@
       <a href="#sec-alm">Cash Flows &amp; ALM</a>
     </nav>
     <div class="topbar-actions">
-      <button onclick="window.print()" title="Print or save as PDF">🖨️ Print</button>
+      <a class="btn-link" href="/exam-fm-formula-sheet.pdf" download title="Download a clean PDF">Download PDF</a>
       <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle light/dark theme"
         title="Toggle light/dark theme">🌙</button>
       <a class="btn-link" href="/manual" target="_top">Full Manual →</a>
