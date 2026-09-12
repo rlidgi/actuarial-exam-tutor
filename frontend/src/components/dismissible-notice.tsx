@@ -32,14 +32,17 @@ export function DismissibleNotice({ id, message }: { id: string; message: string
   };
 
   return (
-    <div className="w-full border-b border-sky/30 bg-sky/10 px-4 py-2 md:px-6">
-      <div className="chat-column mx-auto flex w-full items-start gap-2 text-sm text-sky">
+    <div className="chat-column mx-auto mt-3 w-full px-4 md:px-6">
+      <div className="relative rounded-lg border border-sky/30 bg-sky/10 py-2.5 pl-4 pr-10 text-sm text-sky">
+        <span aria-hidden="true" className="mr-1.5">
+          &#9432;
+        </span>
         <span>{message}</span>
         <button
           type="button"
           onClick={handleDismiss}
           aria-label="Dismiss"
-          className="shrink-0 text-sky hover:text-ink"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-lg leading-none text-sky hover:text-ink"
         >
           &times;
         </button>
