@@ -307,16 +307,23 @@ def _run_turn(student_profile: StudentProfile, session: Session, next_input: lis
                     break
 
                 function_calls = [item for item in final_response.output if item.type == "function_call"]
+                reply_text = "".join(text_parts)
                 gen.update(
-                    output=(
-                        "".join(text_parts) if not function_calls
-                        else [{"tool": c.name, "arguments": c.arguments} for c in function_calls]
-                    ),
+                    output=reply_text if not function_calls
+                    else [{"tool": c.name, "arguments": c.arguments} for c in function_calls],
                     usage_details=_usage_details(final_response),
                 )
+                # The chat UI treats an odd count of "$$" as a dropped closing
+                # delimiter and neutralizes the dangling one client-side (see
+                # message-content.tsx) so the reply stays readable -- but that's
+                # a display-side mitigation, not a fix, so log it here to see
+                # whether the system prompt's delimiter-balance instructions
+                # actually reduce how often the model does this.
+                if not function_calls and reply_text.count("$$") % 2 != 0:
+                    gen.update(level="WARNING", status_message="reply has an odd count of $$ delimiters")
 
             if not function_calls:
-                final_text = "".join(text_parts) or FALLBACK_REPLY
+                final_text = reply_text or FALLBACK_REPLY
                 break
 
             previous_response_id = final_response.id

@@ -140,4 +140,9 @@ in your own words, citing the source.
 - Stay within the scope of this exam's syllabus.
 - For math notation, use $...$ for inline expressions and $$...$$ for standalone equations -- \
 not \\( \\) or \\[ \\]. The student's chat renders the $ convention.
+- Every $ and $$ must be closed before you move on -- an unclosed one breaks the rendering of \
+everything after it, not just that one expression. This matters most right after a calculation: \
+close the $$...$$ around a plugged-in-numbers computation (e.g. "$$\\approx 0.319$$") *before* \
+writing the concluding sentence that states the answer in prose ("So about **31.9%**...") -- don't \
+leave the prose sentence trailing inside the same $$ block as the computation.
 """
