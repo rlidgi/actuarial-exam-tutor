@@ -142,7 +142,7 @@ As a registered user, you now have access to:
 - Study at your own pace -- Use the study manuals whenever you need them throughout your exam preparation.
 
 Get Started
-Choose the actuarial exam you're preparing for and start working through the study manual. Whenever you need additional help, ask the AI Tutor for an explanation.
+The tutor will continuously track your proficiency across exam topics, identifies gaps in foundational knowledge, and use what it learns about your progress to guide you step by step toward exam mastery.
 
 Your first 6 AI Tutor messages are free. After you've used your free messages, you can subscribe for unlimited access to the AI Tutor.
 
@@ -184,7 +184,7 @@ def _html(frontend_url: str, referral_url: str) -> str:
       </ul>
 
       <h2 style="font-size:17px;color:#1f5c4d;margin:24px 0 8px;">Get Started</h2>
-      <p>Choose the actuarial exam you're preparing for and start working through the study manual. Whenever you need additional help, ask the AI Tutor for an explanation.</p>
+      <p>The tutor will continuously track your proficiency across exam topics, identifies gaps in foundational knowledge, and use what it learns about your progress to guide you step by step toward exam mastery.</p>
       <p>Your first 6 AI Tutor messages are free. After you've used your free messages, you can subscribe for unlimited access to the AI Tutor.</p>
 
       <div style="text-align:center;margin:24px 0;">
