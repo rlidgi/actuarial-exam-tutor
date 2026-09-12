@@ -137,6 +137,7 @@ Welcome to Actuarial Exams Tutor! Your account is ready, and you can start study
 As a registered user, you now have access to:
 
 - Full study manuals for free -- Access the complete study manual for each supported actuarial exam.
+- Free formula sheets -- Quick-reference formula sheets for each supported exam, condensed for fast lookup and last-minute review.
 - 6 free AI Tutor messages -- Chance to try out the tutor. Ask questions about difficult concepts, formulas, practice problems, or anything else you need help understanding.
 - Study at your own pace -- Use the study manuals whenever you need them throughout your exam preparation.
 
@@ -177,6 +178,7 @@ def _html(frontend_url: str, referral_url: str) -> str:
       <p>As a registered user, you now have access to:</p>
       <ul style="padding-left:20px;margin:0 0 16px;">
         <li style="margin-bottom:8px;"><strong>Full study manuals for free</strong> &mdash; Access the complete study manual for each supported actuarial exam.</li>
+        <li style="margin-bottom:8px;"><strong>Free formula sheets</strong> &mdash; Quick-reference formula sheets for each supported exam, condensed for fast lookup and last-minute review.</li>
         <li style="margin-bottom:8px;"><strong>6 free AI Tutor messages</strong> &mdash; Chance to try out the tutor. Ask questions about difficult concepts, formulas, practice problems, or anything else you need help understanding.</li>
         <li style="margin-bottom:8px;"><strong>Study at your own pace</strong> &mdash; Use the study manuals whenever you need them throughout your exam preparation.</li>
       </ul>
