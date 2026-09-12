@@ -33,7 +33,7 @@ export function DismissibleNotice({ id, message }: { id: string; message: string
 
   return (
     <div className="w-full border-b border-sky/30 bg-sky/10 px-4 py-2 md:px-6">
-      <div className="chat-column mx-auto flex w-full items-start justify-between gap-3 text-sm text-sky">
+      <div className="chat-column mx-auto flex w-full items-start gap-2 text-sm text-sky">
         <span>{message}</span>
         <button
           type="button"
