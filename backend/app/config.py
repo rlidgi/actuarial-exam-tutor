@@ -56,6 +56,25 @@ class Config:
     STRIPE_COUPON_REFERRED_25_OFF = os.environ.get("STRIPE_COUPON_REFERRED_25_OFF", "")
     STRIPE_COUPON_REFERRER_10_OFF = os.environ.get("STRIPE_COUPON_REFERRER_10_OFF", "")
     REFERRAL_CREDIT_CENTS = int(os.environ.get("REFERRAL_CREDIT_CENTS", "1000"))
+    # Partner vanity referral codes (see referral_service.py's partner_terms_for
+    # helper) -- a specific institution's own referral_code gets its own
+    # discount/credit terms instead of the standard 25%/$10 above, everything
+    # else about the referral pipeline (attach_referrer, ReferralReward rows,
+    # the /account "Total earned" stat, payout-by-request) stays identical.
+    # Keyed by the partner's User.referral_code (set directly in the DB once
+    # their real account exists -- see referral_service.py's module docstring
+    # for why it can't be pre-created).
+    PARTNER_REFERRAL_CODES = {
+        "PENNSTATE": {
+            "referred_discount_coupon": os.environ.get(
+                "STRIPE_COUPON_PENNSTATE_REFERRED_15_OFF", ""
+            ),
+            "referrer_credit_coupon": os.environ.get(
+                "STRIPE_COUPON_PENNSTATE_REFERRER_5_OFF", ""
+            ),
+            "referrer_credit_cents": 500,
+        },
+    }
     # Promotional free trial for a short, hand-picked outreach list (e.g.
     # university actuarial club presidents) -- see
     # billing_service.create_checkout_session. Tied to the signed-in user's

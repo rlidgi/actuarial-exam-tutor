@@ -24,6 +24,11 @@ class ReferralReward(db.Model):
     reward_type = db.Column(db.String(32), nullable=False)
     status = db.Column(db.String(16), nullable=False, default="pending")
     stripe_coupon_id = db.Column(db.String(255), nullable=True)
+    # Null means "use the standard config.REFERRAL_CREDIT_CENTS amount" --
+    # only set explicitly for a referrer_credit reward granted under a
+    # partner referral code (see config.PARTNER_REFERRAL_CODES), whose
+    # credit-per-referral differs from the standard program's.
+    amount_cents = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     applied_at = db.Column(db.DateTime, nullable=True)
 

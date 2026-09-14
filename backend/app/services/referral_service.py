@@ -6,6 +6,17 @@ handle_first_ever_activation).
 Kept separate from billing_service (raw Stripe checkout/webhook plumbing)
 and entitlement_service (subscription/free-trial access checks), matching
 this codebase's existing one-service-per-concern convention.
+
+Partner vanity codes (config.PARTNER_REFERRAL_CODES, e.g. a university's
+own "PENNSTATE" code) reuse this entire pipeline unchanged -- same
+attach_referrer, same ReferralReward rows, same /account "Total earned"
+stat and payout-by-request flow -- just with different discount/credit
+terms picked in _partner_terms below. A partner's User row can't be
+pre-created before they actually sign in for real: accounts are matched
+by external_auth_id (the sign-in provider's own identity), not email, so a
+placeholder row would make their real first sign-in collide on the unique
+email constraint and permanently lock them out. Set their referral_code
+directly in the DB once their real account already exists.
 """
 import secrets
 from datetime import datetime, timezone
@@ -46,6 +57,15 @@ def get_or_create_referral_code(user: User) -> str:
         except IntegrityError:
             db.session.rollback()
     raise RuntimeError("could not generate a unique referral code")
+
+
+def _partner_terms(referrer: User) -> dict | None:
+    """None for a standard referral. Looked up by the referrer's own code,
+    not the referred user's, since it's the referrer's identity (e.g. the
+    Penn State account) that determines which terms apply."""
+    if not referrer.referral_code:
+        return None
+    return current_app.config["PARTNER_REFERRAL_CODES"].get(referrer.referral_code)
 
 
 def find_referrer_by_code(code: str | None) -> User | None:
@@ -119,12 +139,19 @@ def record_referred_user_pending_reward(user: User) -> None:
     ).first()
     if existing is not None:
         return
+    referrer = db.session.get(User, user.referred_by_id)
+    partner = _partner_terms(referrer) if referrer else None
+    coupon = (
+        partner["referred_discount_coupon"]
+        if partner
+        else current_app.config["STRIPE_COUPON_REFERRED_25_OFF"]
+    )
     db.session.add(
         ReferralReward(
             user_id=user.id,
             reward_type="referred_percent_off",
             status="pending",
-            stripe_coupon_id=current_app.config["STRIPE_COUPON_REFERRED_25_OFF"],
+            stripe_coupon_id=coupon,
         )
     )
     db.session.commit()
@@ -134,7 +161,8 @@ def grant_referrer_reward(referrer: User, referred_user: User) -> None:
     """Called once a referred user's conversion is confirmed (referred_user
     must already have has_ever_subscribed=True by this point -- see
     handle_first_ever_activation). Every completed referral earns the same
-    flat account credit, no tiers.
+    flat account credit, no tiers -- except a partner referral code (see
+    _partner_terms), which earns its own flat amount instead.
 
     Always left pending here, regardless of whether the referrer already has
     a Stripe customer id -- it's redeemed later, at whichever comes first:
@@ -147,12 +175,18 @@ def grant_referrer_reward(referrer: User, referred_user: User) -> None:
     moment the referral converts just commits it earlier than it needs to
     be, with no way for the referrer to request a cash payout instead
     before it's used."""
+    partner = _partner_terms(referrer)
     reward = ReferralReward(
         user_id=referrer.id,
         referred_user_id=referred_user.id,
         reward_type="referrer_credit",
         status="pending",
-        stripe_coupon_id=current_app.config["STRIPE_COUPON_REFERRER_10_OFF"],
+        stripe_coupon_id=(
+            partner["referrer_credit_coupon"]
+            if partner
+            else current_app.config["STRIPE_COUPON_REFERRER_10_OFF"]
+        ),
+        amount_cents=partner["referrer_credit_cents"] if partner else None,
     )
     db.session.add(reward)
     try:
@@ -176,7 +210,10 @@ def apply_pending_rewards_for_customer(customer_id: str) -> None:
 
     Applies every still-pending referrer_credit reward for this customer in
     one pass -- credits are additive, so this is safe even if several
-    rewards accumulated since their last invoice."""
+    rewards accumulated since their last invoice. Each reward's own
+    amount_cents wins if set (a partner-code reward -- see
+    grant_referrer_reward); otherwise the standard program's flat
+    REFERRAL_CREDIT_CENTS applies."""
     user_id = user_id_for_customer(customer_id)
     if user_id is None:
         return
@@ -191,7 +228,7 @@ def apply_pending_rewards_for_customer(customer_id: str) -> None:
     for reward in rewards:
         stripe.Customer.create_balance_transaction(
             customer_id,
-            amount=-current_app.config["REFERRAL_CREDIT_CENTS"],
+            amount=-(reward.amount_cents or current_app.config["REFERRAL_CREDIT_CENTS"]),
             currency="usd",
             description="Referral reward",
         )

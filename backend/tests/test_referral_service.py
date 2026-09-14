@@ -5,12 +5,21 @@ from app.models import ReferralReward, User
 from app.services import referral_service
 
 
-def _make_user(db, email, *, referred_by_id=None, has_ever_subscribed=False, stripe_customer_id=None):
+def _make_user(
+    db,
+    email,
+    *,
+    referred_by_id=None,
+    has_ever_subscribed=False,
+    stripe_customer_id=None,
+    referral_code=None,
+):
     user = User(
         external_auth_id=str(uuid.uuid4()),
         email=email,
         referred_by_id=referred_by_id,
         has_ever_subscribed=has_ever_subscribed,
+        referral_code=referral_code,
     )
     db.session.add(user)
     db.session.commit()
@@ -205,6 +214,82 @@ def test_grant_referrer_reward_is_idempotent_for_the_same_referred_user(db):
         referral_service.grant_referrer_reward(referrer, referred_user)
 
     assert ReferralReward.query.filter_by(referred_user_id=referred_user.id).count() == 1
+
+
+def _set_partner_config(app, code="PARTNERU", *, referred_coupon="coupon_partner_referred",
+                         referrer_coupon="coupon_partner_referrer", referrer_cents=500):
+    app.config["PARTNER_REFERRAL_CODES"] = {
+        code: {
+            "referred_discount_coupon": referred_coupon,
+            "referrer_credit_coupon": referrer_coupon,
+            "referrer_credit_cents": referrer_cents,
+        }
+    }
+    return code
+
+
+def test_grant_referrer_reward_uses_partner_terms_for_a_partner_code(app, db):
+    code = _set_partner_config(app)
+    referrer = _make_user(db, "partnerreferrer@example.com", referral_code=code)
+    referred_user = _make_user(
+        db, "partnerreferred@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+    )
+
+    with patch("app.services.referral_service.stripe"):
+        referral_service.grant_referrer_reward(referrer, referred_user)
+
+    reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
+    assert reward.stripe_coupon_id == "coupon_partner_referrer"
+    assert reward.amount_cents == 500
+
+
+def test_grant_referrer_reward_uses_standard_terms_for_a_non_partner_referrer(app, db):
+    _set_partner_config(app)  # partner config exists, but this referrer's code isn't in it
+    referrer = _make_user(db, "ordinaryreferrer@example.com")
+    referral_service.get_or_create_referral_code(referrer)
+    referred_user = _make_user(
+        db, "ordinaryreferred@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+    )
+    app.config["STRIPE_COUPON_REFERRER_10_OFF"] = "coupon_standard_referrer"
+
+    with patch("app.services.referral_service.stripe"):
+        referral_service.grant_referrer_reward(referrer, referred_user)
+
+    reward = ReferralReward.query.filter_by(referred_user_id=referred_user.id).first()
+    assert reward.stripe_coupon_id == "coupon_standard_referrer"
+    assert reward.amount_cents is None
+
+
+def test_record_referred_user_pending_reward_uses_partner_discount(app, db):
+    code = _set_partner_config(app)
+    referrer = _make_user(db, "partnerreferrer2@example.com", referral_code=code)
+    user = _make_user(db, "partnerreferreduser@example.com", referred_by_id=referrer.id)
+
+    referral_service.record_referred_user_pending_reward(user)
+
+    reward = ReferralReward.query.filter_by(
+        user_id=user.id, reward_type="referred_percent_off"
+    ).first()
+    assert reward.stripe_coupon_id == "coupon_partner_referred"
+
+
+def test_apply_pending_rewards_uses_each_rewards_own_amount_cents(app, db):
+    code = _set_partner_config(app, referrer_cents=500)
+    referrer = _make_user(
+        db, "partnerinvoice@example.com", referral_code=code, stripe_customer_id="cus_partner1"
+    )
+    app.config["REFERRAL_CREDIT_CENTS"] = 1000  # standard amount -- must NOT be used here
+    referred = _make_user(
+        db, "partnerinvoicereferred@example.com", referred_by_id=referrer.id, has_ever_subscribed=True
+    )
+    with patch("app.services.referral_service.stripe"):
+        referral_service.grant_referrer_reward(referrer, referred)
+
+    with patch("app.services.referral_service.stripe") as mock_stripe:
+        referral_service.apply_pending_rewards_for_customer("cus_partner1")
+
+    mock_stripe.Customer.create_balance_transaction.assert_called_once()
+    assert mock_stripe.Customer.create_balance_transaction.call_args.kwargs["amount"] == -500
 
 
 def test_record_referred_user_pending_reward_creates_a_pending_row(app, db):
