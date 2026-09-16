@@ -178,16 +178,65 @@ body > * {
   align-items: center;
   flex-wrap: wrap;
 }
+/* Hamburger toggle: hidden above the 800px breakpoint (see the
+   max-width: 800px block below), where .landing-nav-links already shows
+   inline as normal. */
+.landing-nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.landing-nav-toggle span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: currentcolor;
+  border-radius: 1px;
+}
+.landing-hero-band .landing-nav-toggle span {
+  background: var(--paper);
+}
 .landing-hero-band {
+  --ink: #00483f;
+  --paper: #fafbf7;
+  --sky: #005b94;
+  --gold: #a56a08;
+  /* --ink reads fine as text on a light card (see the FAM exam card below)
+     but is too close in value to this band's own dark background to read
+     as an icon color here -- same teal-green already used as this
+     product's dark-background accent (backend static_content's formula
+     sheets use the same #4fbf9d for their own dark theme). */
+  --green-bright: #4fbf9d;
+  /* Same problem as --ink above: the base --sky (#005b94) is tuned for
+     text on the light P exam card and reads too dark/muted as an icon
+     color on this band's dark background. Brighter variant for icon use
+     only -- the P card keeps using var(--sky) directly. */
+  --sky-bright: #4db8f0;
+  /* Warm gold accent for text directly on this dark background (subtitle,
+     "built for your success" label) -- matches the brand's gold accent
+     brightened to actually read as gold/yellow against dark green, same
+     idea as --sky-bright/--green-bright above. */
+  --gold-bright: #f0c14e;
   position: relative;
-  overflow: hidden;
-  background: linear-gradient(160deg, var(--ink), var(--ledger) 75%);
+  background: radial-gradient(ellipse at 50% 45%, #064d43, #003e37 70%);
   border-radius: 0;
   /* Full-bleed: cancels .landing's own side padding so this band reaches
      the true viewport edges, then re-adds the same padding internally so
      the nav/hero content still aligns with the rest of the page. */
   margin: 0 calc(-1 * var(--landing-pad));
   padding: 0 var(--landing-pad);
+  /* Desktop nav is docked via position: fixed below, so this space keeps
+     the hero content from jumping up underneath it once it leaves flow.
+     Matches the nav's own rendered height at >= 801px (see the
+     min-width: 801px block, which sets min-height: 68.4px there). */
+  padding-top: 68.4px;
 }
 .landing-hero-band > *:not(.hero-bg) {
   position: relative;
@@ -198,49 +247,144 @@ body > * {
   filter: brightness(0) invert(1);
 }
 .landing-hero-band .wordmark-divider {
-  background: rgba(237, 239, 232, 0.35);
+  height: 48px;
+  background: rgba(237, 239, 232, 0.65);
+}
+.landing-hero-band .landing-nav {
+  min-height: 90px;
+  padding: 1.1rem 0;
+  gap: 1rem;
+  /* Docked on desktop only -- see the max-width: 800px override below,
+     which puts mobile's hamburger nav back in normal flow. Fixed (not
+     sticky) because sticky is bounded by this element's own containing
+     block (.landing-hero-band), which is far shorter than the full page. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: #003e37;
+  padding-inline: var(--landing-pad);
+}
+.landing-hero-band .landing-nav::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  /* Nav is its own fixed, full-width positioned box now (see above), so
+     this underline spans it edge-to-edge instead of canceling padding
+     the way it did when the nav sat inside .landing-hero-band's own
+     padded, non-positioned box. */
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(150, 204, 189, 0.2);
+}
+.landing-hero-band .wordmark-group {
+  display: grid;
+  grid-template-columns: auto 1px auto;
+  column-gap: 1.3rem;
+  row-gap: 0.35rem;
+}
+.landing-hero-band .wordmark-mark {
+  grid-row: 1 / 3;
+  height: 52px;
+}
+.landing-hero-band .wordmark-divider {
+  grid-row: 1 / 3;
+}
+.landing-hero-band .wordmark-text {
+  height: 33px;
+}
+.landing-hero-band .wordmark-group::after {
+  content: "STUDY SMARTER. GO FURTHER.";
+  grid-column: 3;
+  color: #c8e0d9;
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.2em;
+}
+.landing-hero-band .landing-nav-links {
+  gap: 1.1rem;
+}
+.landing-hero-band .btn {
+  cursor: pointer;
+  border-color: transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--paper);
+  font-size: 1rem;
+  padding: 0.7rem 0.6rem;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.landing-hero-band .btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.landing-hero-band .landing-login-btn {
+  border-color: #94b9b0;
+  padding-inline: 1.8rem;
+}
+.landing-hero-band .btn-primary {
+  background: linear-gradient(180deg, #ffde8e, #e8ac38);
+  border-color: #f5cc73;
+  color: #14180e;
+  font-weight: 600;
+  padding-inline: 1.7rem;
+  box-shadow: 0 3px 12px rgba(0, 25, 20, 0.12);
+}
+.landing-hero-band .btn-primary:hover {
+  background: linear-gradient(180deg, #ffe6a7, #f0ba50);
+  box-shadow: 0 4px 18px rgba(0, 25, 20, 0.22);
+}
+.landing-hero-band :is(.btn, .exam-card, .wordmark-group):focus-visible {
+  outline: 3px solid #ffdf91;
+  outline-offset: 5px;
 }
 .landing-hero {
   text-align: center;
-  padding: 2rem 1rem 2.5rem;
+  padding: 1rem 0 2.3rem;
 }
 .hero-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
   background-image: repeating-linear-gradient(
       0deg,
-      rgba(237, 239, 232, 0.08) 0,
-      rgba(237, 239, 232, 0.08) 1.5px,
-      transparent 1.5px,
-      transparent 34px
+      rgba(110, 195, 172, 0.11) 0,
+      rgba(110, 195, 172, 0.11) 1px,
+      transparent 1px,
+      transparent 38px
     ),
     repeating-linear-gradient(
       90deg,
-      rgba(237, 239, 232, 0.08) 0,
-      rgba(237, 239, 232, 0.08) 1.5px,
-      transparent 1.5px,
-      transparent 34px
+      rgba(110, 195, 172, 0.11) 0,
+      rgba(110, 195, 172, 0.11) 1px,
+      transparent 1px,
+      transparent 36px
     );
-  animation: hero-grid-drift 40s linear infinite;
   border-radius: 0;
 }
-@keyframes hero-grid-drift {
-  from {
-    background-position: 0 0, 0 0;
-  }
-  to {
-    background-position: 34px 34px, 34px 34px;
-  }
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 42%, #003f38 0%, rgba(0, 63, 56, 0.92) 29%, transparent 66%),
+    radial-gradient(circle at 19% 15%, rgba(153, 237, 206, 0.25), transparent 12px),
+    radial-gradient(circle at 2% 36%, rgba(153, 237, 206, 0.2), transparent 13px),
+    radial-gradient(circle at 14% 50%, rgba(153, 237, 206, 0.22), transparent 15px),
+    radial-gradient(circle at 82% 20%, rgba(153, 237, 206, 0.22), transparent 13px),
+    radial-gradient(circle at 6% 76%, rgba(153, 237, 206, 0.18), transparent 18px),
+    radial-gradient(circle at 95% 81%, rgba(153, 237, 206, 0.16), transparent 15px);
 }
 .hero-symbol {
   position: absolute;
-  color: var(--paper);
+  color: #b4dcd0;
   font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-weight: 600;
+  font-weight: 400;
   font-style: italic;
-  opacity: 0.3;
+  opacity: 0.55;
   user-select: none;
   animation: hero-float 15s ease-in-out infinite;
 }
@@ -248,26 +392,30 @@ body > * {
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
-    opacity: 0.24;
+    opacity: 0.45;
   }
   50% {
     transform: translateY(-18px) rotate(-3deg);
-    opacity: 0.5;
+    opacity: 0.65;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-bg,
-  .hero-symbol,
-  .landing-hero-tagline {
+  .hero-symbol {
     animation: none;
   }
 }
 .landing-hero h1 {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: 3.4rem;
-  line-height: 1.15;
-  margin: 0 0 1.1rem;
+  font-family: "Times New Roman", Times, serif;
+  font-size: clamp(2.86rem, 5.72vw, 5.5rem);
+  font-weight: 400;
+  line-height: 0.96;
+  letter-spacing: -0.01em;
+  margin: 0 auto 0.5rem;
   color: var(--paper);
+  text-shadow: 0 2px 3px rgba(0, 24, 21, 0.15);
+}
+.landing-hero h1 span {
+  display: block;
 }
 .landing-sub {
   color: rgba(237, 239, 232, 0.78);
@@ -277,87 +425,114 @@ body > * {
   line-height: 1.6;
 }
 .landing-hero-sub {
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  color: var(--paper);
-  font-size: 1.7rem;
-  max-width: 640px;
-  margin: 0 auto 1.8rem;
-  line-height: 1.35;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  color: var(--gold-bright);
+  font-size: clamp(1.35rem, 2.4vw, 2.25rem);
+  margin: 0 auto 1.5rem;
+  line-height: 1.2;
 }
-@media (max-width: 720px) {
-  .landing-hero-sub {
-    font-size: 1.35rem;
-  }
-}
-@keyframes tagline-slide-in {
-  from {
-    transform: translateX(-320px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-.landing-hero-tagline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1.3rem;
-  margin: 0 0 2.2rem;
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-style: italic;
-  font-size: 1.9rem;
-  color: var(--gold);
-  will-change: transform, opacity;
-  animation: tagline-slide-in 4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
-}
-.tagline-line {
-  width: 68px;
-  height: 1px;
-  background: var(--gold);
-  opacity: 0.6;
-}
-.landing-hero-feature {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  max-width: 900px;
-  min-width: 0;
-  margin: 0 auto 2.4rem;
+.landing-hero-features-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr) minmax(0, 1fr);
+  max-width: 1010px;
+  margin: 0 auto 1.4rem;
   text-align: left;
 }
-.landing-hero-feature-icon {
+.landing-hero-features-row-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  min-width: 0;
+  padding: 0 1.4rem;
+}
+.landing-hero-features-row-item:first-child {
+  padding-left: 0;
+}
+.landing-hero-features-row-item:last-child {
+  padding-right: 0;
+}
+.landing-hero-features-row-item + .landing-hero-features-row-item {
+  border-left: 1px solid rgba(214, 239, 229, 0.55);
+}
+.landing-hero-features-row-item > div {
+  min-width: 0;
+}
+.landing-hero-features-row-icon {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: var(--ledger-bright);
+  border: 1px solid currentcolor;
 }
-.landing-hero-feature-title {
+.landing-hero-features-row-icon svg {
+  width: 46px;
+  height: 46px;
+}
+/* Same blue/gold/green triad as EXAMS' own colors (see landing-content.tsx)
+   -- .color-X alone just sets the icon's own color (used as-is by
+   .landing-built-icon below); combined with .landing-hero-features-row-icon
+   it also tints that icon's circle background/border to match. */
+.color-sky {
+  color: var(--sky-bright);
+}
+.color-gold {
+  color: var(--gold);
+}
+.color-green {
+  color: var(--green-bright);
+}
+.landing-hero-features-row-icon.color-sky {
+  background: rgba(77, 184, 240, 0.12);
+}
+.landing-hero-features-row-icon.color-gold {
+  background: rgba(165, 106, 8, 0.1);
+}
+.landing-hero-features-row-icon.color-green {
+  background: rgba(79, 191, 157, 0.12);
+}
+.landing-hero-features-row-title {
   font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.35;
   color: var(--paper);
-  margin-bottom: 0.4rem;
+  margin: 0.45rem 0 0.3rem;
 }
-.landing-hero-feature-text {
-  min-width: 0;
-}
-.landing-hero-feature-text p {
+.landing-hero-features-row-item p {
   margin: 0;
-  color: rgba(237, 239, 232, 0.78);
-  font-size: 1.25rem;
+  /* Plain white (see .landing-hero-cta-note above for why), dimmed via
+     opacity for hierarchy -- the previous #d4e6df had a noticeable
+     sage/mint tint next to the neutral text around it. */
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1rem;
   line-height: 1.5;
 }
-@media (max-width: 560px) {
-  .landing-hero-feature {
-    flex-direction: column;
-    text-align: center;
-  }
+.landing-hero .landing-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-width: 332px;
+  min-height: 62px;
+  padding: 0.75rem 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.landing-hero-cta span {
+  font-size: 1.75rem;
+  font-weight: 400;
+}
+.landing-hero-cta-note {
+  /* Plain white rather than var(--paper) (#fafbf7) -- against this band's
+     saturated dark green background, even a near-white off-white reads
+     with a faint green cast, so this note gets pure white to stay neutral. */
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0.6rem 0 1.4rem;
 }
 .landing-features {
   display: grid;
@@ -406,31 +581,73 @@ body > * {
   max-width: clamp(1000px, 52vw, 1300px);
   margin: 0 auto 2.4rem;
 }
-.landing-free-banner {
+.landing-built-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.7rem;
-  flex-wrap: wrap;
-  /* See .landing-features -- same fixed-cap-leaves-dead-margin issue on
-     wide screens. */
-  max-width: clamp(1100px, 58vw, 1450px);
-  margin: 0 auto;
-  padding: 1.7rem 2.2rem;
-  background: rgba(237, 239, 232, 0.06);
-  border: 1px solid rgba(237, 239, 232, 0.2);
-  border-radius: 10px;
+  gap: 1.8rem;
+  max-width: 844px;
+  margin: 2rem auto 1.3rem;
 }
-.landing-free-banner-text {
-  flex: 1 1 380px;
-  min-width: 0;
+.landing-built-divider::before,
+.landing-built-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--gold-bright);
+  opacity: 0.55;
+}
+.landing-built-label {
+  color: var(--gold-bright);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.landing-built-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.5rem;
+  max-width: 1160px;
+  margin: 0 auto;
   text-align: left;
 }
-.landing-free-banner-text p {
+.landing-built-item {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  color: var(--paper);
+  font-size: 1.125rem;
+  line-height: 1.45;
+}
+.landing-built-item > span:last-child {
+  max-width: 160px;
+}
+.landing-built-icon {
+  display: flex;
+  flex: 0 0 48px;
+}
+.landing-built-icon svg {
+  width: 48px;
+  height: 48px;
+}
+.landing-community {
+  margin: 0 calc(-1 * var(--landing-pad));
+  padding: 1.8rem var(--landing-pad);
+  background: #f7f6f2;
+  text-align: center;
+}
+.landing-community h2 {
+  margin: 0 0 0.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  line-height: 1.35;
+  color: #092954;
+}
+.landing-community p {
   margin: 0;
-  color: rgba(237, 239, 232, 0.82);
-  font-size: 1.2rem;
-  line-height: 1.55;
+  color: #5d6f89;
+  font-size: 1.125rem;
 }
 .landing-free-banner-btn {
   flex: 0 0 auto;
@@ -471,8 +688,20 @@ body > * {
   font-weight: 700;
   color: var(--ledger);
 }
+.landing-hero .exam-picker {
+  max-width: 1140px;
+  gap: 1.6rem;
+  margin: 0 auto;
+}
 .landing-hero .exam-card {
-  padding: 2rem 1.2rem;
+  min-height: 186px;
+  padding: 0.75rem 1.2rem 0.65rem;
+  gap: 0;
+  cursor: pointer;
+  background: #f7f6f2;
+  border-color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0, 28, 22, 0.08);
   /* Color/background snap instantly on hover instead of the base rule's
      0.15s -- the lift (transform/shadow) keeps a short transition since an
      instant jump there looks like a glitch, but the color change lagging
@@ -480,10 +709,30 @@ body > * {
   transition: transform 0.1s, box-shadow 0.1s, border-color 0s, background 0s;
 }
 .landing-hero .exam-card-code {
-  font-size: 2.5rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.25rem;
+  line-height: 1.1;
+  color: var(--ink);
 }
 .landing-hero .exam-card-name {
-  font-size: 1.1rem;
+  max-width: 280px;
+  min-height: 2.5em;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  margin: 0.2rem 0;
+  color: var(--ink);
+}
+.landing-hero .exam-card:first-child .exam-card-name {
+  color: #004c85;
+}
+.landing-hero .exam-card > svg {
+  margin-top: auto;
+  width: 48px;
+  height: 48px;
+}
+.landing-hero .exam-card:hover {
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(0, 28, 22, 0.18);
 }
 .exam-card-name {
   font-size: 0.78rem;
@@ -555,8 +804,11 @@ body > * {
   justify-content: center;
   width: 68px;
   height: 68px;
-  border-radius: 50%;
-  background: var(--ledger);
+}
+.guarantee-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .guarantee-text {
   flex: 1 1 auto;
@@ -1064,8 +1316,330 @@ body > * {
   .exam-picker {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 1100px) {
+  .landing-hero-band .wordmark-group {
+    column-gap: 0.8rem;
+  }
+  .landing-hero-band .wordmark-mark {
+    height: 42px;
+  }
+  .landing-hero-band .wordmark-text {
+    height: 26px;
+  }
+  .landing-hero-band .wordmark-group::after {
+    font-size: 0.6rem;
+  }
+  .landing-hero-band .landing-nav-links {
+    gap: 0.4rem;
+  }
+  .landing-hero-features-row-item {
+    gap: 0.8rem;
+    padding-inline: 1rem;
+  }
+  .landing-hero-features-row-icon {
+    width: 56px;
+    height: 56px;
+  }
+  .landing-hero-features-row-icon svg {
+    width: 38px;
+    height: 38px;
+  }
+  .landing-hero-features-row-title {
+    font-size: 1rem;
+  }
+  .landing-hero-features-row-item p {
+    font-size: 0.9rem;
+  }
+  .landing-built-row {
+    gap: 1rem;
+  }
+  .landing-built-item {
+    gap: 0.7rem;
+    font-size: 1rem;
+  }
+}
+/* Keep the complete desktop hero in view on laptop screens. Mobile keeps
+   its larger reading sizes and stacked layout below. */
+@media (min-width: 801px) {
+  .landing-hero-band .landing-nav {
+    min-height: 68.4px;
+    padding-block: 0.76rem;
+  }
+  .landing-hero-band .wordmark-group {
+    column-gap: 0.95rem;
+    row-gap: 0.2375rem;
+  }
+  .landing-hero-band .wordmark-mark {
+    height: 38px;
+  }
+  .landing-hero-band .wordmark-divider {
+    height: 36.1px;
+  }
+  .landing-hero-band .wordmark-text {
+    height: 24.7px;
+  }
+  .landing-hero-band .wordmark-group::after {
+    font-size: 0.57rem;
+  }
+  .landing-hero-band .landing-nav-links {
+    gap: 0.76rem;
+  }
+  .landing-hero-band .btn {
+    padding: 0.5225rem 0.665rem;
+    font-size: 0.83125rem;
+    border-radius: 7.6px;
+  }
+  .landing-hero-band .landing-login-btn,
+  .landing-hero-band .btn-primary {
+    padding-inline: 1.235rem;
+  }
+  .landing-hero {
+    padding: 0.7125rem 0 1.425rem;
+  }
   .landing-hero h1 {
-    font-size: 2.3rem;
+    font-size: clamp(3.432rem, 5.28vw, 4.95rem);
+  }
+  .landing-hero-sub {
+    font-size: clamp(1.62rem, 2.16vw, 2.04rem);
+    margin-bottom: 1.14rem;
+  }
+  .hero-symbol {
+    scale: 0.95;
+  }
+  .landing-hero-features-row {
+    max-width: 855px;
+    margin-bottom: 1.045rem;
+  }
+  .landing-hero-features-row-item {
+    gap: 0.8075rem;
+    padding-inline: 0.95rem;
+  }
+  .landing-hero-features-row-icon {
+    width: 53.2px;
+    height: 53.2px;
+  }
+  .landing-hero-features-row-icon svg {
+    width: 34.2px;
+    height: 34.2px;
+  }
+  .landing-hero-features-row-title {
+    font-size: 0.95rem;
+    margin: 0.2375rem 0;
+  }
+  .landing-hero-features-row-item p {
+    font-size: 0.83125rem;
+    line-height: 1.4;
+  }
+  .landing-hero .landing-hero-cta {
+    min-width: 262.2px;
+    min-height: 47.5px;
+    padding: 0.57rem 1.425rem;
+    font-size: 1.14rem;
+  }
+  .landing-hero-cta span {
+    font-size: 1.33rem;
+  }
+  .landing-hero-cta-note {
+    font-size: 0.83125rem;
+    margin: 0.475rem 0 1.045rem;
+  }
+  .landing-hero .exam-picker {
+    max-width: 912px;
+    gap: 1.235rem;
+  }
+  .landing-hero .exam-card {
+    min-height: 140.6px;
+    padding: 0.475rem 0.95rem;
+    border-radius: 9.5px;
+  }
+  .landing-hero .exam-card-code {
+    font-size: 2.49375rem;
+  }
+  .landing-hero .exam-card-name {
+    max-width: 218.5px;
+    font-size: 0.95rem;
+    margin: 0.19rem 0;
+  }
+  .landing-hero .exam-card > svg {
+    width: 34.2px;
+    height: 34.2px;
+  }
+  .landing-built-divider {
+    max-width: 674.5px;
+    gap: 1.425rem;
+    margin: 1.425rem auto 0.95rem;
+  }
+  .landing-built-label {
+    font-size: 0.665rem;
+  }
+  .landing-built-row {
+    max-width: 931px;
+    gap: 1.425rem;
+  }
+  .landing-built-item {
+    gap: 1.045rem;
+    font-size: 0.890625rem;
+  }
+  .landing-built-item > span:last-child {
+    max-width: 128.25px;
+  }
+  .landing-built-icon {
+    flex-basis: 36.1px;
+  }
+  .landing-built-icon svg {
+    width: 36.1px;
+    height: 36.1px;
+  }
+  .landing-community {
+    padding-block: 1.33rem;
+  }
+  .landing-community h2 {
+    font-size: 1.425rem;
+  }
+  .landing-community p {
+    font-size: 0.95rem;
+  }
+}
+@media (max-width: 800px) {
+  .landing-hero-band .landing-nav {
+    padding-block: 1rem;
+    /* Docking is desktop-only -- put the mobile hamburger nav back in
+       normal flow instead of fixed. Relative (not static): this element
+       needs to keep the position/z-index stacking it gets from
+       .landing-hero-band > *:not(.hero-bg) below, or the hero's
+       decorative background symbols paint on top of the open menu's
+       links/buttons instead of staying behind them. */
+    position: relative;
+    z-index: 1;
+    background: none;
+    padding-inline: 0;
+  }
+  .landing-hero-band .landing-nav::after {
+    left: calc(-1 * var(--landing-pad));
+    right: calc(-1 * var(--landing-pad));
+  }
+  .landing-hero-band {
+    padding-top: 0;
+  }
+  .landing-nav-hamburger .landing-nav-toggle {
+    display: flex;
+  }
+  .landing-nav-hamburger .landing-nav-links {
+    display: none;
+    order: 1;
+    width: 100%;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+  .landing-nav-hamburger .landing-nav-links.landing-nav-links-open {
+    display: flex;
+  }
+  .landing-hero {
+    padding-top: 2rem;
+  }
+  .landing-hero h1 {
+    font-size: clamp(2.585rem, 7.15vw, 3.85rem);
+    line-height: 1.06;
+  }
+  .landing-hero-sub {
+    max-width: 560px;
+    margin: 1rem auto 1.75rem;
+    line-height: 1.4;
+  }
+  .landing-hero-features-row {
+    grid-template-columns: 1fr;
+    max-width: 430px;
+    gap: 1.2rem;
+    margin-bottom: 1.8rem;
+  }
+  .landing-hero-features-row-item,
+  .landing-hero-features-row-item + .landing-hero-features-row-item,
+  .landing-hero-features-row-item:first-child,
+  .landing-hero-features-row-item:last-child {
+    border: 0;
+    padding: 0;
+    gap: 1rem;
+  }
+  .landing-hero-features-row-title {
+    margin-top: 0;
+  }
+  .landing-hero-features-row-item p {
+    font-size: 1rem;
+  }
+  .landing-built-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 500px;
+    gap: 1.4rem;
+  }
+  .landing-built-divider {
+    gap: 1rem;
+  }
+  .landing-built-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+  }
+  .hero-symbol {
+    opacity: 0.2;
+    animation: none;
+  }
+}
+@media (max-width: 480px) {
+  .landing-hero-band .wordmark-group {
+    column-gap: 0.65rem;
+  }
+  .landing-hero-band .wordmark-text {
+    height: 21px;
+  }
+  .landing-hero-band .wordmark-mark {
+    height: 36px;
+  }
+  .landing-hero-band .wordmark-divider {
+    height: 38px;
+  }
+  .landing-hero-band .wordmark-group::after {
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+  .landing-hero h1 {
+    font-size: clamp(2.09rem, 10.45vw, 2.75rem);
+  }
+  .landing-hero .landing-hero-cta {
+    min-width: 0;
+    width: 100%;
+    max-width: 332px;
+    font-size: 1.25rem;
+  }
+  .landing-hero-cta-note {
+    font-size: 0.875rem;
+    margin-block: 0.8rem 1.5rem;
+  }
+  .landing-built-row {
+    gap: 1.2rem 0.8rem;
+  }
+  .landing-built-icon {
+    flex-basis: 32px;
+  }
+  .landing-built-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  .landing-built-item {
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-band .btn,
+  .landing-hero .exam-card {
+    transition: none;
+  }
+  .landing-hero .exam-card:hover {
+    transform: none;
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useId, useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,28 +31,16 @@ const HERO_SYMBOLS: {
   fontSize: string;
   delay: string;
 }[] = [
-    { text: "Σ", left: "6%", top: "12%", fontSize: "2.1rem", delay: "0s" },
-    { text: "∫", left: "90%", top: "18%", fontSize: "2.3rem", delay: "1.5s" },
-    { text: "(1+i)ⁿ", left: "13%", top: "58%", fontSize: "1.25rem", delay: "3s" },
-    { text: "δ", left: "85%", top: "60%", fontSize: "2rem", delay: "0.8s" },
-    { text: "vⁿ", left: "4%", top: "78%", fontSize: "1.3rem", delay: "2.2s" },
-    { text: "μ", left: "92%", top: "80%", fontSize: "1.7rem", delay: "4s" },
-    { text: "σ²", left: "8%", top: "36%", fontSize: "1.4rem", delay: "5s" },
-    { text: "∞", left: "93%", top: "42%", fontSize: "1.9rem", delay: "2.8s" },
-    { text: "E[X]", left: "3%", top: "92%", fontSize: "1.15rem", delay: "1.2s" },
-    { text: "λ", left: "88%", top: "6%", fontSize: "1.5rem", delay: "3.6s" },
-    { text: "P(A∩B)", left: "16%", top: "4%", fontSize: "1.1rem", delay: "4.5s" },
-    { text: "1−p", left: "80%", top: "92%", fontSize: "1.25rem", delay: "0.4s" },
-    { text: "ₓpₓ", left: "20%", top: "8%", fontSize: "1.3rem", delay: "2s" },
-    { text: "qₓ", left: "7%", top: "50%", fontSize: "1.2rem", delay: "3.3s" },
-    { text: "Aₓ", left: "95%", top: "30%", fontSize: "1.6rem", delay: "1s" },
-    { text: "äₓ", left: "22%", top: "88%", fontSize: "1.4rem", delay: "4.2s" },
-    { text: "lₓ", left: "2%", top: "22%", fontSize: "1.15rem", delay: "0.6s" },
-    { text: "eₓ", left: "78%", top: "14%", fontSize: "1.3rem", delay: "5.5s" },
-    { text: "ₛEₓ", left: "83%", top: "70%", fontSize: "1.15rem", delay: "1.8s" },
-    { text: "ω", left: "97%", top: "52%", fontSize: "1.8rem", delay: "3.8s" },
-    { text: "ₛVₓ", left: "12%", top: "70%", fontSize: "1.1rem", delay: "2.6s" },
-  ];
+  { text: "Σ", left: "3%", top: "17%", fontSize: "3.8rem", delay: "0s" },
+  { text: "σ²", left: "12%", top: "24%", fontSize: "2.8rem", delay: "3s" },
+  { text: "E[X]", left: "4%", top: "40%", fontSize: "2.3rem", delay: "1.2s" },
+  { text: "P(A|B)", left: "3%", top: "59%", fontSize: "2rem", delay: "4.5s" },
+  { text: "∫", left: "89%", top: "12%", fontSize: "4.5rem", delay: "1.5s" },
+  { text: "Aₓ", left: "94%", top: "27%", fontSize: "2.6rem", delay: "1s" },
+  { text: "μ", left: "86%", top: "34%", fontSize: "3.1rem", delay: "4s" },
+  { text: "∞", left: "92%", top: "43%", fontSize: "3.4rem", delay: "2.8s" },
+  { text: "Var(X)", left: "92%", top: "66%", fontSize: "1.8rem", delay: "2s" },
+];
 
 const EXAMS = [
   { code: "P", name: "Probability", color: "var(--sky)" },
@@ -133,129 +121,98 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   ),
 };
 
-// A more anatomically-detailed brain (outer lobe bumps + inner fold lines)
-// than a plain silhouette would give -- drawn as one hemisphere, mirrored
-// with a scale(-1,1) transform so both sides are guaranteed symmetric.
-// useId keeps the <defs> id collision-safe if this ever renders more than
-// once on a page.
-function BrainIcon() {
-  const hemiId = useId();
+function BarsIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
-      <defs>
-        <g id={hemiId}>
-          <path
-            d="M20 9
-               C22 7.3 24.5 7.3 26 9 C28 8 30.5 9.3 30.5 11.5
-               C33 12 34.3 14.7 33 17 C34.5 18.6 34 21.3 32 22.3
-               C32.8 23.6 32.5 25.3 31 26
-               C31.3 28 29.7 29.8 27.6 29.8 C26.3 29.8 25.2 29.1 24.6 28.1
-               C23.5 28.7 22.1 28.4 21.3 27.4 C20.6 27.7 20 27.3 20 26.5 Z"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1.3"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M23 9.5 C25 10.8 25 13 23.3 14.5 C25.3 15.3 25.7 17.8 24 19.3"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-          <path
-            d="M29 12.5 C30.7 13.8 30.7 16 29 17.3 C30.7 18.3 30.8 20.7 29.2 21.8"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-          <path
-            d="M27.8 23 C29 24 29 25.7 27.7 26.6"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-        </g>
-      </defs>
-      <use href={`#${hemiId}`} />
-      <use href={`#${hemiId}`} transform="scale(-1,1) translate(-40,0)" />
-      <line x1="20" y1="8.5" x2="20" y2="27.5" stroke="var(--paper)" strokeWidth="1.3" strokeOpacity="0.75" />
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <rect x="6" y="21" width="7" height="13" rx="1.5" fill="currentColor" />
+      <rect x="16.5" y="13" width="7" height="21" rx="1.5" fill="currentColor" />
+      <rect x="27" y="5" width="7" height="29" rx="1.5" fill="currentColor" />
     </svg>
   );
 }
 
-function GiftIcon() {
+function TargetIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
-      <rect
-        x="8"
-        y="17"
-        width="24"
-        height="15"
-        rx="1.5"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.8"
-      />
-      <rect
-        x="6"
-        y="12"
-        width="28"
-        height="6"
-        rx="1.5"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.8"
-      />
-      <line
-        x1="20"
-        y1="12"
-        x2="20"
-        y2="32"
-        stroke="var(--paper)"
-        strokeWidth="1.6"
-      />
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M31.16 17.21 A14 14 0 1 1 22.33 8.69" />
+        <path d="M25.99 19.09 A8.5 8.5 0 1 1 20.63 13.92" />
+        <circle cx="18" cy="22" r="3" />
+        <path d="M18 22 L32 6" />
+      </g>
+      <path d="M29 9 V5 L32 2 V6 H36 L33 9 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function GraduationCapIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 7 L37 15 L20 23 L3 15 Z" />
+        <path d="M10 19 V29 C15 34 25 34 30 29 V19 M36 16 V28" />
+      </g>
+    </svg>
+  );
+}
+
+function PersonIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <circle cx="20" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
       <path
-        d="M20 12 C16 12 13 9.5 13 7.5 C13 6 14.3 5 15.8 5 C18 5 20 8 20 12 Z"
+        d="M6 35 V31 C6 23 12 20 20 20 C28 20 34 23 34 31 V35 Z"
         fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M20 12 C24 12 27 9.5 27 7.5 C27 6 25.7 5 24.2 5 C22 5 20 8 20 12 Z"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.5"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinejoin="round"
       />
     </svg>
   );
 }
 
-function ShieldCheckIcon() {
+function DocumentIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true">
-      <path
-        d="M20 6 L32 10 V19 C32 27 27 32 20 35 C13 32 8 27 8 19 V10 Z"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M14 20 L18 24 L27 14"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 4 H23 L32 13 V36 H9 Z M23 4 V13 H32" />
+        <path d="M14 19 H26 M14 24 H26 M14 29 H26" />
+      </g>
     </svg>
   );
 }
+
+// Same blue/gold/green triad as EXAMS' own colors (var(--sky)/var(--gold)/
+// var(--ink)), reapplied here via these classes so the two feature rows
+// reinforce the same P/FM/FAM color language instead of introducing new
+// colors of their own.
+const HERO_FEATURES = [
+  {
+    icon: <BarsIcon />,
+    title: "Tracks your mastery",
+    text: "Knows what you've learned and what to focus on",
+    colorClass: "color-sky",
+  },
+  {
+    icon: <TargetIcon />,
+    title: "Identifies knowledge gaps",
+    text: "Finds weak areas in your foundational understanding",
+    colorClass: "color-gold",
+  },
+  {
+    icon: <GraduationCapIcon />,
+    title: "Guides you step by step",
+    text: "Provides clear explanations and practice tailored to you",
+    colorClass: "color-green",
+  },
+];
+
+const BUILT_FOR_SUCCESS = [
+  { icon: <PersonIcon />, text: "Personalized learning path", colorClass: "color-sky" },
+  { icon: <DocumentIcon />, text: "Step-by-step explanations", colorClass: "color-gold" },
+  { icon: <TargetIcon />, text: "Focused practice and feedback", colorClass: "color-green" },
+  { icon: <BarsIcon />, text: "Build confidence for exam day", colorClass: "color-sky" },
+];
 
 function SignInErrorBanner() {
   const searchParams = useSearchParams();
@@ -307,12 +264,15 @@ export default function LandingContent() {
             </span>
           ))}
         </div>
-        <MarketingHeader>
+        <MarketingHeader mobileMenu>
           <Link className="btn" href="/about">
             About
           </Link>
           <Link className="btn" href="/pricing">
             Pricing
+          </Link>
+          <Link className="btn" href="#faq">
+            FAQ
           </Link>
           {token ? (
             <>
@@ -324,49 +284,56 @@ export default function LandingContent() {
               </Link>
             </>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setShowSignIn(true)}
-            >
-              Sign in
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn landing-login-btn"
+                onClick={() => setShowSignIn(true)}
+              >
+                Log in
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowSignIn(true)}
+              >
+                Sign up free
+              </button>
+            </>
           )}
         </MarketingHeader>
 
         <div className="landing-hero">
-          <h1>Your personal tutor for actuarial exams</h1>
-          <div
-            className="landing-hero-tagline"
-            // will-change stays in the CSS for the animation itself, but
-            // leaving it on indefinitely keeps this promoted to its own
-            // compositing layer forever -- releasing it once the one-shot
-            // entrance animation finishes avoids that ongoing overhead
-            // (was showing up as sluggish hover transitions elsewhere on
-            // the page, e.g. the exam-picker cards).
-            onAnimationEnd={(e) => {
-              e.currentTarget.style.willChange = "auto";
-            }}
-          >
-            <span className="tagline-line" aria-hidden="true" />
-            <span>You don&apos;t have to go it alone.</span>
-            <span className="tagline-line" aria-hidden="true" />
-          </div>
-          <div className="landing-hero-feature">
-            <span className="landing-hero-feature-icon">
-              <BrainIcon />
-            </span>
-            <div className="landing-hero-feature-text">
-              <div className="landing-hero-feature-title">
-                Personalized guidance from an AI tutor that adapts as you learn.
+          <h1>
+            Your personal tutor{" "}
+            <span>for actuarial exams</span>
+          </h1>
+          <p className="landing-hero-sub">
+            Personalized guidance that adapts as you learn.
+          </p>
+          <div className="landing-hero-features-row">
+            {HERO_FEATURES.map((feature) => (
+              <div className="landing-hero-features-row-item" key={feature.title}>
+                <span className={`landing-hero-features-row-icon ${feature.colorClass}`}>
+                  {feature.icon}
+                </span>
+                <div>
+                  <h2 className="landing-hero-features-row-title">{feature.title}</h2>
+                  <p>{feature.text}</p>
+                </div>
               </div>
-              <p>
-                Your tutor tracks what you&apos;ve mastered, identifies gaps in
-                your foundational knowledge, and guides you step by step toward
-                exam mastery.
-              </p>
-            </div>
+            ))}
           </div>
+          <button
+            type="button"
+            className="btn btn-primary landing-hero-cta"
+            onClick={() => token ? router.push("/chat") : setShowSignIn(true)}
+          >
+            Try the tutor free <span aria-hidden="true">&rarr;</span>
+          </button>
+          <p className="landing-hero-cta-note">
+            Study manuals and formula sheets are free for everyone — no account required.
+          </p>
           <div className="exam-picker">
             {EXAMS.map((e) => (
               <button
@@ -386,28 +353,23 @@ export default function LandingContent() {
               </button>
             ))}
           </div>
-          <div className="landing-free-banner">
-            <span className="landing-hero-feature-icon">
-              <GiftIcon />
-            </span>
-            <div className="landing-free-banner-text">
-              <div className="landing-hero-feature-title">
-                Experience a tutor that adapts to you.
+          <div className="landing-built-divider">
+            <span className="landing-built-label">Built for your success</span>
+          </div>
+          <div className="landing-built-row">
+            {BUILT_FOR_SUCCESS.map((item) => (
+              <div className="landing-built-item" key={item.text}>
+                <span className={`landing-built-icon ${item.colorClass}`}>{item.icon}</span>
+                <span>{item.text}</span>
               </div>
-              <p>
-                The study manual and formula sheet are free for everyone, no account
-                needed. Sign up free to get 6 messages to try out the AI tutor.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="btn landing-free-banner-btn"
-              onClick={() => setShowSignIn(true)}
-            >
-              Sign up free &rarr;
-            </button>
+            ))}
           </div>
         </div>
+      </div>
+
+      <div className="landing-community">
+        <h2>Join a growing community of actuarial students</h2>
+        <p>Smarter study. Stronger results.</p>
       </div>
 
       <div className="preview-window reveal">
@@ -497,7 +459,12 @@ export default function LandingContent() {
       <div className="landing-guarantee">
         <div className="guarantee-card reveal">
           <span className="guarantee-icon">
-            <ShieldCheckIcon />
+            <Image
+              src="/ChatGPT Image Sep 16, 2026, 01_15_20 AM.png"
+              alt=""
+              width={68}
+              height={68}
+            />
           </span>
           <div className="guarantee-text">
             <div className="guarantee-title">Our Pass Guarantee</div>
@@ -520,7 +487,7 @@ export default function LandingContent() {
         </div>
       </div>
 
-      <div className="landing-faq">
+      <div className="landing-faq" id="faq">
         <h2>Questions</h2>
         {FAQ_ITEMS.map((item) => (
           <div key={item.question} className="faq-item reveal">
