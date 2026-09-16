@@ -460,7 +460,7 @@ export default function LandingContent() {
         <div className="guarantee-card reveal">
           <span className="guarantee-icon">
             <Image
-              src="/ChatGPT Image Sep 16, 2026, 01_15_20 AM.png"
+              src="/pass-guarantee-icon.png"
               alt=""
               width={68}
               height={68}
