@@ -257,8 +257,7 @@ body > * {
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-bg,
-  .hero-symbol,
-  .landing-hero-tagline {
+  .hero-symbol {
     animation: none;
   }
 }
@@ -289,75 +288,56 @@ body > * {
     font-size: 1.35rem;
   }
 }
-@keyframes tagline-slide-in {
-  from {
-    transform: translateX(-320px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-.landing-hero-tagline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1.3rem;
-  margin: 0 0 2.2rem;
-  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-style: italic;
-  font-size: 1.9rem;
-  color: var(--gold);
-  will-change: transform, opacity;
-  animation: tagline-slide-in 4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
-}
-.tagline-line {
-  width: 68px;
-  height: 1px;
-  background: var(--gold);
-  opacity: 0.6;
-}
-.landing-hero-feature {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  max-width: 900px;
-  min-width: 0;
-  margin: 0 auto 2.4rem;
+.landing-hero-features-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.8rem 1.2rem;
+  max-width: 920px;
+  margin: 0 auto 2rem;
   text-align: left;
 }
-.landing-hero-feature-icon {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: var(--ledger-bright);
-}
-.landing-hero-feature-title {
-  font-weight: 600;
-  font-size: 1.5rem;
-  color: var(--paper);
-  margin-bottom: 0.4rem;
-}
-.landing-hero-feature-text {
+.landing-hero-features-row-item {
   min-width: 0;
 }
-.landing-hero-feature-text p {
+.landing-hero-features-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(237, 239, 232, 0.55);
+  margin-bottom: 0.6rem;
+}
+.landing-hero-features-row-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--paper);
+  margin-bottom: 0.3rem;
+}
+.landing-hero-features-row-item p {
   margin: 0;
   color: rgba(237, 239, 232, 0.78);
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
-@media (max-width: 560px) {
-  .landing-hero-feature {
-    flex-direction: column;
+@media (max-width: 720px) {
+  .landing-hero-features-row {
+    grid-template-columns: 1fr;
     text-align: center;
   }
+  .landing-hero-features-row-icon {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+.landing-hero-cta {
+  margin: 0 auto 0.9rem;
+}
+.landing-hero-cta-note {
+  color: rgba(237, 239, 232, 0.7);
+  font-size: 0.85rem;
+  margin: 0 0 2.4rem;
 }
 .landing-features {
   display: grid;
@@ -406,31 +386,45 @@ body > * {
   max-width: clamp(1000px, 52vw, 1300px);
   margin: 0 auto 2.4rem;
 }
-.landing-free-banner {
+.landing-built-divider {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.7rem;
+  gap: 1.2rem;
+  max-width: 900px;
+  margin: 1rem auto 1.6rem;
+}
+.landing-built-divider span:not(.landing-built-label) {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(237, 239, 232, 0.25);
+}
+.landing-built-label {
+  flex: 0 0 auto;
+  color: rgba(237, 239, 232, 0.75);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.landing-built-row {
+  display: flex;
   flex-wrap: wrap;
-  /* See .landing-features -- same fixed-cap-leaves-dead-margin issue on
-     wide screens. */
-  max-width: clamp(1100px, 58vw, 1450px);
+  justify-content: center;
+  gap: 1.6rem 2.4rem;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 1.7rem 2.2rem;
-  background: rgba(237, 239, 232, 0.06);
-  border: 1px solid rgba(237, 239, 232, 0.2);
-  border-radius: 10px;
 }
-.landing-free-banner-text {
-  flex: 1 1 380px;
-  min-width: 0;
-  text-align: left;
+.landing-built-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(237, 239, 232, 0.85);
+  font-size: 0.9rem;
 }
-.landing-free-banner-text p {
-  margin: 0;
-  color: rgba(237, 239, 232, 0.82);
-  font-size: 1.2rem;
-  line-height: 1.55;
+.landing-built-icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0;
 }
 .landing-free-banner-btn {
   flex: 0 0 auto;

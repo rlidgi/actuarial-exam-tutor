@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useId, useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -133,107 +133,104 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   ),
 };
 
-// A more anatomically-detailed brain (outer lobe bumps + inner fold lines)
-// than a plain silhouette would give -- drawn as one hemisphere, mirrored
-// with a scale(-1,1) transform so both sides are guaranteed symmetric.
-// useId keeps the <defs> id collision-safe if this ever renders more than
-// once on a page.
-function BrainIcon() {
-  const hemiId = useId();
+// Small outline icons for the hero's 3-item feature row and the "Built for
+// your success" row below the exam cards -- BarsIcon and TargetIcon are
+// deliberately reused across both rows (matching mastery-tracking /
+// focused-practice, the two rows' closest thematic overlap), same as the
+// reference design reusing its own icon vocabulary rather than drawing a
+// new glyph for every single item.
+function BarsIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
-      <defs>
-        <g id={hemiId}>
-          <path
-            d="M20 9
-               C22 7.3 24.5 7.3 26 9 C28 8 30.5 9.3 30.5 11.5
-               C33 12 34.3 14.7 33 17 C34.5 18.6 34 21.3 32 22.3
-               C32.8 23.6 32.5 25.3 31 26
-               C31.3 28 29.7 29.8 27.6 29.8 C26.3 29.8 25.2 29.1 24.6 28.1
-               C23.5 28.7 22.1 28.4 21.3 27.4 C20.6 27.7 20 27.3 20 26.5 Z"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1.3"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M23 9.5 C25 10.8 25 13 23.3 14.5 C25.3 15.3 25.7 17.8 24 19.3"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-          <path
-            d="M29 12.5 C30.7 13.8 30.7 16 29 17.3 C30.7 18.3 30.8 20.7 29.2 21.8"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-          <path
-            d="M27.8 23 C29 24 29 25.7 27.7 26.6"
-            fill="none"
-            stroke="var(--paper)"
-            strokeWidth="1"
-            strokeLinecap="round"
-          />
-        </g>
-      </defs>
-      <use href={`#${hemiId}`} />
-      <use href={`#${hemiId}`} transform="scale(-1,1) translate(-40,0)" />
-      <line x1="20" y1="8.5" x2="20" y2="27.5" stroke="var(--paper)" strokeWidth="1.3" strokeOpacity="0.75" />
+    <svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+      <rect x="7" y="21" width="6" height="12" rx="1" fill="var(--paper)" />
+      <rect x="17" y="14" width="6" height="19" rx="1" fill="var(--paper)" />
+      <rect x="27" y="7" width="6" height="26" rx="1" fill="var(--paper)" />
     </svg>
   );
 }
 
-function GiftIcon() {
+function TargetIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="66" height="66" aria-hidden="true">
-      <rect
-        x="8"
-        y="17"
-        width="24"
-        height="15"
-        rx="1.5"
+    <svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+      <circle cx="20" cy="20" r="13" fill="none" stroke="var(--paper)" strokeWidth="1.8" />
+      <circle cx="20" cy="20" r="7.5" fill="none" stroke="var(--paper)" strokeWidth="1.8" />
+      <circle cx="20" cy="20" r="2.2" fill="var(--paper)" />
+    </svg>
+  );
+}
+
+function GraduationCapIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+      <path
+        d="M20 9 L36 16 L20 23 L4 16 Z"
         fill="none"
         stroke="var(--paper)"
         strokeWidth="1.8"
+        strokeLinejoin="round"
       />
-      <rect
-        x="6"
-        y="12"
-        width="28"
-        height="6"
-        rx="1.5"
+      <path
+        d="M11 19.5 V27 C11 29.2 15 31 20 31 C25 31 29 29.2 29 27 V19.5"
         fill="none"
         stroke="var(--paper)"
         strokeWidth="1.8"
+        strokeLinecap="round"
       />
-      <line
-        x1="20"
-        y1="12"
-        x2="20"
-        y2="32"
-        stroke="var(--paper)"
-        strokeWidth="1.6"
-      />
+      <path d="M36 16 V25" fill="none" stroke="var(--paper)" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function PersonIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+      <circle cx="20" cy="13" r="6.5" fill="none" stroke="var(--paper)" strokeWidth="1.8" />
       <path
-        d="M20 12 C16 12 13 9.5 13 7.5 C13 6 14.3 5 15.8 5 C18 5 20 8 20 12 Z"
+        d="M7 33 C7 25 12.5 21 20 21 C27.5 21 33 25 33 33"
         fill="none"
         stroke="var(--paper)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M20 12 C24 12 27 9.5 27 7.5 C27 6 25.7 5 24.2 5 C22 5 20 8 20 12 Z"
-        fill="none"
-        stroke="var(--paper)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
+        strokeWidth="1.8"
+        strokeLinecap="round"
       />
     </svg>
   );
 }
+
+function DocumentIcon() {
+  return (
+    <svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+      <rect x="9" y="5" width="22" height="30" rx="2" fill="none" stroke="var(--paper)" strokeWidth="1.8" />
+      <line x1="14" y1="14" x2="26" y2="14" stroke="var(--paper)" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="14" y1="20" x2="26" y2="20" stroke="var(--paper)" strokeWidth="1.6" strokeLinecap="round" />
+      <line x1="14" y1="26" x2="22" y2="26" stroke="var(--paper)" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+const HERO_FEATURES = [
+  {
+    icon: <BarsIcon />,
+    title: "Tracks your mastery",
+    text: "Knows what you've learned and what to focus on",
+  },
+  {
+    icon: <TargetIcon />,
+    title: "Identifies knowledge gaps",
+    text: "Finds weak areas in your foundational understanding",
+  },
+  {
+    icon: <GraduationCapIcon />,
+    title: "Guides you step by step",
+    text: "Provides clear explanations and practice tailored to you",
+  },
+];
+
+const BUILT_FOR_SUCCESS = [
+  { icon: <PersonIcon />, text: "Personalized learning path" },
+  { icon: <DocumentIcon />, text: "Step-by-step explanations" },
+  { icon: <TargetIcon />, text: "Focused practice and feedback" },
+  { icon: <BarsIcon />, text: "Build confidence for exam day" },
+];
 
 function ShieldCheckIcon() {
   return (
@@ -314,6 +311,9 @@ export default function LandingContent() {
           <Link className="btn" href="/pricing">
             Pricing
           </Link>
+          <Link className="btn" href="#faq">
+            FAQ
+          </Link>
           {token ? (
             <>
               <button type="button" className="btn" onClick={() => logout()}>
@@ -324,49 +324,46 @@ export default function LandingContent() {
               </Link>
             </>
           ) : (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => setShowSignIn(true)}
-            >
-              Sign in
-            </button>
+            <>
+              <button type="button" className="btn" onClick={() => setShowSignIn(true)}>
+                Log in
+              </button>
+              <button
+                type="button"
+                className="btn landing-free-banner-btn"
+                onClick={() => setShowSignIn(true)}
+              >
+                Sign up free
+              </button>
+            </>
           )}
         </MarketingHeader>
 
         <div className="landing-hero">
           <h1>Your personal tutor for actuarial exams</h1>
-          <div
-            className="landing-hero-tagline"
-            // will-change stays in the CSS for the animation itself, but
-            // leaving it on indefinitely keeps this promoted to its own
-            // compositing layer forever -- releasing it once the one-shot
-            // entrance animation finishes avoids that ongoing overhead
-            // (was showing up as sluggish hover transitions elsewhere on
-            // the page, e.g. the exam-picker cards).
-            onAnimationEnd={(e) => {
-              e.currentTarget.style.willChange = "auto";
-            }}
-          >
-            <span className="tagline-line" aria-hidden="true" />
-            <span>You don&apos;t have to go it alone.</span>
-            <span className="tagline-line" aria-hidden="true" />
-          </div>
-          <div className="landing-hero-feature">
-            <span className="landing-hero-feature-icon">
-              <BrainIcon />
-            </span>
-            <div className="landing-hero-feature-text">
-              <div className="landing-hero-feature-title">
-                Personalized guidance from an AI tutor that adapts as you learn.
+          <p className="landing-hero-sub">Personalized guidance that adapts as you learn.</p>
+
+          <div className="landing-hero-features-row">
+            {HERO_FEATURES.map((f) => (
+              <div className="landing-hero-features-row-item" key={f.title}>
+                <span className="landing-hero-features-row-icon">{f.icon}</span>
+                <div className="landing-hero-features-row-title">{f.title}</div>
+                <p>{f.text}</p>
               </div>
-              <p>
-                Your tutor tracks what you&apos;ve mastered, identifies gaps in
-                your foundational knowledge, and guides you step by step toward
-                exam mastery.
-              </p>
-            </div>
+            ))}
           </div>
+
+          <button
+            type="button"
+            className="btn landing-free-banner-btn landing-hero-cta"
+            onClick={() => setShowSignIn(true)}
+          >
+            Try the tutor free &rarr;
+          </button>
+          <p className="landing-hero-cta-note">
+            Study manuals and formula sheets are free for everyone -- no account required.
+          </p>
+
           <div className="exam-picker">
             {EXAMS.map((e) => (
               <button
@@ -386,26 +383,21 @@ export default function LandingContent() {
               </button>
             ))}
           </div>
-          <div className="landing-free-banner">
-            <span className="landing-hero-feature-icon">
-              <GiftIcon />
-            </span>
-            <div className="landing-free-banner-text">
-              <div className="landing-hero-feature-title">
-                Experience a tutor that adapts to you.
+
+          <div className="landing-built-divider">
+            <span />
+            <span className="landing-built-label">Built for your success</span>
+            <span />
+          </div>
+          <div className="landing-built-row">
+            {BUILT_FOR_SUCCESS.map((item, i) => (
+              <div className="landing-built-item" key={i}>
+                <span className="landing-hero-features-row-icon landing-built-icon">
+                  {item.icon}
+                </span>
+                <span>{item.text}</span>
               </div>
-              <p>
-                The study manual and formula sheet are free for everyone, no account
-                needed. Sign up free to get 6 messages to try out the AI tutor.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="btn landing-free-banner-btn"
-              onClick={() => setShowSignIn(true)}
-            >
-              Sign up free &rarr;
-            </button>
+            ))}
           </div>
         </div>
       </div>
@@ -520,7 +512,7 @@ export default function LandingContent() {
         </div>
       </div>
 
-      <div className="landing-faq">
+      <div className="landing-faq" id="faq">
         <h2>Questions</h2>
         {FAQ_ITEMS.map((item) => (
           <div key={item.question} className="faq-item reveal">
