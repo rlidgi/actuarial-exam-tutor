@@ -369,14 +369,7 @@ body > * {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 42%, #003f38 0%, rgba(0, 63, 56, 0.92) 29%, transparent 66%),
-    radial-gradient(circle at 19% 15%, rgba(153, 237, 206, 0.25), transparent 12px),
-    radial-gradient(circle at 2% 36%, rgba(153, 237, 206, 0.2), transparent 13px),
-    radial-gradient(circle at 14% 50%, rgba(153, 237, 206, 0.22), transparent 15px),
-    radial-gradient(circle at 82% 20%, rgba(153, 237, 206, 0.22), transparent 13px),
-    radial-gradient(circle at 6% 76%, rgba(153, 237, 206, 0.18), transparent 18px),
-    radial-gradient(circle at 95% 81%, rgba(153, 237, 206, 0.16), transparent 15px);
+  background: radial-gradient(ellipse at 50% 42%, #003f38 0%, rgba(0, 63, 56, 0.92) 29%, transparent 66%);
 }
 .hero-symbol {
   position: absolute;
