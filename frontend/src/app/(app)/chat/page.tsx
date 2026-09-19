@@ -23,7 +23,6 @@ import { MessageContent } from "@/components/message-content";
 import { NotationPicker } from "@/components/notation-picker";
 import { CameraCaptureModal } from "@/components/camera-capture-modal";
 import { TrialBanner } from "@/components/trial-banner";
-import { DismissibleNotice } from "@/components/dismissible-notice";
 import { ChatSkeleton } from "@/components/skeleton";
 
 interface DisplayMessage extends ChatMessageDTO {
@@ -478,10 +477,6 @@ export default function ChatPage() {
       <Suspense fallback={null}>
         <CheckoutSyncHandler token={token} email={email} onSynced={refreshBilling} />
       </Suspense>
-      <DismissibleNotice
-        id="2026-09-12-rendering-fix"
-        message="Minor text rendering issue has been fixed. We apologize for any inconvenience."
-      />
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6">
         <TrialBanner status={billingStatus} examCode={examCode} />
         <div className="chat-column mx-auto flex w-full flex-1 flex-col gap-3">
