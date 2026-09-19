@@ -405,18 +405,22 @@ def open_session_for_today(student_profile: StudentProfile, session: Session) ->
     sitting, if nothing's been sent yet today. No-op (no API call) if
     today's conversation has already started -- callers re-fetch today's
     messages themselves after calling this, so there's nothing to return
-    here."""
+    here.
+
+    Two calls for the same session can genuinely land at the same time in
+    production (a second tab, a flaky-connection retry, ...), so this locks
+    the session row for the rest of the transaction before checking. A
+    concurrent caller's lock acquisition blocks until this one commits or
+    rolls back, so it always sees this one's message (if any) once it gets
+    its turn -- a plain check-then-act (check, generate, re-check) isn't
+    enough, since both callers' re-checks can land before either has
+    committed."""
+    db.session.query(Session).filter_by(id=session.id).with_for_update().one()
+
     if _messages_today(session):
         return
 
     text = generate_opening_message(student_profile, session)
-
-    # Re-check right before persisting -- a concurrent call (e.g. React
-    # Strict Mode's dev-mode double effect invocation) could have generated
-    # and persisted its own opening message while this one was waiting on
-    # the model call above.
-    if _messages_today(session):
-        return
 
     db.session.add(Message(session_id=session.id, role="assistant", content=text))
     db.session.commit()
