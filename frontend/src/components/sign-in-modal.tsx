@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { externalHref } from "./app-link";
 
 function GoogleIcon() {
   return (
@@ -200,11 +201,17 @@ export function SignInModal({
               site-footer.tsx's Terms/Privacy links. */}
           <p className="mt-5 text-center text-xs text-pencil-soft">
             By continuing, you agree to our{" "}
-            <a href="/terms.html" className="text-ledger underline hover:text-ledger-bright">
+            <a
+              href={externalHref("/terms.html")}
+              className="text-ledger underline hover:text-ledger-bright"
+            >
               Terms &amp; Conditions
             </a>{" "}
             and{" "}
-            <a href="/privacy.html" className="text-ledger underline hover:text-ledger-bright">
+            <a
+              href={externalHref("/privacy.html")}
+              className="text-ledger underline hover:text-ledger-bright"
+            >
               Privacy Policy
             </a>
             .

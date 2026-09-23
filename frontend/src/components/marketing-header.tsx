@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { AppLink } from "./app-link";
 
 export function MarketingHeader({
   children,
@@ -20,7 +20,7 @@ export function MarketingHeader({
 
   return (
     <header className={`landing-nav${mobileMenu ? " landing-nav-hamburger" : ""}`}>
-      <Link href="/" className="wordmark-group">
+      <AppLink href="/" className="wordmark-group">
         <Image src="/logo-mark.png" alt="" width={110} height={56} className="wordmark-mark" />
         <span className="wordmark-divider" />
         <Image
@@ -30,7 +30,7 @@ export function MarketingHeader({
           height={26}
           className="wordmark-text"
         />
-      </Link>
+      </AppLink>
       {mobileMenu && (
         <button
           type="button"

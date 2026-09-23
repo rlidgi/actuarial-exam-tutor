@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SignInModal } from "@/components/sign-in-modal";
+import { AppLink, navigateToApp } from "@/components/app-link";
 import { EXAM_OVERVIEW, type ExamCode } from "./exam-overview-data";
 import { TOPIC_ICONS } from "./topic-icons";
 
@@ -44,7 +44,7 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
   const handleTryTutor = () => {
     setExamStorage();
     if (token) {
-      router.push("/chat");
+      navigateToApp(router, "/chat");
     } else {
       setShowSignIn(true);
     }
@@ -55,20 +55,20 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
 
       <MarketingHeader>
-        <Link className="btn" href="/about">
+        <AppLink className="btn" href="/about">
           About
-        </Link>
-        <Link className="btn" href="/pricing">
+        </AppLink>
+        <AppLink className="btn" href="/pricing">
           Pricing
-        </Link>
+        </AppLink>
         {token ? (
           <>
             <button type="button" className="btn" onClick={() => logout()}>
               Sign out
             </button>
-            <Link className="btn btn-primary" href="/chat">
+            <AppLink className="btn btn-primary" href="/chat">
               Go to Tutor
-            </Link>
+            </AppLink>
           </>
         ) : (
           <button
@@ -129,12 +129,12 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
             <li>Formula sheet for {exam.fullName}</li>
           </ul>
           <div className="exam-overview-actions">
-            <Link href="/manual" className="pricing-card-btn" onClick={setExamStorage}>
+            <AppLink href="/manual" className="pricing-card-btn" onClick={setExamStorage}>
               View Study Manual
-            </Link>
-            <Link href="/formulas" className="pricing-card-btn" onClick={setExamStorage}>
+            </AppLink>
+            <AppLink href="/formulas" className="pricing-card-btn" onClick={setExamStorage}>
               View Formula Sheet
-            </Link>
+            </AppLink>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
           <button
             type="button"
             className="pricing-card-btn"
-            onClick={() => router.push(`/pricing?exam=${code}`)}
+            onClick={() => navigateToApp(router, `/pricing?exam=${code}`)}
           >
             See pricing &amp; subscribe
           </button>

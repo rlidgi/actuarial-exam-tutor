@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { AppLink, externalHref } from "./app-link";
 
 export function SiteFooter() {
   return (
@@ -7,11 +7,11 @@ export function SiteFooter() {
         <span>&copy; Actuarial Exams Tutor. All Rights Reserved 2026.</span>
         {/* Static self-contained HTML files (frontend/public/), not React
             routes -- a plain reload is correct here, not client-side nav. */}
-        <a href="/terms.html">Terms of Service</a>
-        <a href="/privacy.html">Privacy Policy</a>
+        <a href={externalHref("/terms.html")}>Terms of Service</a>
+        <a href={externalHref("/privacy.html")}>Privacy Policy</a>
         {/* A real Next.js route, unlike the two above -- client-side nav. */}
-        <Link href="/contact">Contact Us</Link>
-        <Link href="/referrals">Referral Program</Link>
+        <AppLink href="/contact">Contact Us</AppLink>
+        <AppLink href="/referrals">Referral Program</AppLink>
       </div>
       <a
         href="https://www.facebook.com/profile.php?id=61594026569737"
