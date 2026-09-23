@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "Fundamentals of Actuarial Mathematics (FAM) Resources -- Actuarial Exams Tutor";
+const TITLE = "Exam FAM";
 const DESCRIPTION =
   "Free study manual and formula sheet, plus AI tutor access, for Exam FAM. See what's free and what's included with a subscription.";
 
