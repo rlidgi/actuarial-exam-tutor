@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Vanity exam domains -- visiting the bare domain shows that exam's
-// overview page (exam-overview-content.tsx) without the URL bar changing,
-// so e.g. examfam.com "is" the FAM overview page rather than redirecting
-// to actuarialexamstutor.com/exams/FAM (which keeps working unchanged).
-// Everything else on these domains (login, /chat, API calls, ...) still
-// works unchanged since it's the same app/session, just reached via a
-// different hostname.
+// Vanity exam domains -- the entire domain is just the FAM overview page
+// (exam-overview-content.tsx), not the whole app. Every path rewrites to
+// it (URL bar stays on the vanity domain), so there's no way to browse to
+// /chat, /pricing, etc. from here. actuarialexamstutor.com/exams/FAM
+// keeps working unchanged -- this only affects requests arriving with one
+// of these hostnames.
 const VANITY_DOMAINS: Record<string, string> = {
   "examfam.com": "/exams/FAM",
   "www.examfam.com": "/exams/FAM",
@@ -15,14 +14,15 @@ const VANITY_DOMAINS: Record<string, string> = {
 export function proxy(request: NextRequest) {
   const host = request.headers.get("host")?.toLowerCase() ?? "";
   const target = VANITY_DOMAINS[host];
-  if (target) {
+  if (target && request.nextUrl.pathname !== target) {
     return NextResponse.rewrite(new URL(target, request.url));
   }
   return NextResponse.next();
 }
 
-// Root path only -- proxy doesn't need to run on every request site-wide,
-// just to decide what "/" resolves to on a vanity domain.
+// Every page path, excluding Next internals, the favicon, and anything
+// that looks like a static file (has a dot, e.g. /logo-mark.png) -- those
+// still need to load unrewritten for the FAM page itself to render.
 export const config = {
-  matcher: "/",
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
