@@ -37,6 +37,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # frontend/node_modules has to exist too: the shared source files
+      # this app imports (via examfam-site/tsconfig.json's @/* path) live
+      # physically under frontend/src, and Node resolves their imports
+      # (tailwindcss, @supabase/supabase-js, ...) by walking up from each
+      # file's own directory -- it never looks in the sibling
+      # examfam-site/node_modules for them.
+      - name: Install frontend dependencies (for the shared source files)
+        working-directory: frontend
+        run: npm ci
       # Building it ourselves (rather than letting the Azure action's Oryx
       # build detect "Next.js" and apply its SSR/hybrid pipeline) keeps this
       # a plain static upload -- app_location below points straight at the
