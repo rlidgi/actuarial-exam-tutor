@@ -21,9 +21,13 @@ def submit():
         feedback = feedback_service.submit_feedback(
             user,
             overall_rating=data.get("overall_rating"),
+            overall_detail=data.get("overall_detail"),
             tutor_quality_rating=data.get("tutor_quality_rating"),
+            tutor_quality_detail=data.get("tutor_quality_detail"),
             ease_of_use_rating=data.get("ease_of_use_rating"),
+            ease_of_use_detail=data.get("ease_of_use_detail"),
             value_rating=data.get("value_rating"),
+            value_detail=data.get("value_detail"),
             category=data.get("category"),
             message=data.get("message"),
         )
@@ -34,6 +38,8 @@ def submit():
         user,
         {field: getattr(feedback, field) for field in
          ("overall_rating", "tutor_quality_rating", "ease_of_use_rating", "value_rating")},
+        {field: getattr(feedback, field) for field in
+         ("overall_detail", "tutor_quality_detail", "ease_of_use_detail", "value_detail")},
         feedback.category,
         feedback.message,
     )

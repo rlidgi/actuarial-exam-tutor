@@ -204,9 +204,13 @@ export type FeedbackCategory = "bug" | "feature_request" | "ui_ux" | "performanc
 // rating (or just a message) is still valid.
 export interface FeedbackSubmission {
   overall_rating?: number | null;
+  overall_detail?: string | null;
   tutor_quality_rating?: number | null;
+  tutor_quality_detail?: string | null;
   ease_of_use_rating?: number | null;
+  ease_of_use_detail?: string | null;
   value_rating?: number | null;
+  value_detail?: string | null;
   category?: FeedbackCategory | null;
   message?: string | null;
 }

@@ -7,14 +7,32 @@ import { api, ApiError, isAuthError, type FeedbackCategory } from "@/lib/api";
 import { DashboardSkeleton } from "@/components/skeleton";
 
 const RATING_FIELDS = [
-  { key: "overall_rating", label: "How would you rate your experience?" },
-  { key: "tutor_quality_rating", label: "How helpful were the AI Tutor's answers?" },
-  { key: "ease_of_use_rating", label: "How easy is the site to use?" },
-  { key: "value_rating", label: "Does it feel worth the price?" },
+  {
+    key: "overall_rating",
+    detailKey: "overall_detail",
+    label: "How would you rate your experience?",
+  },
+  {
+    key: "tutor_quality_rating",
+    detailKey: "tutor_quality_detail",
+    label: "How helpful were the AI Tutor's answers?",
+  },
+  {
+    key: "ease_of_use_rating",
+    detailKey: "ease_of_use_detail",
+    label: "How easy is the site to use?",
+  },
+  {
+    key: "value_rating",
+    detailKey: "value_detail",
+    label: "Does it feel worth the price?",
+  },
 ] as const;
 
 type RatingKey = (typeof RATING_FIELDS)[number]["key"];
+type DetailKey = (typeof RATING_FIELDS)[number]["detailKey"];
 type Ratings = Record<RatingKey, number | null>;
+type Details = Record<DetailKey, string>;
 
 const CATEGORIES: { value: FeedbackCategory; label: string }[] = [
   { value: "bug", label: "Bug" },
@@ -30,10 +48,14 @@ function RatingRow({
   label,
   value,
   onChange,
+  detail,
+  onDetailChange,
 }: {
   label: string;
   value: number | null;
   onChange: (v: number) => void;
+  detail: string;
+  onDetailChange: (v: string) => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -56,6 +78,14 @@ function RatingRow({
           </button>
         ))}
       </div>
+      <textarea
+        rows={2}
+        value={detail}
+        onChange={(e) => onDetailChange(e.target.value)}
+        placeholder="Any detail you'd like to add (optional)"
+        aria-label={`${label} -- detail`}
+        className="rounded-md border border-rule bg-transparent px-3 py-2 text-sm font-normal text-ink"
+      />
     </div>
   );
 }
@@ -67,6 +97,12 @@ export default function FeedbackPage() {
     tutor_quality_rating: null,
     ease_of_use_rating: null,
     value_rating: null,
+  });
+  const [details, setDetails] = useState<Details>({
+    overall_detail: "",
+    tutor_quality_detail: "",
+    ease_of_use_detail: "",
+    value_detail: "",
   });
   const [category, setCategory] = useState<FeedbackCategory | null>(null);
   const [message, setMessage] = useState("");
@@ -81,8 +117,14 @@ export default function FeedbackPage() {
   const setRating = (key: RatingKey, value: number) =>
     setRatings((prev) => ({ ...prev, [key]: value }));
 
+  const setDetail = (key: DetailKey, value: string) =>
+    setDetails((prev) => ({ ...prev, [key]: value }));
+
   const hasAnyAnswer =
-    Object.values(ratings).some((v) => v !== null) || category !== null || message.trim() !== "";
+    Object.values(ratings).some((v) => v !== null) ||
+    Object.values(details).some((v) => v.trim() !== "") ||
+    category !== null ||
+    message.trim() !== "";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,6 +134,10 @@ export default function FeedbackPage() {
     try {
       await api.submitFeedback(token, {
         ...ratings,
+        overall_detail: details.overall_detail.trim() || null,
+        tutor_quality_detail: details.tutor_quality_detail.trim() || null,
+        ease_of_use_detail: details.ease_of_use_detail.trim() || null,
+        value_detail: details.value_detail.trim() || null,
         category,
         message: message.trim() || null,
       });
@@ -159,9 +205,10 @@ export default function FeedbackPage() {
                     label={f.label}
                     value={ratings[f.key]}
                     onChange={(v) => setRating(f.key, v)}
+                    detail={details[f.detailKey]}
+                    onDetailChange={(v) => setDetail(f.detailKey, v)}
                   />
                 ))}
-                <p className="-mt-3 text-xs text-pencil-soft">Every question here is optional.</p>
 
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-ink">What is this about?</span>

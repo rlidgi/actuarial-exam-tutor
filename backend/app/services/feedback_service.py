@@ -3,6 +3,7 @@ from app.models.feedback import CATEGORIES, Feedback
 from app.models.user import User
 
 _RATING_FIELDS = ("overall_rating", "tutor_quality_rating", "ease_of_use_rating", "value_rating")
+_DETAIL_FIELDS = ("overall_detail", "tutor_quality_detail", "ease_of_use_detail", "value_detail")
 
 
 def _validate_rating(value):
@@ -15,12 +16,25 @@ def _validate_rating(value):
     return value
 
 
+def _validate_detail(value):
+    """Same optional-text handling as the general message field, just
+    reused per rating question."""
+    value = (value or "").strip() or None
+    if value and len(value) > 2000:
+        raise ValueError("detail is too long")
+    return value
+
+
 def submit_feedback(
     user: User,
     overall_rating=None,
+    overall_detail=None,
     tutor_quality_rating=None,
+    tutor_quality_detail=None,
     ease_of_use_rating=None,
+    ease_of_use_detail=None,
     value_rating=None,
+    value_detail=None,
     category: str | None = None,
     message: str | None = None,
 ) -> Feedback:
@@ -33,6 +47,12 @@ def submit_feedback(
         "ease_of_use_rating": _validate_rating(ease_of_use_rating),
         "value_rating": _validate_rating(value_rating),
     }
+    details = {
+        "overall_detail": _validate_detail(overall_detail),
+        "tutor_quality_detail": _validate_detail(tutor_quality_detail),
+        "ease_of_use_detail": _validate_detail(ease_of_use_detail),
+        "value_detail": _validate_detail(value_detail),
+    }
 
     category = (category or "").strip() or None
     if category is not None and category not in CATEGORIES:
@@ -42,10 +62,12 @@ def submit_feedback(
     if message and len(message) > 5000:
         raise ValueError("message is too long")
 
-    if not any(ratings.values()) and not category and not message:
+    if not any(ratings.values()) and not any(details.values()) and not category and not message:
         raise ValueError("please fill in at least one field")
 
-    feedback = Feedback(user_id=user.id, category=category, message=message, **ratings)
+    feedback = Feedback(
+        user_id=user.id, category=category, message=message, **ratings, **details
+    )
     db.session.add(feedback)
     db.session.commit()
     return feedback

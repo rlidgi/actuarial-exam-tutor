@@ -78,14 +78,26 @@ _RATING_LABELS = {
     "value_rating": "Value for price",
 }
 
+# Maps each *_rating field to its companion *_detail field, so the detail
+# text can be printed right under its rating in the email body.
+_DETAIL_FIELDS = {
+    "overall_rating": "overall_detail",
+    "tutor_quality_rating": "tutor_quality_detail",
+    "ease_of_use_rating": "ease_of_use_detail",
+    "value_rating": "value_detail",
+}
 
-def send_feedback_email(user: User, ratings: dict, category: str | None, message: str | None) -> None:
+
+def send_feedback_email(
+    user: User, ratings: dict, details: dict, category: str | None, message: str | None
+) -> None:
     """Fired from the /feedback page (logged-in users only) -- immediate
     visibility for a single submission. The Feedback row (see
     api/feedback.py) is the source of truth for aggregate analysis; this is
     best-effort and never blocks the request, same pattern as
-    send_welcome_email. `ratings` is a dict of the four *_rating fields,
-    any of which may be None (every field on the form is optional)."""
+    send_welcome_email. `ratings` and `details` are dicts of the four
+    *_rating / *_detail fields, any of which may be None (every field on
+    the form is optional)."""
     if not current_app.config["SMTP_PASSWORD"]:
         logger.info("SMTP not configured -- skipping feedback email from %s", user.email)
         return
@@ -96,6 +108,9 @@ def send_feedback_email(user: User, ratings: dict, category: str | None, message
             value = ratings.get(field)
             if value is not None:
                 lines.append(f"{label}: {value}/5")
+            detail = details.get(_DETAIL_FIELDS[field])
+            if detail:
+                lines.append(f"  -> {detail}")
         if category:
             lines.append(f"Category: {category}")
         body = "\n".join(lines)
