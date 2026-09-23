@@ -234,8 +234,15 @@ export default function LandingContent() {
 
   // Sends visitors to that exam's overview page, which describes the free
   // and paid resources on offer and links to the free study manual/formula
-  // sheet, instead of dropping them straight into sign-in.
+  // sheet, instead of dropping them straight into sign-in. FAM's overview
+  // now lives at examfam.com instead of /exams/FAM (see next.config.ts's
+  // redirect for anyone hitting the old URL directly) -- going straight
+  // there avoids the extra redirect hop for this button specifically.
   const handleExamClick = (code: string) => {
+    if (code === "FAM") {
+      window.location.href = "https://examfam.com";
+      return;
+    }
     router.push(`/exams/${code}`);
   };
 

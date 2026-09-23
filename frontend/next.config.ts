@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
         destination: "/?ref=PENNSTATE",
         permanent: false,
       },
+      // examfam.com is now the one home for FAM overview content -- see
+      // examfam-site/. Permanent so search engines carry this page's
+      // existing ranking signal over instead of treating the old URL as
+      // just gone.
+      {
+        source: "/exams/FAM",
+        destination: "https://examfam.com",
+        permanent: true,
+      },
     ];
   },
 };
