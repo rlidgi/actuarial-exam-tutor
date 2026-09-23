@@ -412,15 +412,20 @@ def open_session_for_today(student_profile: StudentProfile, session: Session) ->
     the session row for the rest of the transaction before checking. A
     concurrent caller's lock acquisition blocks until this one commits or
     rolls back, so it always sees this one's message (if any) once it gets
-    its turn -- a plain check-then-act (check, generate, re-check) isn't
-    enough, since both callers' re-checks can land before either has
-    committed."""
+    its turn. The re-check right before persisting stays anyway, as a
+    second guard against anything that writes a message during the model
+    call above without going through this same lock (e.g. restart_conversation
+    running concurrently) -- cheap, and it's what keeps this correct rather
+    than merely usually-correct."""
     db.session.query(Session).filter_by(id=session.id).with_for_update().one()
 
     if _messages_today(session):
         return
 
     text = generate_opening_message(student_profile, session)
+
+    if _messages_today(session):
+        return
 
     db.session.add(Message(session_id=session.id, role="assistant", content=text))
     db.session.commit()
