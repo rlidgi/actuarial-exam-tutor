@@ -13,11 +13,37 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const TITLE = "Fundamentals of Actuarial Mathematics (FAM) Resources -- Actuarial Exams Tutor";
+const DESCRIPTION =
+  "Free study manual and formula sheet, plus AI tutor access, for Exam FAM. See what's free and what's included with a subscription.";
+
 export const metadata: Metadata = {
-  title: "Fundamentals of Actuarial Mathematics (FAM) Resources -- Actuarial Exams Tutor",
-  description:
-    "Free study manual and formula sheet, plus AI tutor access, for Exam FAM. See what's free and what's included with a subscription.",
+  title: TITLE,
+  description: DESCRIPTION,
   metadataBase: new URL("https://examfam.com"),
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://examfam.com",
+    siteName: "Actuarial Exams Tutor",
+    type: "website",
+    // Reused from the main app rather than duplicated here -- always the
+    // current image, no separate asset to keep in sync.
+    images: [
+      {
+        url: "https://actuarialexamstutor.com/og-preview.png",
+        width: 1200,
+        height: 630,
+        alt: "Actuarial Exams Tutor -- a real tutoring exchange with worked math",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["https://actuarialexamstutor.com/og-preview.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
