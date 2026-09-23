@@ -1,0 +1,8 @@
+/* Not reused via the @/* alias like everything else this app imports from
+   frontend/src -- @source only takes effect in a stylesheet that itself
+   CSS-@imports (not just JS-imports) the file with `@import "tailwindcss"`,
+   so this local wrapper is what makes Tailwind's content scanner actually
+   look at frontend/src (SignInModal, etc.) instead of just examfam-site's
+   own -- otherwise empty -- src tree. */
+@import "../../../frontend/src/app/globals.css";
+@source "../../../frontend/src";
