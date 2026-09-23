@@ -60,6 +60,10 @@ jobs:
           NEXT_PUBLIC_API_URL: https://actuarial-exams-tutor.azurewebsites.net
           NEXT_PUBLIC_SUPABASE_URL: https://mawlmnfwtzrwvudehxwq.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_rRt8bLO_nbGLIDusWQKAbw_MduVxPxu
+          # See auth-context.tsx's AUTH_CALLBACK_ORIGIN comment -- examfam.com
+          # has no /auth/callback of its own, and completing sign-in there
+          # wouldn't leave the session in the main app's storage anyway.
+          NEXT_PUBLIC_AUTH_CALLBACK_ORIGIN: https://actuarialexamstutor.com
       - name: Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1

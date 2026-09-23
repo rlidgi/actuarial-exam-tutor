@@ -25,6 +25,14 @@ const EMAIL_STORAGE_KEY = "actuarial_tutor_email";
 // directly (not imported) to avoid a circular import, since ExamProvider
 // itself depends on useAuth().
 const EXAM_STORAGE_KEY = "actuarial_tutor_exam";
+// examfam-site (and any other vanity domain) has no /auth/callback route of
+// its own -- and even if it did, the session/token this flow ends with
+// would land in that origin's storage, not the main app's, so completing
+// sign-in there wouldn't actually leave the user signed in on the real
+// app. Overriding this at build time sends the whole round trip straight
+// to the main domain instead; unset (the main app's own build), it's just
+// window.location.origin, unchanged from before.
+const AUTH_CALLBACK_ORIGIN = process.env.NEXT_PUBLIC_AUTH_CALLBACK_ORIGIN;
 // Set right after a real sign-in completes (never on a page refresh that
 // just restores an existing token from localStorage -- see
 // completeSupabaseSignIn, the only place this gets set). chat/page.tsx
@@ -100,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${AUTH_CALLBACK_ORIGIN ?? window.location.origin}/auth/callback` },
     });
     if (error) throw error;
   }, []);
@@ -108,7 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sendMagicLink = useCallback(async (magicLinkEmail: string) => {
     const { error } = await supabaseClient.auth.signInWithOtp({
       email: magicLinkEmail,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${AUTH_CALLBACK_ORIGIN ?? window.location.origin}/auth/callback`,
+      },
     });
     if (error) throw error;
   }, []);
