@@ -1,0 +1,76 @@
+name: Deploy examfam.com
+
+# Separate Azure Static Web App resource from the main site on purpose --
+# see examfam-site/next.config.ts's comment: its CDN cache needs to be
+# fully isolated so examfam.com can never share a cache entry with
+# actuarialexamstutor.com. Triggers on changes to examfam-site itself or
+# to the shared frontend/src files it imports (@/* path in
+# examfam-site/tsconfig.json), so the page stays byte-identical to
+# actuarialexamstutor.com/exams/FAM automatically.
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "examfam-site/**"
+      - "frontend/src/**"
+      - ".github/workflows/azure-static-web-apps-examfam.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - master
+    paths:
+      - "examfam-site/**"
+      - "frontend/src/**"
+      - ".github/workflows/azure-static-web-apps-examfam.yml"
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # Building it ourselves (rather than letting the Azure action's Oryx
+      # build detect "Next.js" and apply its SSR/hybrid pipeline) keeps this
+      # a plain static upload -- app_location below points straight at the
+      # already-built `out/`, so there's no ambiguity about which build
+      # path Azure takes for a static-export Next.js app.
+      - name: Install and build
+        working-directory: examfam-site
+        run: |
+          npm ci
+          npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://actuarial-exams-tutor.azurewebsites.net
+          NEXT_PUBLIC_SUPABASE_URL: https://mawlmnfwtzrwvudehxwq.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_rRt8bLO_nbGLIDusWQKAbw_MduVxPxu
+      - name: Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_EXAMFAM }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/examfam-site/out"
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_EXAMFAM }}
+          action: "close"
