@@ -20,6 +20,8 @@ export function externalHref(path: string): string {
 // this falls back to a full browser navigation instead.
 export function navigateToApp(router: { push: (path: string) => void }, path: string) {
   if (EXTERNAL_ORIGIN) {
+    // Not a component/hook, so react-hooks/immutability doesn't apply here
+    // the way it does to the JSX-returning callers of this function.
     window.location.href = externalHref(path);
   } else {
     router.push(path);

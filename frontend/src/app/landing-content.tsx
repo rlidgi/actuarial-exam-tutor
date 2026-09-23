@@ -240,6 +240,10 @@ export default function LandingContent() {
   // there avoids the extra redirect hop for this button specifically.
   const handleExamClick = (code: string) => {
     if (code === "FAM") {
+      // False positive, same as pricing-content.tsx's handleSubscribe/
+      // handleManageSubscription -- only ever runs in a click handler, not
+      // a mutation during render.
+      // eslint-disable-next-line react-hooks/immutability
       window.location.href = "https://examfam.com";
       return;
     }
