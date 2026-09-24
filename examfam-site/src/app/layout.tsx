@@ -13,9 +13,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const TITLE = "Exam FAM";
+const TITLE = "Exam FAM | Actuarial Exams Tutor";
 const DESCRIPTION =
   "Free study manual and formula sheet, plus AI tutor access, for Exam FAM. See what's free and what's included with a subscription.";
+
+// Tells Google what name to show for this site in organic search results
+// (the line next to the favicon, and a signal toward using a branded
+// title too) -- without this, Google falls back to displaying the raw
+// domain instead. Same pattern as the main app's layout.tsx.
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Actuarial Exams Tutor",
+  url: "https://examfam.com",
+};
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -53,6 +64,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
