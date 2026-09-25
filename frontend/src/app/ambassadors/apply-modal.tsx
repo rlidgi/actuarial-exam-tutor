@@ -144,7 +144,7 @@ export function ApplyModal({ onClose }: { onClose: () => void }) {
               </label>
             </div>
             <label>
-              Have you taken any exams? Which exam are you currently studying for?
+              Have you taken an actuarial exam before? Which exam are you currently studying for?
               <textarea
                 required
                 rows={2}
