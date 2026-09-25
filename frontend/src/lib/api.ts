@@ -224,7 +224,6 @@ export interface AmbassadorApplication {
   graduation_year: string;
   actuarial_club: "" | "yes" | "no" | "no_club";
   exams: string;
-  message: string;
 }
 
 // Must match backend/app/api/contact.py's submit_club_sponsorship.

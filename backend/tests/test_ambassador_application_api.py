@@ -11,7 +11,6 @@ VALID = {
     "graduation_year": "2028",
     "actuarial_club": "yes",
     "exams": "Passed P, studying for FM.",
-    "message": "I run the study group.",
 }
 
 
@@ -39,7 +38,7 @@ def test_optional_fields_may_be_blank(client):
     send.assert_called_once()
 
 
-@pytest.mark.parametrize("missing", ["name", "email", "school", "exams", "message"])
+@pytest.mark.parametrize("missing", ["name", "email", "school", "exams"])
 def test_required_fields(client, missing):
     with patch("app.api.contact.email_service.send_ambassador_application_email") as send:
         resp = client.post("/api/contact/ambassador", json={**VALID, missing: "  "})
@@ -86,4 +85,3 @@ def test_email_body_includes_application(app):
     assert "School: Penn State" in kwargs["body"]
     assert "In actuarial club: Yes" in kwargs["body"]
     assert "Passed P, studying for FM." in kwargs["body"]
-    assert "I run the study group." in kwargs["body"]

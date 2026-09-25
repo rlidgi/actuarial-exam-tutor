@@ -10,7 +10,6 @@ const EMPTY: AmbassadorApplication = {
   graduation_year: "",
   actuarial_club: "",
   exams: "",
-  message: "",
 };
 
 // Same modal shell as components/sign-in-modal.tsx (backdrop click and
@@ -59,7 +58,6 @@ export function ApplyModal({ onClose }: { onClose: () => void }) {
           school: form.school.trim(),
           graduation_year: form.graduation_year.trim(),
           exams: form.exams.trim(),
-          message: form.message.trim(),
         },
         website
       );
@@ -153,10 +151,6 @@ export function ApplyModal({ onClose }: { onClose: () => void }) {
                 value={form.exams}
                 onChange={set("exams")}
               />
-            </label>
-            <label>
-              Why do you want to be an ambassador?
-              <textarea required rows={4} maxLength={5000} value={form.message} onChange={set("message")} />
             </label>
 
             <label className="sr-only" aria-hidden="true">

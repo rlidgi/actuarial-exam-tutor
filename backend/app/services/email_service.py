@@ -85,7 +85,6 @@ def send_ambassador_application_email(
     graduation_year: str,
     actuarial_club: str,
     exams: str,
-    message: str,
 ) -> None:
     """Fired from the public /ambassadors page's application form -- same
     best-effort pattern as send_contact_email, Reply-To set to the
@@ -105,9 +104,6 @@ def send_ambassador_application_email(
                 "",
                 "Exams taken / currently studying for:",
                 exams,
-                "",
-                "Why they want to be an ambassador:",
-                message,
             ]
         )
         _send_admin_notification(
