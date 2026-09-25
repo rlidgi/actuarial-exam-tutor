@@ -1973,17 +1973,23 @@ body > * {
   --amb-border: #e3e8f0;
   background: #fff;
 }
-/* Nav stays docked at the top while scrolling -- desktop only, same as
-   the landing page's nav; on phones this nav wraps to two rows and would
-   eat too much of the screen. Sticky works here because .landing (the
-   whole page) is its containing block; the negative margin and matching
-   padding stretch its white background edge to edge. */
+/* Nav docked at the top on desktop, same implementation as the landing
+   page's (.landing-hero-band .landing-nav): fixed, full-width, with the
+   page reserving its height via padding-top so content starts below it.
+   Phones keep it in normal flow -- there this nav wraps to two rows and
+   would eat too much of the screen. */
 @media (min-width: 801px) {
+  .amb-page {
+    padding-top: 84px;
+  }
   .amb-page .landing-nav {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 40;
-    margin: 0 calc(-1 * var(--landing-pad));
+    min-height: 84px;
+    padding-block: 0;
     padding-inline: var(--landing-pad);
     background: #fff;
     border-bottom: 1px solid var(--amb-border);
