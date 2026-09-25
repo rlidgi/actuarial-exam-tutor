@@ -227,6 +227,16 @@ export interface AmbassadorApplication {
   message: string;
 }
 
+// Must match backend/app/api/contact.py's submit_club_sponsorship.
+// human_check is the visitor's answer to "What is 1 plus 2?".
+export interface ClubSponsorshipRequest {
+  name: string;
+  email: string;
+  university: string;
+  event_dates: string;
+  human_check: string;
+}
+
 export interface AdminUserDTO {
   id: number;
   email: string;
@@ -328,6 +338,12 @@ export const api = {
     request<{ ok: boolean }>("/api/contact/ambassador", {
       method: "POST",
       body: JSON.stringify({ ...application, website }),
+    }),
+  // Same honeypot convention as submitContact -- see club-sponsorship-modal.tsx.
+  submitClubSponsorship: (sponsorship: ClubSponsorshipRequest, website: string = "") =>
+    request<{ ok: boolean }>("/api/contact/club-sponsorship", {
+      method: "POST",
+      body: JSON.stringify({ ...sponsorship, website }),
     }),
   submitFeedback: (token: string, submission: FeedbackSubmission) =>
     request<{ ok: boolean }>(

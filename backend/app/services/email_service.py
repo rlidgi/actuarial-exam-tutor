@@ -119,6 +119,30 @@ def send_ambassador_application_email(
         logger.exception("failed to send ambassador application from %s", email)
 
 
+def send_club_sponsorship_email(name: str, email: str, university: str, event_dates: str) -> None:
+    """Fired from the landing page's Actuarial Club sponsorship form --
+    same best-effort pattern as send_contact_email."""
+    if not current_app.config["SMTP_PASSWORD"]:
+        logger.info("SMTP not configured -- skipping club sponsorship request from %s", email)
+        return
+
+    try:
+        _send_admin_notification(
+            subject=f"Actuarial Club sponsorship request: {university}",
+            reply_to=email,
+            body="\n".join(
+                [
+                    f"Name: {name}",
+                    f"Email: {email}",
+                    f"College/University: {university}",
+                    f"Upcoming meeting/event date(s): {event_dates}",
+                ]
+            ),
+        )
+    except Exception:
+        logger.exception("failed to send club sponsorship request from %s", email)
+
+
 _RATING_LABELS = {
     "overall_rating": "Overall experience",
     "tutor_quality_rating": "Tutor answer quality",

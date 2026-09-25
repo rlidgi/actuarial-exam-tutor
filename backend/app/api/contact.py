@@ -97,3 +97,45 @@ def submit_ambassador_application():
 
     email_service.send_ambassador_application_email(**fields)
     return jsonify(ok=True), 200
+
+
+# Answers accepted for the club form's "What is 1 plus 2?" bot check.
+_HUMAN_CHECK_ANSWERS = {"3", "three"}
+
+
+@bp.post("/club-sponsorship")
+def submit_club_sponsorship():
+    """Public Actuarial Club sponsorship request (the landing page's
+    Actuarial Clubs section) -- same honeypot and shared per-IP rate limit
+    as the forms above, plus a simple "What is 1 plus 2?" question the
+    visitor must answer."""
+    data = request.get_json(silent=True) or {}
+    fields = {
+        key: (data.get(key) or "").strip()
+        for key in ("name", "email", "university", "event_dates")
+    }
+    human_check = (data.get("human_check") or "").strip().lower()
+    honeypot = (data.get("website") or "").strip()
+
+    if not all(fields.values()):
+        return jsonify(error="name, email, university, and event dates are required"), 400
+    if (
+        len(fields["name"]) > 200
+        or len(fields["email"]) > 320
+        or len(fields["university"]) > 200
+        or len(fields["event_dates"]) > 500
+    ):
+        return jsonify(error="one or more fields are too long"), 400
+    if not _EMAIL_RE.match(fields["email"]):
+        return jsonify(error="invalid email address"), 400
+    if human_check not in _HUMAN_CHECK_ANSWERS:
+        return jsonify(error="That answer to \"What is 1 plus 2?\" isn't right -- please try again."), 400
+
+    if honeypot:
+        return jsonify(ok=True), 200
+
+    if _rate_limited(request.remote_addr or "unknown"):
+        return jsonify(error="too many submissions, please try again later"), 429
+
+    email_service.send_club_sponsorship_email(**fields)
+    return jsonify(ok=True), 200

@@ -999,26 +999,50 @@ body > * {
 }
 
 .site-footer {
-  max-width: 880px;
-  margin: 3rem auto 0;
-  padding: 1.2rem 1.5rem 2rem;
+  /* Full width of the page (inside .landing's side padding): social icon
+     and links on the left, site name and year on the right. */
+  margin: 3rem 0 0;
+  padding: 2rem 0 0.5rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.9rem;
-  font-size: 0.78rem;
-  color: var(--pencil-soft);
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  font-size: 0.9rem;
+  color: var(--pencil);
   border-top: 1px solid var(--rule);
 }
-.site-footer-legal {
+.site-footer-social {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 1.2rem;
+}
+.site-footer-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+.site-footer-links a {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.site-footer-links a + a::before {
+  content: "|";
+  display: inline-block;
+  margin: 0 0.9rem;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+.site-footer-copyright {
+  margin-left: auto;
+  color: var(--ink);
+  font-size: 0.95rem;
 }
 .site-footer a {
   color: var(--pencil);
-  text-decoration: none;
 }
 .site-footer-icon {
   display: inline-flex;
@@ -1030,6 +1054,18 @@ body > * {
 }
 .site-footer a:hover {
   color: var(--ledger-bright);
+}
+@media (max-width: 640px) {
+  .site-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+  .site-footer-links {
+    justify-content: center;
+  }
+  .site-footer-copyright {
+    margin-left: 0;
+  }
 }
 
 .legal-body {
@@ -1495,7 +1531,11 @@ body > * {
     font-size: 0.95rem;
   }
 }
-@media (max-width: 800px) {
+/* The nav collapses to the hamburger below 1025px -- wider than the rest
+   of the mobile layout (800px, below) because the full link row no
+   longer fits on tablets/small laptops, and a wrapped nav (it's
+   position: fixed on desktop) covers the hero heading. */
+@media (max-width: 1024px) {
   .landing-hero-band .landing-nav {
     padding-block: 1rem;
     /* Docking is desktop-only -- put the mobile hamburger nav back in
@@ -1531,6 +1571,8 @@ body > * {
   .landing-nav-hamburger .landing-nav-links.landing-nav-links-open {
     display: flex;
   }
+}
+@media (max-width: 800px) {
   .landing-hero {
     padding-top: 2rem;
   }
@@ -1931,6 +1973,22 @@ body > * {
   --amb-border: #e3e8f0;
   background: #fff;
 }
+/* Nav stays docked at the top while scrolling -- desktop only, same as
+   the landing page's nav; on phones this nav wraps to two rows and would
+   eat too much of the screen. Sticky works here because .landing (the
+   whole page) is its containing block; the negative margin and matching
+   padding stretch its white background edge to edge. */
+@media (min-width: 801px) {
+  .amb-page .landing-nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    margin: 0 calc(-1 * var(--landing-pad));
+    padding-inline: var(--landing-pad);
+    background: #fff;
+    border-bottom: 1px solid var(--amb-border);
+  }
+}
 .amb-page h1,
 .amb-page h2,
 .amb-page h3 {
@@ -2209,6 +2267,7 @@ body > * {
   box-shadow: 0 20px 50px rgba(15, 42, 92, 0.25);
 }
 .amb-modal h2 {
+  color: var(--amb-navy);
   font-size: 1.5rem;
   margin: 0 2rem 0.3rem 0;
 }
@@ -2288,11 +2347,9 @@ body > * {
   }
 }
 
-/* Landing nav between the hamburger breakpoint and ~1100px: with the
-   "Campus Rep Program" and "Referrals" links the full wordmark no longer
-   fits beside them, and a wrapped nav (it's position: fixed) covers the
-   hero heading. Show just the logo mark in that range. */
-@media (min-width: 801px) and (max-width: 1100px) {
+/* Landing nav from the hamburger breakpoint to ~1230px: the full wordmark
+   doesn't fit beside all the links, so show just the logo mark. */
+@media (min-width: 1025px) and (max-width: 1230px) {
   .landing-hero-band .wordmark-divider,
   .landing-hero-band .wordmark-text {
     display: none;
@@ -2304,11 +2361,88 @@ body > * {
     grid-template-columns: auto;
   }
 }
-@media (min-width: 801px) and (max-width: 900px) {
-  .landing-hero-band .landing-nav-links {
-    gap: 0.5rem;
-  }
-  .landing-hero-band .btn:not(.landing-login-btn):not(.btn-primary) {
-    padding-inline: 0.5rem;
+
+/* Actuarial Club Sponsorships (landing page, below the Pass Guarantee).
+   scroll-margin keeps the heading clear of the fixed desktop nav when
+   the "Actuarial Clubs" nav link jumps here. */
+.landing-clubs {
+  max-width: 880px;
+  margin: 3.5rem auto 0;
+  padding: 0 var(--landing-pad, 1.5rem);
+  text-align: center;
+  scroll-margin-top: 90px;
+}
+.landing-clubs-eyebrow {
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+.landing-clubs h2 {
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin: 0 0 1.6rem;
+}
+.landing-clubs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  text-align: left;
+}
+.landing-clubs-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 1.2rem 1.3rem;
+}
+.landing-clubs-item p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.landing-clubs-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(31, 92, 77, 0.08);
+}
+.landing-clubs-icon.color-sky { color: var(--sky); }
+.landing-clubs-icon.color-gold { color: var(--gold); }
+.landing-clubs-icon.color-green { color: var(--ledger-bright); }
+.landing-clubs-btn {
+  margin-top: 1.6rem;
+  font-size: 1rem;
+  padding: 0.7rem 1.4rem;
+}
+/* Club sponsorship form (club-sponsorship-modal.tsx): reuses the
+   ambassador form's .amb-modal/.amb-form styles, with their palette
+   variables pointed at the landing page's own colors. */
+.club-modal {
+  --amb-navy: var(--ink);
+  --amb-blue: var(--ledger);
+  --amb-blue-hover: var(--ledger-bright);
+  --amb-text: var(--pencil);
+  --amb-border: var(--rule);
+}
+.club-modal h2 {
+  font-family: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+}
+.club-modal .amb-form input:focus {
+  outline-color: rgba(31, 92, 77, 0.35);
+}
+@media (max-width: 640px) {
+  .landing-clubs-grid {
+    grid-template-columns: 1fr;
   }
 }

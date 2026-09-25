@@ -11,6 +11,7 @@ import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MessageContent } from "@/components/message-content";
 import { SignInModal } from "@/components/sign-in-modal";
+import { ClubSponsorshipModal } from "./club-sponsorship-modal";
 
 const PREVIEW_ANSWER = `Let's work on **Combinatorics**, the recommended next topic. Your basic set reasoning is developing well, and counting methods will support many later probability problems.
 
@@ -207,6 +208,62 @@ const HERO_FEATURES = [
   },
 ];
 
+const CLUB_PERKS = [
+  {
+    text: "Reimbursement for food & drinks for a group event",
+    colorClass: "color-gold",
+    icon: (
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 16 H26 V26 C26 31 22 34 17 34 C12 34 8 31 8 26 Z" />
+          <path d="M26 19 H29 C31.5 19 33 20.5 33 22.5 C33 24.5 31.5 26 29 26 H26" />
+          <path d="M12 6 C12 9 14 9 14 12 M18 6 C18 9 20 9 20 12" />
+        </g>
+      </svg>
+    ),
+  },
+  {
+    text: "A care package full of AET shirts, pens, pencils, stickers, etc...",
+    colorClass: "color-sky",
+    icon: (
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 13 H35 V19 H5 Z" />
+          <path d="M8 19 V35 H32 V19 M20 13 V35" />
+          <path d="M20 13 C17 13 12 12 12 8.5 C12 5 17 6 20 13 C23 6 28 5 28 8.5 C28 12 23 13 20 13" />
+        </g>
+      </svg>
+    ),
+  },
+  {
+    text: "One free 1 month subscription to an AET Prelim course to give away during the event",
+    colorClass: "color-green",
+    icon: (
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 12 H36 V17 C33.5 17 32 18.5 32 20.5 C32 22.5 33.5 24 36 24 V29 H4 V24 C6.5 24 8 22.5 8 20.5 C8 18.5 6.5 17 4 17 Z" />
+          <path d="M26 12 V29" strokeDasharray="2 3" />
+          <path d="M16 16.5 L17.4 19.3 L20.5 19.7 L18.2 21.9 L18.8 25 L16 23.5 L13.2 25 L13.8 21.9 L11.5 19.7 L14.6 19.3 Z" />
+        </g>
+      </svg>
+    ),
+  },
+  {
+    text: "An AET rep can visit virtually to answer questions & demo the AET platform",
+    colorClass: "color-sky",
+    icon: (
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="7" width="32" height="21" rx="2" />
+          <path d="M14 34 H26 M20 28 V34" />
+          <circle cx="20" cy="15" r="3.5" />
+          <path d="M13.5 24.5 C14.5 21.5 17 20 20 20 C23 20 25.5 21.5 26.5 24.5" />
+        </g>
+      </svg>
+    ),
+  },
+];
+
 const BUILT_FOR_SUCCESS = [
   { icon: <PersonIcon />, text: "Personalized learning path", colorClass: "color-sky" },
   { icon: <DocumentIcon />, text: "Step-by-step explanations", colorClass: "color-gold" },
@@ -230,6 +287,7 @@ export default function LandingContent() {
   const { token, logout } = useAuth();
   const router = useRouter();
   const [showSignIn, setShowSignIn] = useState(false);
+  const [showClubForm, setShowClubForm] = useState(false);
   useReveal();
 
   // Sends visitors to that exam's overview page, which describes the free
@@ -257,6 +315,7 @@ export default function LandingContent() {
       </Suspense>
 
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
+      {showClubForm && <ClubSponsorshipModal onClose={() => setShowClubForm(false)} />}
 
       <div className="landing-hero-band">
         <div className="hero-bg" aria-hidden="true">
@@ -284,6 +343,9 @@ export default function LandingContent() {
           </Link>
           <Link className="btn" href="#faq">
             FAQ
+          </Link>
+          <Link className="btn" href="#clubs">
+            Actuarial Clubs
           </Link>
           <Link className="btn" href="/ambassadors">
             Campus Rep Program
@@ -502,6 +564,26 @@ export default function LandingContent() {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="landing-clubs" id="clubs">
+        <p className="landing-clubs-eyebrow">Exclusively for Student Actuarial Clubs</p>
+        <h2>Actuarial Club Sponsorships</h2>
+        <div className="landing-clubs-grid">
+          {CLUB_PERKS.map((perk) => (
+            <div className="landing-clubs-item reveal" key={perk.text}>
+              <span className={`landing-clubs-icon ${perk.colorClass}`}>{perk.icon}</span>
+              <p>{perk.text}</p>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary landing-clubs-btn"
+          onClick={() => setShowClubForm(true)}
+        >
+          Request a sponsorship &rarr;
+        </button>
       </div>
 
       <div className="landing-faq" id="faq">
