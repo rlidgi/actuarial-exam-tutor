@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE_URL, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE_URL}/pricing`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/ambassadors`, changeFrequency: "monthly", priority: 0.5 },
     // FAM excluded -- /exams/FAM now redirects to examfam.com (see
     // next.config.ts), which has its own sitemap; a sitemap entry for a
     // redirecting URL is just noise for crawlers.

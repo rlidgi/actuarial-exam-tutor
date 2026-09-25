@@ -71,6 +71,54 @@ def send_contact_email(name: str, from_email: str, message: str) -> None:
         logger.exception("failed to send contact email from %s", from_email)
 
 
+_CLUB_LABELS = {
+    "yes": "Yes",
+    "no": "No",
+    "no_club": "School has no actuarial club",
+}
+
+
+def send_ambassador_application_email(
+    name: str,
+    email: str,
+    school: str,
+    graduation_year: str,
+    actuarial_club: str,
+    exams: str,
+    message: str,
+) -> None:
+    """Fired from the public /ambassadors page's application form -- same
+    best-effort pattern as send_contact_email, Reply-To set to the
+    applicant so admin@ can reply directly."""
+    if not current_app.config["SMTP_PASSWORD"]:
+        logger.info("SMTP not configured -- skipping ambassador application from %s", email)
+        return
+
+    try:
+        body = "\n".join(
+            [
+                f"Name: {name}",
+                f"Email: {email}",
+                f"School: {school}",
+                f"Graduation year: {graduation_year or '(not given)'}",
+                f"In actuarial club: {_CLUB_LABELS.get(actuarial_club, '(not given)')}",
+                "",
+                "Exams taken / currently studying for:",
+                exams,
+                "",
+                "Why they want to be an ambassador:",
+                message,
+            ]
+        )
+        _send_admin_notification(
+            subject=f"Campus Ambassador application: {name} ({school})",
+            reply_to=email,
+            body=body,
+        )
+    except Exception:
+        logger.exception("failed to send ambassador application from %s", email)
+
+
 _RATING_LABELS = {
     "overall_rating": "Overall experience",
     "tutor_quality_rating": "Tutor answer quality",

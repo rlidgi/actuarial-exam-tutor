@@ -285,6 +285,12 @@ export default function LandingContent() {
           <Link className="btn" href="#faq">
             FAQ
           </Link>
+          <Link className="btn" href="/ambassadors">
+            Campus Rep Program
+          </Link>
+          <Link className="btn" href="/referrals">
+            Referrals
+          </Link>
           {token ? (
             <>
               <button type="button" className="btn" onClick={() => logout()}>

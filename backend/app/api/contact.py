@@ -55,3 +55,45 @@ def submit():
 
     email_service.send_contact_email(name, email, message)
     return jsonify(ok=True), 200
+
+
+_CLUB_ANSWERS = {"yes", "no", "no_club"}
+
+
+@bp.post("/ambassador")
+def submit_ambassador_application():
+    """Public Campus Ambassador application (the /ambassadors page) --
+    same no-auth, honeypot and per-IP rate-limit handling as submit()
+    above, sharing its window so one IP can't double its budget by
+    alternating between the two forms."""
+    data = request.get_json(silent=True) or {}
+    fields = {
+        key: (data.get(key) or "").strip()
+        for key in ("name", "email", "school", "graduation_year", "actuarial_club", "exams", "message")
+    }
+    honeypot = (data.get("website") or "").strip()
+
+    if not all(fields[key] for key in ("name", "email", "school", "exams", "message")):
+        return jsonify(error="name, email, school, exams, and message are required"), 400
+    if (
+        len(fields["name"]) > 200
+        or len(fields["email"]) > 320
+        or len(fields["school"]) > 200
+        or len(fields["graduation_year"]) > 10
+        or len(fields["exams"]) > 1000
+        or len(fields["message"]) > 5000
+    ):
+        return jsonify(error="one or more fields are too long"), 400
+    if not _EMAIL_RE.match(fields["email"]):
+        return jsonify(error="invalid email address"), 400
+    if fields["actuarial_club"] and fields["actuarial_club"] not in _CLUB_ANSWERS:
+        return jsonify(error="invalid actuarial club answer"), 400
+
+    if honeypot:
+        return jsonify(ok=True), 200
+
+    if _rate_limited(request.remote_addr or "unknown"):
+        return jsonify(error="too many submissions, please try again later"), 429
+
+    email_service.send_ambassador_application_email(**fields)
+    return jsonify(ok=True), 200

@@ -215,6 +215,18 @@ export interface FeedbackSubmission {
   message?: string | null;
 }
 
+// Must match backend/app/api/contact.py's submit_ambassador_application --
+// graduation_year and actuarial_club may be sent empty.
+export interface AmbassadorApplication {
+  name: string;
+  email: string;
+  school: string;
+  graduation_year: string;
+  actuarial_club: "" | "yes" | "no" | "no_club";
+  exams: string;
+  message: string;
+}
+
 export interface AdminUserDTO {
   id: number;
   email: string;
@@ -310,6 +322,12 @@ export const api = {
     request<{ ok: boolean }>("/api/contact", {
       method: "POST",
       body: JSON.stringify({ name, email, message, website }),
+    }),
+  // Same honeypot convention as submitContact -- see ambassadors/apply-modal.tsx.
+  submitAmbassadorApplication: (application: AmbassadorApplication, website: string = "") =>
+    request<{ ok: boolean }>("/api/contact/ambassador", {
+      method: "POST",
+      body: JSON.stringify({ ...application, website }),
     }),
   submitFeedback: (token: string, submission: FeedbackSubmission) =>
     request<{ ok: boolean }>(
