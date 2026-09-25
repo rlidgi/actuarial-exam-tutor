@@ -1995,6 +1995,55 @@ body > * {
     border-bottom: 1px solid var(--amb-border);
   }
 }
+/* Nav links as plain text, like the landing page's nav
+   (.landing-hero-band .btn): only Log in (outlined) and the primary
+   sign-up button keep a button look. */
+.amb-page .landing-nav .btn {
+  cursor: pointer;
+  border-color: transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1rem;
+  padding: 0.6rem 0.6rem;
+  transition: background 0.15s;
+}
+.amb-page .landing-nav .btn:hover {
+  background: rgba(31, 92, 77, 0.07);
+  color: var(--ledger);
+}
+.amb-page .landing-nav .landing-login-btn {
+  border-color: var(--rule);
+  padding-inline: 1.4rem;
+}
+.amb-page .landing-nav .btn-primary,
+.amb-page .landing-nav .btn-primary:hover {
+  background: var(--ledger);
+  border-color: var(--ledger);
+  color: var(--paper);
+  font-weight: 600;
+  padding-inline: 1.4rem;
+}
+.amb-page .landing-nav .btn-primary:hover {
+  background: var(--ledger-bright);
+  border-color: var(--ledger-bright);
+}
+/* Just above the phone breakpoint the full row runs ~50px wide of the
+   docked nav's single line -- tighten it rather than let it wrap under
+   the reserved 84px. */
+@media (min-width: 801px) and (max-width: 900px) {
+  .amb-page .landing-nav .landing-nav-links {
+    gap: 0.5rem;
+  }
+  .amb-page .landing-nav .btn {
+    font-size: 0.95rem;
+    padding-inline: 0.4rem;
+  }
+  .amb-page .landing-nav .landing-login-btn,
+  .amb-page .landing-nav .btn-primary {
+    padding-inline: 1rem;
+  }
+}
 .amb-page h1,
 .amb-page h2,
 .amb-page h3 {

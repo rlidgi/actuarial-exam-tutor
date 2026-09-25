@@ -162,7 +162,11 @@ export default function AmbassadorsContent() {
           </Link>
         ) : (
           <>
-            <button type="button" className="btn" onClick={() => setShowSignIn(true)}>
+            <button
+              type="button"
+              className="btn landing-login-btn"
+              onClick={() => setShowSignIn(true)}
+            >
               Log in
             </button>
             <button type="button" className="btn btn-primary" onClick={() => setShowSignIn(true)}>
