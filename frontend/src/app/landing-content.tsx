@@ -548,7 +548,7 @@ export default function LandingContent() {
           <div className="guarantee-text">
             <div className="guarantee-title">Our Pass Guarantee</div>
             <p>
-              Our goal isn&apos;t just to get you subscribed -- it&apos;s to get you to a
+              Our goal isn&apos;t just to get you subscribed, it&apos;s to get you to a
               passing score. If you take the exam and don&apos;t pass, we&apos;ll
               automatically extend your subscription by the number of months you
               originally paid for, so you can keep working toward passing. And once
