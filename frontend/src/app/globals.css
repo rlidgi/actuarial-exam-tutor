@@ -1522,9 +1522,10 @@ body > * {
 /* Nav docked at the top on desktop, same implementation as the landing
    page's (.landing-hero-band .landing-nav): fixed, full-width, with the
    page reserving its height via padding-top so content starts below it.
-   Phones keep it in normal flow -- there this nav wraps to two rows and
-   would eat too much of the screen. */
-@media (min-width: 801px) {
+   Same 1025px breakpoint as the landing page too: at 1024px and below the
+   links collapse into the hamburger menu (MarketingHeader's mobileMenu)
+   and the nav scrolls with the page. */
+@media (min-width: 1025px) {
   .amb-page {
     padding-top: 84px;
   }
@@ -1574,20 +1575,17 @@ body > * {
   background: var(--ledger-bright);
   border-color: var(--ledger-bright);
 }
-/* Just above the phone breakpoint the full row runs ~50px wide of the
-   docked nav's single line -- tighten it rather than let it wrap under
-   the reserved 84px. */
-@media (min-width: 801px) and (max-width: 900px) {
-  .amb-page .landing-nav .landing-nav-links {
+/* Phones: smaller wordmark so it doesn't crowd the hamburger button --
+   same sizes as the landing page's (.landing-hero-band .wordmark-*). */
+@media (max-width: 480px) {
+  .amb-page .wordmark-group {
     gap: 0.5rem;
   }
-  .amb-page .landing-nav .btn {
-    font-size: 0.95rem;
-    padding-inline: 0.4rem;
+  .amb-page .wordmark-mark {
+    height: 30px;
   }
-  .amb-page .landing-nav .landing-login-btn,
-  .amb-page .landing-nav .btn-primary {
-    padding-inline: 1rem;
+  .amb-page .wordmark-text {
+    height: 21px;
   }
 }
 .amb-page h1,

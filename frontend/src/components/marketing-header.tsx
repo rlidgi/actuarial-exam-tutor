@@ -9,11 +9,12 @@ export function MarketingHeader({
   mobileMenu = false,
 }: {
   children: ReactNode;
-  /** Landing page only (see landing-content.tsx) -- collapses the links
-   * into a hamburger toggle below the 800px breakpoint. Every other page
-   * using this header (About, Pricing, Contact, exam overview, Referrals)
-   * leaves this off and renders exactly as before: links always inline,
-   * no toggle button, unaffected by the mobile CSS below. */
+  /** Landing and Campus Rep pages (see landing-content.tsx,
+   * ambassadors-content.tsx) -- collapses the links into a hamburger toggle
+   * at the 1024px breakpoint (see globals.css). Every other page using this
+   * header (About, Pricing, Contact, exam overview, Referrals) leaves this
+   * off and renders exactly as before: links always inline, no toggle
+   * button, unaffected by the mobile CSS. */
   mobileMenu?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);

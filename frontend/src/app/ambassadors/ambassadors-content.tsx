@@ -146,7 +146,7 @@ export default function AmbassadorsContent() {
       {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
       {showApply && <ApplyModal onClose={() => setShowApply(false)} />}
 
-      <MarketingHeader>
+      <MarketingHeader mobileMenu>
         <Link className="btn" href="/">
           Home
         </Link>
