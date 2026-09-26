@@ -2019,7 +2019,7 @@ body > * {
   /* Anchored to the photo's bottom: when the hero is shorter than the
      photo's aspect, the crop comes off the window at the top, never the
      laptop. */
-  background: url("/landing-hero.webp") right bottom / cover no-repeat;
+  background: url("/landing-hero.webp?v=2") right bottom / cover no-repeat;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 38%);
   mask-image: linear-gradient(90deg, transparent 0, #000 38%);
 }
@@ -2277,7 +2277,7 @@ body > * {
     padding-bottom: 64vw;
     background:
       linear-gradient(#fff 0, #fff calc(100% - 66vw), rgba(255, 255, 255, 0) calc(100% - 56vw)),
-      #f3f6fb url("/landing-hero.webp") center bottom / 100% auto no-repeat;
+      #f3f6fb url("/landing-hero.webp?v=2") center bottom / 100% auto no-repeat;
   }
 }
 @media (max-width: 800px) {
