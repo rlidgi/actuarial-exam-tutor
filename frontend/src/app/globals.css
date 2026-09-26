@@ -2378,3 +2378,210 @@ body > * {
     border-left: 0;
   }
 }
+
+/* ---- Pricing page (pricing/pricing-content.tsx), in the landing page's
+   blue/navy palette. Scoped to .pricing-page: the exam overview pages
+   share the .pricing-card base styles above and keep their own look. ---- */
+.pricing-page .pricing-header {
+  padding: 2.5rem 1rem 0.5rem;
+}
+.pricing-eyebrow {
+  margin: 0 0 0.6rem;
+  color: var(--hero-blue);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.pricing-page .pricing-header h1 {
+  font-family: inherit;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  font-weight: 700;
+  color: var(--hero-navy);
+  margin: 0 0 0.7rem;
+}
+.pricing-sub {
+  margin: 0 auto;
+  max-width: 620px;
+  color: var(--hero-text);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+.pricing-page .pricing-cards {
+  margin-top: 2rem;
+}
+.pricing-page .pricing-card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--hero-border);
+  border-top: 4px solid var(--exam-color);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(15, 42, 92, 0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pricing-page .pricing-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(15, 42, 92, 0.12);
+}
+.pricing-page .pricing-card.highlighted {
+  border-color: var(--exam-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--exam-color) 20%, transparent),
+    0 14px 30px rgba(15, 42, 92, 0.12);
+}
+.pricing-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  /* Tall enough for the longest name (FAM's, three lines) so every card's
+     price lines up across the row. */
+  min-height: 88px;
+}
+.pricing-card-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--exam-color);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.pricing-page .pricing-card-name {
+  min-height: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--hero-navy);
+}
+.pricing-card-subname {
+  color: var(--hero-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+/* Faint exam icon at the right end of the price row, like the landing
+   page's exam cards. */
+.pricing-card-art {
+  margin-left: auto;
+  align-self: center;
+  opacity: 0.3;
+}
+.pricing-card-art svg {
+  display: block;
+  width: 46px;
+  height: 46px;
+}
+.pricing-page .pricing-card-price {
+  display: flex;
+  align-items: baseline;
+  font-family: inherit;
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--hero-navy);
+  letter-spacing: -0.02em;
+}
+.pricing-page .pricing-card-price span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--hero-text);
+  letter-spacing: 0;
+}
+.pricing-page .pricing-card-features {
+  font-size: 0.9rem;
+  color: var(--hero-text);
+  gap: 0.55rem;
+}
+.pricing-page .pricing-card-features li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.pricing-page .pricing-card-features li::before {
+  content: "\2713";
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #e6f7f2;
+  color: #12a37f;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.pricing-page .pricing-card-btn {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--hero-blue);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.pricing-page .pricing-card-btn:hover {
+  background: var(--hero-blue-hover);
+}
+.pricing-page .pricing-card-btn.active {
+  background: #fff;
+  color: var(--hero-blue);
+  border: 1px solid var(--hero-blue);
+}
+.pricing-page .pricing-card-btn:disabled {
+  background: #fff;
+  color: var(--pencil-soft);
+  border: 1px solid var(--hero-border);
+}
+.pricing-guarantee {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: clamp(1000px, 50vw, 1300px);
+  margin: 2rem auto 0;
+  padding: 1.2rem 1.4rem;
+  border: 1.5px solid #cfe0fb;
+  border-radius: 14px;
+  background: #f1f6fd;
+  color: var(--hero-text);
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+.pricing-guarantee strong {
+  color: var(--hero-navy);
+}
+.pricing-guarantee-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--hero-blue);
+}
+.pricing-help {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  color: var(--hero-text);
+}
+.pricing-help a {
+  color: var(--hero-blue);
+  font-weight: 600;
+}
+@media (max-width: 720px) {
+  .pricing-guarantee {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pricing-page .pricing-card,
+  .pricing-page .pricing-card:hover {
+    transition: none;
+    transform: none;
+  }
+}

@@ -6,13 +6,17 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useBillingStatus } from "@/lib/use-billing-status";
 import { api, ApiError, DEFAULT_EXAM_CODE, isAuthError } from "@/lib/api";
-import { MarketingHeader } from "@/components/marketing-header";
+import { SiteNav } from "@/components/site-nav";
+import { SignInModal } from "@/components/sign-in-modal";
 import { SiteFooter } from "@/components/site-footer";
+import { EXAM_ICONS } from "@/components/exam-icons";
 
+// Accent colors match landing-content.tsx's EXAMS (its exam cards use the
+// same badge + icon treatment).
 const EXAMS = [
-  { code: "P", name: "Exam P -- Probability", price: 25 },
-  { code: "FM", name: "Exam FM -- Financial Mathematics", price: 25 },
-  { code: "FAM", name: "Exam FAM -- Fundamentals of Actuarial Mathematics", price: 35 },
+  { code: "P", name: "Probability", price: 25, color: "#1f6fe5" },
+  { code: "FM", name: "Financial Mathematics", price: 25, color: "#12a37f" },
+  { code: "FAM", name: "Fundamentals of Actuarial Mathematics", price: 35, color: "#8250df" },
 ];
 
 const FEATURES = [
@@ -43,6 +47,7 @@ export default function PricingContent() {
 
   const [subscribingCode, setSubscribingCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSignIn, setShowSignIn] = useState(false);
 
   const handleSubscribe = async (examCode: string) => {
     if (!token) return;
@@ -70,26 +75,21 @@ export default function PricingContent() {
   };
 
   return (
-    <div className="landing">
-      <MarketingHeader>
-        {token ? (
-          <>
-            <Link className="btn" href="/progress">
-              Proficiency Dashboard
-            </Link>
-            <Link className="btn" href="/chat">
-              Back to Tutor
-            </Link>
-          </>
-        ) : (
-          <Link className="btn" href="/">
-            Home
-          </Link>
-        )}
-      </MarketingHeader>
+    <div className="landing pricing-page">
+      {showSignIn && <SignInModal onClose={() => setShowSignIn(false)} />}
+
+      {/* Same nav as the landing page -- the band wrapper supplies its
+          docking/hamburger styles (see components/site-nav.tsx). */}
+      <div className="landing-hero-band">
+        <SiteNav onSignIn={() => setShowSignIn(true)} />
+      </div>
 
       <div className="pricing-header">
-        <h1>Pricing</h1>
+        <p className="pricing-eyebrow">Pricing</p>
+        <h1>Simple pricing, one exam at a time</h1>
+        <p className="pricing-sub">
+          Start free. Subscribe only to the exam you&apos;re studying for, and cancel anytime.
+        </p>
       </div>
 
       {error && (
@@ -97,8 +97,20 @@ export default function PricingContent() {
       )}
 
       <div className="pricing-cards">
-        <div className="pricing-card">
-          <div className="pricing-card-name">Free</div>
+        <div className="pricing-card" style={{ "--exam-color": "#64748b" } as React.CSSProperties}>
+          <div className="pricing-card-head">
+            <span className="pricing-card-badge" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Z" />
+                <path d="M12 6.5v13" />
+              </svg>
+            </span>
+            <div>
+              <div className="pricing-card-name">Free</div>
+              <div className="pricing-card-subname">Get started</div>
+            </div>
+          </div>
           <div className="pricing-card-price">
             $0
             <span>/forever</span>
@@ -121,11 +133,21 @@ export default function PricingContent() {
             <div
               key={e.code}
               className={`pricing-card ${e.code === highlightExam ? "highlighted" : ""}`}
+              style={{ "--exam-color": e.color } as React.CSSProperties}
             >
-              <div className="pricing-card-name">{e.name}</div>
+              <div className="pricing-card-head">
+                <span className="pricing-card-badge">{e.code}</span>
+                <div>
+                  <div className="pricing-card-name">Exam {e.code}</div>
+                  <div className="pricing-card-subname">{e.name}</div>
+                </div>
+              </div>
               <div className="pricing-card-price">
                 ${e.price}
                 <span>/month</span>
+                <span className="pricing-card-art" aria-hidden="true">
+                  {EXAM_ICONS[e.code]?.(e.color)}
+                </span>
               </div>
               <ul className="pricing-card-features">
                 {FEATURES.map((f) => (
@@ -154,6 +176,26 @@ export default function PricingContent() {
           );
         })}
       </div>
+
+      <div className="pricing-guarantee">
+        <span className="pricing-guarantee-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" />
+            <path d="M8.5 12l2.5 2.5 4.5-5" />
+          </svg>
+        </span>
+        <div>
+          <strong>Pass Guarantee.</strong> If you take the exam and don&apos;t pass, we&apos;ll
+          automatically extend your subscription by the number of months you originally paid
+          for. And once you&apos;ve paid for 4 months total and still haven&apos;t passed,
+          continued access is free for as long as you need it.
+        </div>
+      </div>
+
+      <p className="pricing-help">
+        Questions about plans? <Link href="/contact">Contact us</Link>.
+      </p>
 
       <SiteFooter />
     </div>
