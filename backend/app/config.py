@@ -108,6 +108,14 @@ class Config:
     SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
     SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "admin@actuarialexamstutor.com")
     SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+    # This API's own public URL -- used for the one-click List-Unsubscribe
+    # header on bulk email (see feedback_request_service.py), which mail
+    # clients POST to directly. Unset just omits that header's https form.
+    BACKEND_URL = os.environ.get("BACKEND_URL", "")
+    # Shared secret the scheduled GitHub Actions job sends to trigger the
+    # feedback-request email batch (see api/emails.py). Unset disables that
+    # endpoint entirely (403), so it can never run unauthenticated.
+    CRON_SECRET = os.environ.get("CRON_SECRET", "")
     # Comma-separated list of origins allowed to call this API cross-origin.
     # Defaults to just the frontend's own URL -- set explicitly (e.g. to add
     # a temporary staging hostname during a rollout) via the env var.

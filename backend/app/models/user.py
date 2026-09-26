@@ -33,6 +33,14 @@ class User(db.Model):
     # ever completed" stays correct even after a later cancellation.
     has_ever_subscribed = db.Column(db.Boolean, nullable=False, default=False)
 
+    # One-time "we'd love your feedback" email, sent ~1 week after signup by
+    # the daily job (see feedback_request_service.py). Null until sent --
+    # set only on a successful send, so a failed one is retried next run.
+    feedback_request_sent_at = db.Column(db.DateTime, nullable=True)
+    # Set by the unsubscribe link in that email -- no further emails of
+    # this kind. Transactional mail (welcome, receipts) isn't affected.
+    email_opt_out = db.Column(db.Boolean, nullable=False, default=False)
+
     student_profiles = db.relationship(
         "StudentProfile", back_populates="user", cascade="all, delete-orphan"
     )

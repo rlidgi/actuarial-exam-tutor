@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
+import { takePostSignInPath } from "@/lib/use-require-auth";
 
 // Redirect landing for both Google OAuth and magic-link sign-in -- supabase
 // -js parses the URL (detectSessionInUrl) and establishes a Supabase
@@ -22,7 +23,9 @@ export default function AuthCallbackPage() {
     let ignore = false;
     completeSupabaseSignIn()
       .then(() => {
-        if (!ignore) router.replace("/chat");
+        // Back to the protected page that sent them to sign in, if any
+        // (see useRequireAuth); otherwise the usual /chat.
+        if (!ignore) router.replace(takePostSignInPath() ?? "/chat");
       })
       .catch((err) => {
         // The flash message on the other end of this is deliberately vague

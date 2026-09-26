@@ -13,6 +13,7 @@ def register_blueprints(app: Flask) -> None:
     from app.api.contact import bp as contact_bp
     from app.api.feedback import bp as feedback_bp
     from app.api.admin import bp as admin_bp
+    from app.api.emails import bp as emails_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(students_bp, url_prefix="/api/students")
@@ -25,3 +26,4 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(contact_bp, url_prefix="/api/contact")
     app.register_blueprint(feedback_bp, url_prefix="/api/feedback")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(emails_bp, url_prefix="/api/emails")

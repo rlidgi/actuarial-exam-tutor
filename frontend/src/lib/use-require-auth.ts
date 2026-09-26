@@ -4,6 +4,49 @@ import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-context";
 
+// Where a signed-out visitor was headed when a protected page sent them to
+// sign in (e.g. the feedback email's /feedback link) -- /auth/callback
+// sends them back there instead of the default /chat. localStorage, not
+// sessionStorage, so it survives a magic link opening in a new tab; kept
+// for an hour so an abandoned attempt doesn't hijack a later, unrelated
+// sign-in.
+const POST_SIGN_IN_KEY = "aet_post_sign_in_path";
+const POST_SIGN_IN_MAX_AGE_MS = 60 * 60 * 1000;
+
+function rememberPostSignInPath() {
+  try {
+    const path = window.location.pathname + window.location.search;
+    window.localStorage.setItem(POST_SIGN_IN_KEY, JSON.stringify({ path, at: Date.now() }));
+  } catch {
+    // Storage blocked -- sign-in just falls back to /chat.
+  }
+}
+
+export function clearPostSignInPath() {
+  try {
+    window.localStorage.removeItem(POST_SIGN_IN_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+/** Reads and clears the remembered destination. Only same-site paths are
+ * returned (never "//host" or a full URL), so it can't become an open
+ * redirect. */
+export function takePostSignInPath(): string | null {
+  try {
+    const raw = window.localStorage.getItem(POST_SIGN_IN_KEY);
+    clearPostSignInPath();
+    if (!raw) return null;
+    const { path, at } = JSON.parse(raw);
+    if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) return null;
+    if (typeof at !== "number" || Date.now() - at > POST_SIGN_IN_MAX_AGE_MS) return null;
+    return path;
+  } catch {
+    return null;
+  }
+}
+
 // Redirects to /login if there's no token, and exposes a way to bail out to
 // /login?expired=1 on a 401/422 from an API call. loggingOutRef (shared via
 // AuthProvider, not local to this hook) guards against a race: logout()
@@ -17,6 +60,7 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!loading && !token && !loggingOutRef.current) {
+      rememberPostSignInPath();
       router.push("/login");
     }
   }, [loading, token, router, loggingOutRef]);

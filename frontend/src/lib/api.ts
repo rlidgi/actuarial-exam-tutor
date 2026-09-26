@@ -332,6 +332,13 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name, email, message, website }),
     }),
+  // Token comes from the feedback email's unsubscribe link -- see
+  // app/unsubscribe/unsubscribe-content.tsx.
+  unsubscribeEmails: (token: string) =>
+    request<{ ok: boolean }>("/api/emails/unsubscribe", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
   // Same honeypot convention as submitContact -- see ambassadors/apply-modal.tsx.
   submitAmbassadorApplication: (application: AmbassadorApplication, website: string = "") =>
     request<{ ok: boolean }>("/api/contact/ambassador", {

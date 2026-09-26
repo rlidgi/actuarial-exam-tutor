@@ -1,0 +1,55 @@
+# Daily "we'd love your feedback" email to users who registered ~1 week ago
+# (backend: app/services/feedback_request_service.py). Each call to the
+# endpoint sends one small batch; this loops until nothing's left, pausing
+# between batches to stay inside the mailbox's sending limits.
+#
+# Scheduled runs only send once the repo variable FEEDBACK_EMAILS_ENABLED is
+# "true" -- the very first real run also emails every existing user, so it
+# stays off until that's been reviewed with a dry run. Manual runs default
+# to dry_run (report the count, send nothing).
+name: Feedback request emails
+
+on:
+  schedule:
+    - cron: "0 15 * * *" # daily, 15:00 UTC (11am US Eastern)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report how many are due; send nothing"
+        type: boolean
+        default: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || vars.FEEDBACK_EMAILS_ENABLED == 'true'
+    steps:
+      - name: Send due feedback-request emails
+        env:
+          API_URL: https://actuarial-exams-tutor.azurewebsites.net/api/emails/feedback-requests/send
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: |
+          set -euo pipefail
+          call() {
+            curl -sS --fail-with-body --max-time 110 -X POST "$API_URL" \
+              -H "Content-Type: application/json" -H "X-Cron-Secret: $CRON_SECRET" \
+              -d "$1"
+          }
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run:"; call '{"dry_run": true}'; echo
+            exit 0
+          fi
+          total=0
+          for i in $(seq 1 100); do
+            result=$(call '{"limit": 20}')
+            echo "batch $i: $result"
+            sent=$(echo "$result" | jq .sent)
+            remaining=$(echo "$result" | jq .remaining)
+            total=$((total + sent))
+            # Stop when done, or when a batch sent nothing (mail down) --
+            # the failures stay due and are retried tomorrow.
+            if [ "$remaining" -eq 0 ] || [ "$sent" -eq 0 ]; then break; fi
+            sleep 60
+          done
+          echo "Total sent this run: $total"

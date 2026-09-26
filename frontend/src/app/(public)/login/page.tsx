@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SignInModal } from "@/components/sign-in-modal";
 import { useDocumentTitle } from "@/lib/use-document-title";
+import { clearPostSignInPath } from "@/lib/use-require-auth";
 
 function ExpiredBanner() {
   const searchParams = useSearchParams();
@@ -24,7 +25,12 @@ export default function LoginPage() {
   useDocumentTitle("Sign In");
   return (
     <SignInModal
-      onClose={() => router.push("/")}
+      onClose={() => {
+        // Gave up on signing in -- don't carry the page they were headed
+        // to into some later, unrelated sign-in.
+        clearPostSignInPath();
+        router.push("/");
+      }}
       banner={
         <Suspense fallback={null}>
           <ExpiredBanner />
