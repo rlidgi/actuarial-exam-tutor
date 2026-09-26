@@ -83,7 +83,7 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
 
       <div className="pricing-header">
         <h1>
-          Exam {code} {exam.shortName}
+          Exam {code} - {exam.shortName}
         </h1>
         <p className="exam-overview-tagline">{exam.tagline}</p>
       </div>
