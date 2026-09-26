@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -244,33 +244,67 @@ function SignInErrorBanner() {
   );
 }
 
+const REDESIGN_FLASH_KEY = "aet-redesign-bar-closed";
+
+// "We redesigned" bar across the very top of the page, above the nav. Stays
+// until closed; closing is remembered in localStorage (same storage the
+// chat/exam pickers already use). Visibility lives in LandingContent, since
+// the page root needs a class to shift the docked desktop nav below it.
+function RedesignFlash({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="redesign-flash" role="status">
+      <span>
+        <span aria-hidden="true">&#10024;</span> We&apos;ve recently redesigned our site.
+        Take a look around!
+      </span>
+      <button type="button" aria-label="Close" onClick={onClose}>
+        &times;
+      </button>
+    </div>
+  );
+}
+
 export default function LandingContent() {
   const { token, logout } = useAuth();
   const router = useRouter();
   const [showSignIn, setShowSignIn] = useState(false);
   const [showClubForm, setShowClubForm] = useState(false);
+  // Starts hidden so the server render and first client render match; the
+  // stored "closed" flag can only be read once mounted.
+  const [showFlash, setShowFlash] = useState(false);
+  useEffect(() => {
+    let closed = false;
+    try {
+      closed = window.localStorage.getItem(REDESIGN_FLASH_KEY) === "1";
+    } catch {
+      // Storage blocked (private mode etc.) -- just show it this visit.
+    }
+    if (closed) return;
+    const show = window.setTimeout(() => setShowFlash(true), 0);
+    return () => window.clearTimeout(show);
+  }, []);
+  const closeFlash = () => {
+    setShowFlash(false);
+    try {
+      window.localStorage.setItem(REDESIGN_FLASH_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
   useReveal();
 
-  // Sends visitors to that exam's overview page, which describes the free
-  // and paid resources on offer and links to the free study manual/formula
-  // sheet, instead of dropping them straight into sign-in. FAM's overview
-  // now lives at examfam.com instead of /exams/FAM (see next.config.ts's
-  // redirect for anyone hitting the old URL directly) -- going straight
-  // there avoids the extra redirect hop for this button specifically.
-  const handleExamClick = (code: string) => {
-    if (code === "FAM") {
-      // False positive, same as pricing-content.tsx's handleSubscribe/
-      // handleManageSubscription -- only ever runs in a click handler, not
-      // a mutation during render.
-      // eslint-disable-next-line react-hooks/immutability
-      window.location.href = "https://examfam.com";
-      return;
-    }
-    router.push(`/exams/${code}`);
-  };
+  // Each exam card links to that exam's overview page, which describes the
+  // free and paid resources on offer and links to the free study
+  // manual/formula sheet, instead of dropping visitors straight into
+  // sign-in. FAM's overview now lives at examfam.com instead of /exams/FAM
+  // (see next.config.ts's redirect for anyone hitting the old URL
+  // directly) -- linking straight there avoids the extra redirect hop.
+  const examHref = (code: string) =>
+    code === "FAM" ? "https://examfam.com" : `/exams/${code}`;
 
   return (
-    <div className="landing">
+    <div className={`landing${showFlash ? " landing-has-flash" : ""}`}>
+      {showFlash && <RedesignFlash onClose={closeFlash} />}
       <Suspense fallback={null}>
         <SignInErrorBanner />
       </Suspense>
@@ -384,8 +418,9 @@ export default function LandingContent() {
         <p className="landing-exams-sub">Currently available for the preliminary actuarial exams.</p>
         <div className="landing-exams-grid">
           {EXAMS.map((e) => (
-            <div
+            <Link
               key={e.code}
+              href={examHref(e.code)}
               className="landing-exam-card"
               style={{ "--exam-color": e.color } as React.CSSProperties}
             >
@@ -394,18 +429,16 @@ export default function LandingContent() {
                 <h3>Exam {e.code}</h3>
                 <p className="landing-exam-name">{e.name}</p>
                 <p>{e.text}</p>
-                <button
-                  type="button"
-                  className="landing-exam-link"
-                  onClick={() => handleExamClick(e.code)}
-                >
+                {/* Phones only (see globals.css) -- on desktop the whole
+                    card is the obvious click target. */}
+                <span className="landing-exam-link">
                   Learn more <span aria-hidden="true">&rarr;</span>
-                </button>
+                </span>
               </div>
               <span className="landing-exam-art" aria-hidden="true">
                 {EXAM_ICONS[e.code]?.(e.color)}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

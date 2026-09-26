@@ -1036,6 +1036,66 @@ body > * {
   border: 1px solid rgba(178, 58, 46, 0.25);
   color: var(--redink);
 }
+/* Landing page's "we redesigned" bar (landing-content.tsx), above the nav.
+   In normal flow at the top of the page; on desktop, where the nav is
+   docked (position: fixed), the bar docks above it and
+   .landing-has-flash shifts the nav and everything under it down by the
+   bar's height until it's closed. */
+.redesign-flash {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  /* Full-bleed, like .landing-hero-band. */
+  margin: 0 calc(-1 * var(--landing-pad));
+  padding: 0.45rem 3rem;
+  background: var(--hero-blue);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+.redesign-flash button {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.redesign-flash button:hover {
+  opacity: 1;
+}
+@media (min-width: 1025px) {
+  .redesign-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 41;
+    height: 40px;
+    margin: 0;
+  }
+  .landing-has-flash .landing-hero-band .landing-nav {
+    top: 40px;
+  }
+  .landing-has-flash .landing-hero-band {
+    padding-top: calc(68.4px + 40px);
+  }
+  .landing-has-flash .landing-hero {
+    min-height: min(620px, calc(100svh - 68.4px - 40px));
+  }
+  .landing-has-flash .landing-clubs {
+    scroll-margin-top: 130px;
+  }
+}
 
 @media (max-width: 720px) {
   .landing-features,
@@ -2181,6 +2241,20 @@ body > * {
   border: 1px solid var(--hero-border);
   border-radius: 14px;
   background: color-mix(in srgb, var(--exam-color) 5%, #fff);
+  /* The whole card is the link (landing-content.tsx). */
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.landing-exam-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--exam-color);
+  box-shadow: 0 12px 28px rgba(15, 42, 92, 0.12);
+}
+.landing-exam-card:focus-visible {
+  outline: 3px solid rgba(11, 99, 246, 0.4);
+  outline-offset: 3px;
 }
 .landing-exam-badge {
   grid-column: 1;
@@ -2228,19 +2302,27 @@ body > * {
 .landing-exam-body .landing-exam-name {
   font-size: 1.05rem;
 }
+/* "Learn more" shows on phones only -- on desktop the hover-lift card is
+   the call to action. */
 .landing-exam-link {
+  display: none;
   margin-top: auto;
   align-self: flex-start;
-  border: 0;
-  background: none;
-  padding: 0;
   color: var(--hero-blue);
   font-size: 1rem;
   font-weight: 600;
-  cursor: pointer;
 }
-.landing-exam-link:hover {
-  text-decoration: underline;
+@media (max-width: 800px) {
+  .landing-exam-link {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-exam-card,
+  .landing-exam-card:hover {
+    transition: none;
+    transform: none;
+  }
 }
 
 @media (max-width: 1100px) {

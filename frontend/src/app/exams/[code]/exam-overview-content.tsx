@@ -32,8 +32,8 @@ export default function ExamOverviewContent({ code }: { code: ExamCode }) {
 
   // Persists which exam these links are about, purely so /manual and
   // /formulas (each wrapped in its own ExamProvider) pick the right one up
-  // on mount, same as landing-content.tsx's handleExamClick -- these are
-  // public pages now, so this never gates access, just pre-selects.
+  // on mount -- these are public pages now, so this never gates access,
+  // just pre-selects.
   const setExamStorage = () => {
     window.localStorage.setItem(EXAM_STORAGE_KEY, code);
   };
