@@ -9,53 +9,32 @@ import { FAQ_ITEMS } from "@/lib/faq-data";
 import { useReveal } from "@/lib/use-reveal";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SiteFooter } from "@/components/site-footer";
-import { MessageContent } from "@/components/message-content";
 import { SignInModal } from "@/components/sign-in-modal";
 import { ClubSponsorshipModal } from "./club-sponsorship-modal";
 
-const PREVIEW_ANSWER = `Let's work on **Combinatorics**, the recommended next topic. Your basic set reasoning is developing well, and counting methods will support many later probability problems.
-
-**Diagnostic:**
-
-A committee of 3 people is selected from 8 people. Does order matter?
-
-A. Yes—use permutations
-
-B. No—use combinations
-
-Reply **A or B** and briefly say why.`;
-
-const HERO_SYMBOLS: {
-  text: string;
-  left: string;
-  top: string;
-  fontSize: string;
-  delay: string;
-}[] = [
-  { text: "Σ", left: "3%", top: "17%", fontSize: "3.8rem", delay: "0s" },
-  { text: "σ²", left: "12%", top: "24%", fontSize: "2.8rem", delay: "3s" },
-  { text: "E[X]", left: "4%", top: "40%", fontSize: "2.3rem", delay: "1.2s" },
-  { text: "P(A|B)", left: "3%", top: "59%", fontSize: "2rem", delay: "4.5s" },
-  { text: "∫", left: "89%", top: "12%", fontSize: "4.5rem", delay: "1.5s" },
-  { text: "Aₓ", left: "94%", top: "27%", fontSize: "2.6rem", delay: "1s" },
-  { text: "μ", left: "86%", top: "34%", fontSize: "3.1rem", delay: "4s" },
-  { text: "∞", left: "92%", top: "43%", fontSize: "3.4rem", delay: "2.8s" },
-  { text: "Var(X)", left: "92%", top: "66%", fontSize: "1.8rem", delay: "2s" },
-];
-
 const EXAMS = [
-  { code: "P", name: "Probability", color: "var(--sky)" },
-  { code: "FM", name: "Financial Mathematics", color: "var(--gold)" },
+  {
+    code: "P",
+    name: "Probability",
+    color: "#1f6fe5",
+    text: "Combinatorics, conditional probability and Bayes' theorem, and univariate and multivariate distributions: the foundation for every later exam.",
+  },
+  {
+    code: "FM",
+    name: "Financial Mathematics",
+    color: "#12a37f",
+    text: "Time value of money, annuities, loans, bonds, and interest rate risk, worked through step by step.",
+  },
   {
     code: "FAM",
     name: "Fundamentals of Actuarial Mathematics",
-    color: undefined,
+    color: "#8250df",
+    text: "Survival models, life tables, and valuing life insurance and annuities, grounded in the SOA-specified textbooks.",
   },
 ];
 
-// P/FM/FAM icons on the exam-picker cards, in each exam's own accent color
-// (matching EXAMS above) -- undefined falls back to the default ink color,
-// same as exam-card-code already does for FAM.
+// P/FM/FAM icons on the "Prepare for Your Next Exam" cards, drawn faintly
+// in each exam's own accent color (matching EXAMS above).
 const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   P: (color) => (
     <svg viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
@@ -122,89 +101,78 @@ const EXAM_ICONS: Record<string, (color: string) => React.JSX.Element> = {
   ),
 };
 
-function BarsIcon() {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-      <rect x="6" y="21" width="7" height="13" rx="1.5" fill="currentColor" />
-      <rect x="16.5" y="13" width="7" height="21" rx="1.5" fill="currentColor" />
-      <rect x="27" y="5" width="7" height="29" rx="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function TargetIcon() {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M31.16 17.21 A14 14 0 1 1 22.33 8.69" />
-        <path d="M25.99 19.09 A8.5 8.5 0 1 1 20.63 13.92" />
-        <circle cx="18" cy="22" r="3" />
-        <path d="M18 22 L32 6" />
-      </g>
-      <path d="M29 9 V5 L32 2 V6 H36 L33 9 Z" fill="currentColor" />
-    </svg>
-  );
-}
-
-function GraduationCapIcon() {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 7 L37 15 L20 23 L3 15 Z" />
-        <path d="M10 19 V29 C15 34 25 34 30 29 V19 M36 16 V28" />
-      </g>
-    </svg>
-  );
-}
-
-function PersonIcon() {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-      <circle cx="20" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M6 35 V31 C6 23 12 20 20 20 C28 20 34 23 34 31 V35 Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function DocumentIcon() {
-  return (
-    <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
-      <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 4 H23 L32 13 V36 H9 Z M23 4 V13 H32" />
-        <path d="M14 19 H26 M14 24 H26 M14 29 H26" />
-      </g>
-    </svg>
-  );
-}
-
-// Same blue/gold/green triad as EXAMS' own colors (var(--sky)/var(--gold)/
-// var(--ink)), reapplied here via these classes so the two feature rows
-// reinforce the same P/FM/FAM color language instead of introducing new
-// colors of their own.
-const HERO_FEATURES = [
+const HERO_POINTS = [
   {
-    icon: <BarsIcon />,
-    title: "Tracks your mastery",
-    text: "Knows what you've learned and what to focus on",
-    colorClass: "color-sky",
+    title: "Grounded in SOA/CAS textbooks",
+    text: "Answers include textbook citations when appropriate.",
   },
   {
-    icon: <TargetIcon />,
-    title: "Identifies knowledge gaps",
-    text: "Finds weak areas in your foundational understanding",
-    colorClass: "color-gold",
+    title: "Tracks your progress",
+    text: "Identifies gaps and focuses on what you need to improve.",
   },
   {
-    icon: <GraduationCapIcon />,
-    title: "Guides you step by step",
-    text: "Provides clear explanations and practice tailored to you",
-    colorClass: "color-green",
+    title: "Personalized to your strengths and weaknesses",
+    text: "Adapts to your learning style and goals.",
+  },
+];
+
+const highlightIconProps = {
+  width: 34,
+  height: 34,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
+const HIGHLIGHTS = [
+  {
+    title: "Textbook-Grounded",
+    text: "Answers are based on the exact SOA/CAS-specified textbooks, with citations when appropriate.",
+    colorClass: "landing-highlight-blue",
+    icon: (
+      <svg {...highlightIconProps}>
+        <path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5Z" />
+        <path d="M12 6.5v13" />
+      </svg>
+    ),
+  },
+  {
+    title: "Personalized Learning",
+    text: "Tracks your proficiency, identifies gaps, and adapts to your learning style.",
+    colorClass: "landing-highlight-green",
+    icon: (
+      <svg {...highlightIconProps}>
+        <path d="M5 20v-5M10 20v-8M15 20v-6M20 20V9" />
+        <path d="M4 11l5-4 4 3 7-6M16 4h4v4" />
+      </svg>
+    ),
+  },
+  {
+    title: "Step-by-Step Support",
+    text: "Get clear, detailed explanations and follow-up help whenever you need it.",
+    colorClass: "landing-highlight-purple",
+    icon: (
+      <svg {...highlightIconProps}>
+        <circle cx="12" cy="12" r="8.5" />
+        <circle cx="12" cy="12" r="4.5" />
+        <path d="M12 12l7-7M16 5h3v3" />
+      </svg>
+    ),
+  },
+  {
+    title: "Study Smarter",
+    text: "Focus on what matters and make the most of your study time.",
+    colorClass: "landing-highlight-gold",
+    icon: (
+      <svg {...highlightIconProps}>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5V12l3 2" />
+      </svg>
+    ),
   },
 ];
 
@@ -264,13 +232,6 @@ const CLUB_PERKS = [
   },
 ];
 
-const BUILT_FOR_SUCCESS = [
-  { icon: <PersonIcon />, text: "Personalized learning path", colorClass: "color-sky" },
-  { icon: <DocumentIcon />, text: "Step-by-step explanations", colorClass: "color-gold" },
-  { icon: <TargetIcon />, text: "Focused practice and feedback", colorClass: "color-green" },
-  { icon: <BarsIcon />, text: "Build confidence for exam day", colorClass: "color-sky" },
-];
-
 function SignInErrorBanner() {
   const searchParams = useSearchParams();
   if (searchParams.get("signin_error") !== "1") return null;
@@ -318,22 +279,6 @@ export default function LandingContent() {
       {showClubForm && <ClubSponsorshipModal onClose={() => setShowClubForm(false)} />}
 
       <div className="landing-hero-band">
-        <div className="hero-bg" aria-hidden="true">
-          {HERO_SYMBOLS.map((s, i) => (
-            <span
-              key={i}
-              className="hero-symbol"
-              style={{
-                left: s.left,
-                top: s.top,
-                fontSize: s.fontSize,
-                animationDelay: s.delay,
-              }}
-            >
-              {s.text}
-            </span>
-          ))}
-        </div>
         <MarketingHeader mobileMenu>
           <Link className="btn" href="/about">
             About
@@ -382,89 +327,88 @@ export default function LandingContent() {
           )}
         </MarketingHeader>
 
-        <div className="landing-hero">
-          <h1>
-            Your personal tutor{" "}
-            <span>for actuarial exams</span>
-          </h1>
-          <p className="landing-hero-sub">
-            Personalized guidance that adapts as you learn.
-          </p>
-          <div className="landing-hero-features-row">
-            {HERO_FEATURES.map((feature) => (
-              <div className="landing-hero-features-row-item" key={feature.title}>
-                <span className={`landing-hero-features-row-icon ${feature.colorClass}`}>
-                  {feature.icon}
-                </span>
-                <div>
-                  <h2 className="landing-hero-features-row-title">{feature.title}</h2>
-                  <p>{feature.text}</p>
-                </div>
-              </div>
-            ))}
+        <section className="landing-hero">
+          <div className="landing-hero-copy">
+            <h1>Master Actuarial Exams with Your AI Tutor</h1>
+            <p className="landing-hero-sub">
+              Get step-by-step explanations, personalized guidance, and the confidence to pass.
+            </p>
+            <ul className="landing-hero-points">
+              {HERO_POINTS.map((point) => (
+                <li key={point.title}>
+                  <span className="landing-hero-check" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path
+                        d="M5 12.5l4.5 4.5L19 7.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <div>
+                    <strong>{point.title}</strong>
+                    <span>{point.text}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className="landing-hero-cta"
+              onClick={() => (token ? router.push("/chat") : setShowSignIn(true))}
+            >
+              {token ? "Go to Tutor" : "Try the tutor free"} <span aria-hidden="true">&rarr;</span>
+            </button>
+            <p className="landing-hero-note">
+              Study manuals and formula sheets are free for everyone, no account required.
+            </p>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary landing-hero-cta"
-            onClick={() => token ? router.push("/chat") : setShowSignIn(true)}
-          >
-            Try the tutor free <span aria-hidden="true">&rarr;</span>
-          </button>
-          <p className="landing-hero-cta-note">
-            Study manuals and formula sheets are free for everyone — no account required.
-          </p>
-          <div className="exam-picker">
-            {EXAMS.map((e) => (
-              <button
-                key={e.code}
-                type="button"
-                className="exam-card"
-                onClick={() => handleExamClick(e.code)}
-              >
-                <span
-                  className="exam-card-code"
-                  style={e.color ? { color: e.color } : undefined}
+        </section>
+      </div>
+
+      <div className="landing-highlights">
+        {HIGHLIGHTS.map((item) => (
+          <div className="landing-highlight" key={item.title}>
+            <span className={`landing-highlight-icon ${item.colorClass}`}>{item.icon}</span>
+            <h2>{item.title}</h2>
+            <p>{item.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <section className="landing-exams">
+        <h2>Prepare for Your Next Exam</h2>
+        <p className="landing-exams-sub">Currently available for the preliminary actuarial exams.</p>
+        <div className="landing-exams-grid">
+          {EXAMS.map((e) => (
+            <div
+              key={e.code}
+              className="landing-exam-card"
+              style={{ "--exam-color": e.color } as React.CSSProperties}
+            >
+              <span className="landing-exam-badge">{e.code}</span>
+              <div className="landing-exam-body">
+                <h3>Exam {e.code}</h3>
+                <p className="landing-exam-name">{e.name}</p>
+                <p>{e.text}</p>
+                <button
+                  type="button"
+                  className="landing-exam-link"
+                  onClick={() => handleExamClick(e.code)}
                 >
-                  {e.code}
-                </span>
-                <span className="exam-card-name">{e.name}</span>
-                {EXAM_ICONS[e.code]?.(e.color ?? "var(--ink)")}
-              </button>
-            ))}
-          </div>
-          <div className="landing-built-divider">
-            <span className="landing-built-label">Built for your success</span>
-          </div>
-          <div className="landing-built-row">
-            {BUILT_FOR_SUCCESS.map((item) => (
-              <div className="landing-built-item" key={item.text}>
-                <span className={`landing-built-icon ${item.colorClass}`}>{item.icon}</span>
-                <span>{item.text}</span>
+                  Learn more <span aria-hidden="true">&rarr;</span>
+                </button>
               </div>
-            ))}
-          </div>
+              <span className="landing-exam-art" aria-hidden="true">
+                {EXAM_ICONS[e.code]?.(e.color)}
+              </span>
+            </div>
+          ))}
         </div>
-      </div>
-
-      <div className="landing-community">
-        <h2>Join a growing community of actuarial students</h2>
-        <p>Smarter study. Stronger results.</p>
-      </div>
-
-      <div className="preview-window reveal">
-        <div className="preview-bar">
-          <span className="preview-dot" />
-          <span className="preview-dot" />
-          <span className="preview-dot" />
-          <span className="preview-exam">Exam P -- Probability</span>
-        </div>
-        <div className="preview-chat">
-          <div className="bubble user">What should we work on next?</div>
-          <div className="bubble assistant">
-            <MessageContent text={PREVIEW_ANSWER} />
-          </div>
-        </div>
-      </div>
+      </section>
 
       <div className="landing-features">
         <div className="feature-card reveal">
